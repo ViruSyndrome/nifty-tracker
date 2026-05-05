@@ -20,7 +20,7 @@ const INDICES = [
   { id: 'idx-banknifty', symbol: '^NSEBANK',    name: 'Bank Nifty' },
   { id: 'idx-niftyit',   symbol: '^CNXIT',      name: 'Nifty IT' },
   { id: 'idx-midcap',    symbol: '^NSEMDCP50',  name: 'Nifty Midcap' },
-  { id: 'idx-sgxnifty',  symbol: 'SGXNIFTY.SI', name: 'SGX Nifty' },
+  { id: 'idx-sgxnifty',  symbol: '^INDIAVIX',   name: 'India VIX' },
 ];
 
 // -- Popular stocks --
@@ -310,12 +310,8 @@ async function doSearch() {
   var q = document.getElementById('searchInput').value.trim();
   if (!q) return;
   document.getElementById('suggestions').classList.add('hidden');
-  var isTickerLike = /^[A-Z0-9&]+$/i.test(q) && q.length <= 12;
-  if (isTickerLike) {
-    await searchBySymbol(q.toUpperCase() + '.NS', q.toUpperCase());
-  } else {
-    await searchAndShow(q);
-  }
+  // Always use Yahoo search — handles names (Airtel→BHARTIARTL), tickers (TCS→TCS.NS), and US stocks
+  await searchAndShow(q);
 }
 
 async function searchAndShow(q) {
@@ -329,10 +325,16 @@ async function searchAndShow(q) {
     var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=5&newsCount=0';
     var data = await proxyFetch(url);
     var quotes = (data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [];
-    var indian = quotes.filter(function(q) { return q.symbol && (q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO')); });
+    var indian = quotes.filter(function(item) { return item.symbol && (item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO')); });
     var best   = indian.length ? indian[0] : quotes[0];
     if (!best) {
-      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". Try the NSE ticker directly (e.g. RELIANCE, TCS, INFY).</div>';
+      // Last resort: try the query as a raw ticker symbol (handles SNPS, AAPL etc.)
+      var trimmed = q.trim().toUpperCase().replace(/\s+stock$/i, '').trim();
+      if (/^[A-Z0-9.^]+$/.test(trimmed)) {
+        await searchBySymbol(trimmed, trimmed);
+        return;
+      }
+      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". Try typing the NSE ticker (e.g. RELIANCE, BHARTIARTL) or company name.</div>';
       return;
     }
     await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);

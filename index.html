@@ -83,33 +83,33 @@
   <section class="indices-section">
     <div class="container">
       <div class="indices-grid" id="indicesGrid">
-        <div class="index-card skeleton" id="idx-nifty50">
+        <div class="index-card skeleton" id="idx-nifty50" data-tooltip="Top 50 large-cap companies on NSE by market cap">
           <div class="idx-name">Nifty 50</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
-        <div class="index-card skeleton" id="idx-sensex">
+        <div class="index-card skeleton" id="idx-sensex" data-tooltip="Top 30 BSE stocks — India's oldest benchmark index">
           <div class="idx-name">Sensex</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
-        <div class="index-card skeleton" id="idx-banknifty">
+        <div class="index-card skeleton" id="idx-banknifty" data-tooltip="Top 12 banking & financial stocks on NSE">
           <div class="idx-name">Bank Nifty</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
-        <div class="index-card skeleton" id="idx-niftyit">
+        <div class="index-card skeleton" id="idx-niftyit" data-tooltip="Top IT & technology companies listed on NSE">
           <div class="idx-name">Nifty IT</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
-        <div class="index-card skeleton" id="idx-midcap">
+        <div class="index-card skeleton" id="idx-midcap" data-tooltip="Mid-sized companies — market cap ranks 101 to 150 on NSE">
           <div class="idx-name">Nifty Midcap</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
-        <div class="index-card skeleton" id="idx-sgxnifty">
-          <div class="idx-name">SGX Nifty</div>
+        <div class="index-card skeleton" id="idx-sgxnifty" data-tooltip="Market volatility gauge. Below 15 = calm, above 20 = fear & uncertainty">
+          <div class="idx-name">India VIX</div>
           <div class="idx-price">--</div>
           <div class="idx-change">--</div>
         </div>
@@ -131,6 +131,7 @@
   <!-- POPULAR STOCKS -->
   <section class="popular-section container">
     <h2 class="section-title">Popular Stocks</h2>
+    <p class="section-sub">Most-traded Nifty 50 stocks · Hover a card for quick info · Click to see full details</p>
     <div class="popular-grid" id="popularGrid">
       <!-- filled by JS -->
     </div>
@@ -140,11 +141,11 @@
   <section class="movers-section container">
     <div class="movers-grid">
       <div class="movers-card">
-        <h2 class="section-title gainers-title">🟢 Top Gainers</h2>
+        <h2 class="section-title gainers-title">🟢 Today's Top Gainers <span class="movers-badge">NSE</span></h2>
         <div id="gainersList" class="movers-list"></div>
       </div>
       <div class="movers-card">
-        <h2 class="section-title losers-title">🔴 Top Losers</h2>
+        <h2 class="section-title losers-title">🔴 Today's Top Losers <span class="movers-badge">NSE</span></h2>
         <div id="losersList" class="movers-list"></div>
       </div>
     </div>
