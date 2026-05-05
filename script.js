@@ -47,14 +47,14 @@ const NIFTY50_SYMBOLS = [
 ];
 
 // -- Commodities --
+// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × 10 = INR per 10g
 const COMMODITIES = [
-  // priceMultiplier: GOLDBEES 1 unit ≈ 0.01g gold → ×1000 = 10g price
-  { symbol: 'GOLDBEES.NS',  label: 'Gold 24K (10g)', priceMultiplier: 1000, tooltip: 'Approximate price of 10g of 24K gold — based on SBI Gold ETF NAV (1 unit ≈ 0.01g gold). Includes ETF tracking; actual retail price may vary slightly.' },
-  // priceMultiplier: SILVERBEES 1 unit ≈ 1g silver → ×10 = 10g price
-  { symbol: 'SILVERBEES.NS',label: 'Silver (10g)',    priceMultiplier: 10,   tooltip: 'Approximate price of 10g of silver — based on Mirae Asset Silver ETF NAV (1 unit ≈ 1g silver). Retail price may vary slightly.' },
-  { symbol: 'USDINR=X',    label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
-  { symbol: 'GBPINR=X',    label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
-  { symbol: 'EURINR=X',    label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
+  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true, purity: 1,      tooltip: 'Live 24K gold spot price per 10g in INR — international spot (GC=F) × USD/INR ÷ 31.1035 g/oz. Matches Google gold price.' },
+  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true, purity: 22/24,  tooltip: 'Live 22K gold price per 10g in INR — 91.67% of 24K spot. Standard karat for jewellery in India.' },
+  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true, purity: 1,      tooltip: 'Live silver spot price per 10g in INR — international spot (SI=F) × USD/INR ÷ 31.1035 g/oz.' },
+  { id: 'usd-inr',  symbol: 'USDINR=X', label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
+  { id: 'gbp-inr',  symbol: 'GBPINR=X', label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
+  { id: 'eur-inr',  symbol: 'EURINR=X', label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
 ];
 
 // =============================================
@@ -735,34 +735,63 @@ async function loadGlobalCues() {
 async function loadCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
-  await Promise.all(COMMODITIES.map(async function(c) {
-    var data = await fetchYahoo(c.symbol);
-    var id = 'cmd-' + c.symbol.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    var el = document.getElementById(id);
+
+  // Fetch each unique symbol once
+  var uniqueSymbols = COMMODITIES.map(function(c) { return c.symbol; })
+    .filter(function(s, i, arr) { return arr.indexOf(s) === i; });
+  var fetched = {};
+  await Promise.all(uniqueSymbols.map(async function(sym) {
+    fetched[sym] = await fetchYahoo(sym);
+  }));
+
+  // USD→INR rate needed for spot metal conversion
+  var usdInr = fetched['USDINR=X'] ? fetched['USDINR=X'].price : null;
+
+  COMMODITIES.forEach(function(c) {
+    var el = document.getElementById('cmd-' + c.id);
     if (!el) return;
+    var data = fetched[c.symbol];
     el.classList.remove('skeleton');
-    if (!data) { el.querySelector('.idx-price').textContent = '—'; return; }
-    var pct = changePct(data.price, data.prevClose);
-    var cls = changeClass(pct);
+    if (!data || data.price == null) {
+      el.querySelector('.idx-price').textContent = '—';
+      el.querySelector('.idx-change').textContent = '—';
+      return;
+    }
+    var pct  = changePct(data.price, data.prevClose);
+    var cls  = changeClass(pct);
     var sign = pct != null && pct >= 0 ? '+' : '';
-    var displayPrice = data.price * (c.priceMultiplier || 1);
-    var priceStr = c.symbol.endsWith('=X')
-      ? '₹' + displayPrice.toFixed(2)
-      : '₹' + fmt(Math.round(displayPrice));
-    el.classList.remove('positive','negative','neutral');
+
+    var displayPrice;
+    if (c.isSpot) {
+      // USD/troy oz → INR/10g at given purity (1 troy oz = 31.1035 g)
+      displayPrice = usdInr
+        ? Math.round((data.price * usdInr / 31.1035) * 10 * (c.purity || 1))
+        : null;
+    } else {
+      displayPrice = data.price * (c.priceMultiplier || 1);
+    }
+
+    var priceStr;
+    if (displayPrice == null) {
+      priceStr = 'Rate unavailable';
+    } else if (c.symbol.endsWith('=X')) {
+      priceStr = '₹' + displayPrice.toFixed(2);
+    } else {
+      priceStr = '₹' + fmt(displayPrice);
+    }
+
+    el.classList.remove('positive', 'negative', 'neutral');
     el.classList.add(cls);
     el.querySelector('.idx-price').textContent = priceStr;
-    var chEl = el.querySelector('.idx-change');
-    chEl.textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
-  }));
+    el.querySelector('.idx-change').textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
+  });
 }
 
 function renderCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
   row.innerHTML = COMMODITIES.map(function(c) {
-    var id = 'cmd-' + c.symbol.replace(/[^a-z0-9]/gi, '-').toLowerCase();
-    return '<div class="index-card skeleton" id="' + id + '" data-tooltip="' + c.tooltip + '">'
+    return '<div class="index-card skeleton" id="cmd-' + c.id + '" data-tooltip="' + c.tooltip + '">'
       + '<div class="idx-name">' + c.label + '</div>'
       + '<div class="idx-price">--</div>'
       + '<div class="idx-change">--</div>'
