@@ -546,16 +546,18 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
 async function fetchSuggestions(q) {
   var sugEl = document.getElementById('suggestions');
   try {
-    var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=6&newsCount=0';
+    var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=8&newsCount=0';
     var data = await proxyFetch(url, 4000);
-    var quotes = ((data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [])
-      .filter(function(q) { return q.symbol && (q.symbol.endsWith('.NS') || q.symbol.endsWith('.BO')); })
-      .slice(0, 6);
-    if (!quotes.length) { sugEl.classList.add('hidden'); return; }
-    sugEl.innerHTML = quotes.map(function(q) {
-      return '<div class="suggestion-item" data-symbol="' + q.symbol + '" data-name="' + (q.longname || q.shortname || q.symbol).replace(/"/g, '&quot;') + '">'
-        + '<span class="sug-name">' + (q.longname || q.shortname || q.symbol) + '</span>'
-        + '<span class="sug-ticker">' + q.symbol.replace(/\.(NS|BO)$/, '') + '</span>'
+    var allQuotes = ((data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [])
+      .filter(function(item) { return item.symbol && item.quoteType === 'EQUITY'; })
+      .slice(0, 7);
+    if (!allQuotes.length) { sugEl.classList.add('hidden'); return; }
+    sugEl.innerHTML = allQuotes.map(function(item) {
+      var isIndian = item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO');
+      var exchange = isIndian ? item.symbol.replace(/\.(NS|BO)$/, '') : item.symbol + ' · US';
+      return '<div class="suggestion-item" data-symbol="' + item.symbol + '" data-name="' + (item.longname || item.shortname || item.symbol).replace(/"/g, '&quot;') + '">'
+        + '<span class="sug-name">' + (item.longname || item.shortname || item.symbol) + '</span>'
+        + '<span class="sug-ticker">' + exchange + '</span>'
         + '</div>';
     }).join('');
     sugEl.querySelectorAll('.suggestion-item').forEach(function(item) {
