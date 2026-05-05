@@ -48,8 +48,9 @@ const NIFTY50_SYMBOLS = [
 
 // -- Commodities --
 const COMMODITIES = [
-  { symbol: 'GOLDBEES.NS',   label: 'Gold (NSE ETF)',   unit: '₹/unit ≈ ₹/g' },
-  { symbol: 'SILVERBEES.NS', label: 'Silver (NSE ETF)', unit: '₹/unit ≈ ₹/g' },
+  { symbol: 'GOLDBEES.NS',  label: 'Gold ETF',  tooltip: 'SBI Gold ETF — tracks MCX gold price in INR (₹ per unit ≈ ₹ per gram)' },
+  { symbol: 'SILVERBEES.NS',label: 'Silver ETF',tooltip: 'Mirae Asset Silver ETF — tracks MCX silver price in INR' },
+  { symbol: 'USDINR=X',    label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
 ];
 
 // =============================================
@@ -573,25 +574,29 @@ setInterval(function() {
 setInterval(updateLastUpdated, 1000);
 
 // =============================================
-// COMMODITY TILES (Gold & Silver via NSE ETFs)
+// COMMODITY / FX TILES
 // =============================================
 async function loadCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
   await Promise.all(COMMODITIES.map(async function(c) {
     var data = await fetchYahoo(c.symbol);
-    var id = 'cmd-' + c.symbol.replace(/\./g,'-').toLowerCase();
+    var id = 'cmd-' + c.symbol.replace(/[^a-z0-9]/gi, '-').toLowerCase();
     var el = document.getElementById(id);
-    if (!el) return; // skeleton not yet in DOM? skip
+    if (!el) return;
     el.classList.remove('skeleton');
-    if (!data) { el.querySelector('.commodity-price').textContent = '—'; return; }
+    if (!data) { el.querySelector('.idx-price').textContent = '—'; return; }
     var pct = changePct(data.price, data.prevClose);
     var cls = changeClass(pct);
     var sign = pct != null && pct >= 0 ? '+' : '';
-    el.querySelector('.commodity-price').textContent = '₹' + fmt(data.price);
-    var chEl = el.querySelector('.commodity-change');
+    var priceStr = c.symbol === 'USDINR=X'
+      ? '₹' + data.price.toFixed(2)
+      : '₹' + fmt(data.price);
+    el.classList.remove('positive','negative','neutral');
+    el.classList.add(cls);
+    el.querySelector('.idx-price').textContent = priceStr;
+    var chEl = el.querySelector('.idx-change');
     chEl.textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
-    chEl.className = 'commodity-change ' + cls;
   }));
 }
 
@@ -599,11 +604,11 @@ function renderCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
   row.innerHTML = COMMODITIES.map(function(c) {
-    var id = 'cmd-' + c.symbol.replace(/\./g,'-').toLowerCase();
-    return '<div class="commodity-card skeleton" id="' + id + '">'
-      + '<div class="commodity-label">' + c.label + '</div>'
-      + '<div class="commodity-price">—</div>'
-      + '<div class="commodity-change">—</div>'
+    var id = 'cmd-' + c.symbol.replace(/[^a-z0-9]/gi, '-').toLowerCase();
+    return '<div class="index-card skeleton" id="' + id + '" data-tooltip="' + c.tooltip + '">'
+      + '<div class="idx-name">' + c.label + '</div>'
+      + '<div class="idx-price">--</div>'
+      + '<div class="idx-change">--</div>'
       + '</div>';
   }).join('');
 }

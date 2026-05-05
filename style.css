@@ -464,31 +464,15 @@ a { color: inherit; text-decoration: none; }
 }
 .result-chart svg { display: block; width: 100%; height: auto; }
 
-/* ---- COMMODITY TILES ---- */
+/* ---- COMMODITY / FX TILES ---- */
 .commodities-section {
   padding: 0 20px 32px;
-  margin-top: -8px;
 }
 .commodities-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
-  flex-wrap: wrap;
 }
-.commodity-card {
-  flex: 1;
-  min-width: 140px;
-  max-width: 220px;
-  background: linear-gradient(135deg, rgba(20,184,166,0.08), rgba(15,23,42,0));
-  border: 1px solid rgba(20,184,166,0.25);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  cursor: default;
-  transition: border-color 0.2s;
-}
-.commodity-card:hover { border-color: rgba(20,184,166,0.5); }
-.commodity-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.8px; color: var(--primary); font-weight: 600; margin-bottom: 4px; }
-.commodity-price { font-size: 1.1rem; font-weight: 700; color: var(--text); }
-.commodity-change { font-size: 0.8rem; margin-top: 2px; font-weight: 500; }
 
 /* ---- INFO SECTION ---- */
 .info-section { padding: 40px 20px 56px; }
