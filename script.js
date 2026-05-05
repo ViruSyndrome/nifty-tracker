@@ -8,7 +8,7 @@
 // Example: 'https://nifty-proxy.yourname.workers.dev'
 // Until then, free proxies are used as fallback.
 // -----------------------------------------------------------
-const CF_WORKER = '';  // <- paste Cloudflare Worker URL here when ready
+const CF_WORKER = 'https://nifty-proxy.vinodjamesisaac.workers.dev';
 
 const YF_BASE   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF_SEARCH = 'https://query1.finance.yahoo.com/v1/finance/search?q=';
