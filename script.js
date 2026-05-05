@@ -402,15 +402,31 @@ if (urlQ) {
 }
 
 // =============================================
-// AUTO REFRESH every 30s
+// AUTO REFRESH every 20s + live counter
 // =============================================
-setInterval(loadIndices, 30000);
+var lastRefreshTime = Date.now();
+
+function updateLastUpdated() {
+  var el = document.getElementById('lastUpdated');
+  if (!el) return;
+  var secs = Math.floor((Date.now() - lastRefreshTime) / 1000);
+  el.textContent = secs < 5 ? 'Updated just now' : 'Updated ' + secs + 's ago';
+}
+
+setInterval(function() {
+  lastRefreshTime = Date.now();
+  loadIndices();
+}, 20000);
+
+setInterval(updateLastUpdated, 1000);
 
 // =============================================
 // INIT
 // =============================================
 (async function init() {
-  loadIndices();
+  await loadIndices();
+  lastRefreshTime = Date.now();
+  updateLastUpdated();
   loadPopular();
   loadMovers();
 })();
