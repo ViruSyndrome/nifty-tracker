@@ -542,3 +542,57 @@ a { color: inherit; text-decoration: none; }
   .indices-grid { grid-template-columns: repeat(2, 1fr); }
   .popular-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── MARKET STATUS STATES ── */
+.live-dot.market-open    { background: #22c55e; animation: pulse-dot 2s ease-in-out infinite; }
+.live-dot.market-preopen { background: #f59e0b; animation: pulse-dot 2s ease-in-out infinite; }
+.live-dot.market-closed  { background: #ef4444; animation: none; opacity: 0.9; }
+
+/* ── GLOBAL CUES SECTION ── */
+.global-cues-section {
+  padding: 20px 0 8px;
+  animation: fadeInDown 0.35s ease;
+}
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.global-cues-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.global-cue-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 12px;
+  transition: border-color 0.2s, transform 0.15s;
+}
+.global-cue-card:hover { border-color: var(--primary); transform: translateY(-1px); }
+.gcue-flag  { font-size: 1rem; margin-bottom: 3px; }
+.gcue-name  { font-size: 0.7rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+.gcue-price { font-size: 0.98rem; font-weight: 700; color: var(--text); }
+.gcue-change { font-size: 0.74rem; font-weight: 600; margin-top: 2px; }
+.gcue-change.up   { color: #22c55e; }
+.gcue-change.down { color: #ef4444; }
+.cues-cta {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.cues-cta a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.cues-cta a:hover { text-decoration: underline; }
+@media (max-width: 640px) {
+  .global-cues-grid { grid-template-columns: repeat(2, 1fr); }
+  .cues-cta { gap: 8px; font-size: 0.78rem; }
+}

@@ -48,9 +48,13 @@ const NIFTY50_SYMBOLS = [
 
 // -- Commodities --
 const COMMODITIES = [
-  { symbol: 'GOLDBEES.NS',  label: 'Gold ETF',  tooltip: 'SBI Gold ETF — tracks MCX gold price in INR (₹ per unit ≈ ₹ per gram)' },
-  { symbol: 'SILVERBEES.NS',label: 'Silver ETF',tooltip: 'Mirae Asset Silver ETF — tracks MCX silver price in INR' },
+  // priceMultiplier: GOLDBEES 1 unit ≈ 0.01g gold → ×1000 = 10g price
+  { symbol: 'GOLDBEES.NS',  label: 'Gold 24K (10g)', priceMultiplier: 1000, tooltip: 'Approximate price of 10g of 24K gold — based on SBI Gold ETF NAV (1 unit ≈ 0.01g gold). Includes ETF tracking; actual retail price may vary slightly.' },
+  // priceMultiplier: SILVERBEES 1 unit ≈ 1g silver → ×10 = 10g price
+  { symbol: 'SILVERBEES.NS',label: 'Silver (10g)',    priceMultiplier: 10,   tooltip: 'Approximate price of 10g of silver — based on Mirae Asset Silver ETF NAV (1 unit ≈ 1g silver). Retail price may vary slightly.' },
   { symbol: 'USDINR=X',    label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
+  { symbol: 'GBPINR=X',    label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
+  { symbol: 'EURINR=X',    label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
 ];
 
 // =============================================
@@ -603,7 +607,127 @@ setInterval(function() {
   loadCommodities();
 }, 20000);
 
-setInterval(updateLastUpdated, 1000);
+setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+
+// =============================================
+// MARKET STATUS & GLOBAL CUES
+// =============================================
+function getISTDate() {
+  var now = new Date();
+  var utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+  return new Date(utcMs + (330 * 60000)); // UTC+5:30
+}
+
+function getMarketStatus() {
+  var ist = getISTDate();
+  var day = ist.getDay(); // 0=Sun, 6=Sat
+  var h = ist.getHours(), m = ist.getMinutes();
+  var totalMins = h * 60 + m;
+
+  if (day === 0 || day === 6) {
+    var daysUntilMon = day === 0 ? 1 : 2;
+    return { status: 'closed', minsUntilOpen: daysUntilMon * 24 * 60 - totalMins + 540 };
+  }
+  if (totalMins < 540)  return { status: 'closed',   minsUntilOpen: 540 - totalMins };
+  if (totalMins < 555)  return { status: 'preopen',  minsUntilOpen: 555 - totalMins };
+  if (totalMins < 930)  return { status: 'open',     minsUntilClose: 930 - totalMins };
+
+  // After 3:30 PM — find next trading day
+  var tomorrow = new Date(ist);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  var tDay = tomorrow.getDay();
+  var daysToAdd = tDay === 6 ? 3 : tDay === 0 ? 2 : 1;
+  return { status: 'closed', minsUntilOpen: daysToAdd * 24 * 60 - totalMins + 540 };
+}
+
+function formatMktCountdown(mins) {
+  if (mins <= 0) return 'now';
+  var h = Math.floor(mins / 60), m = mins % 60;
+  if (h >= 24) { var d = Math.floor(h / 24); return 'in ' + d + 'd ' + (h % 24) + 'h'; }
+  if (h > 0)  return 'in ' + h + 'h ' + (m < 10 ? '0' : '') + m + 'm';
+  return 'in ' + m + 'm';
+}
+
+function updateMarketStatus() {
+  var s   = getMarketStatus();
+  var dot = document.getElementById('marketDot');
+  var lbl = document.getElementById('marketLabel');
+  var ctr = document.getElementById('marketCountdown');
+  var cues = document.getElementById('globalCuesSection');
+  if (!dot) return;
+
+  if (s.status === 'open') {
+    dot.style.cssText = 'background:#22c55e';
+    lbl.style.color   = '#22c55e';
+    lbl.textContent   = 'Open';
+    ctr.textContent   = 'Closes ' + formatMktCountdown(s.minsUntilClose) + ' · NSE · 15-min delayed';
+    if (cues) cues.style.display = 'none';
+  } else if (s.status === 'preopen') {
+    dot.style.cssText = 'background:#f59e0b';
+    lbl.style.color   = '#f59e0b';
+    lbl.textContent   = 'Pre-Open';
+    ctr.textContent   = 'Opens ' + formatMktCountdown(s.minsUntilOpen) + ' · Pre-market session active';
+    if (cues) cues.style.display = 'none';
+  } else {
+    dot.style.cssText = 'background:#ef4444;animation:none';
+    lbl.style.color   = '#ef4444';
+    lbl.textContent   = 'Closed';
+    ctr.textContent   = 'Opens ' + formatMktCountdown(s.minsUntilOpen) + ' · Showing last close';
+    if (cues) {
+      cues.style.display = '';
+      if (!window._globalCuesLoaded) { window._globalCuesLoaded = true; loadGlobalCues(); }
+    }
+  }
+}
+
+var GLOBAL_INDICES = [
+  { symbol: '^GSPC', name: 'S&P 500',    flag: '🇺🇸' },
+  { symbol: '^IXIC', name: 'Nasdaq',      flag: '🇺🇸' },
+  { symbol: '^DJI',  name: 'Dow Jones',   flag: '🇺🇸' },
+  { symbol: '^N225', name: 'Nikkei 225',  flag: '🇯🇵' },
+  { symbol: 'CL=F',  name: 'Crude (WTI)', flag: '🛢️' },
+  { symbol: 'GC=F',  name: 'Gold (USD)',  flag: '🥇' },
+];
+
+async function loadGlobalCues() {
+  var grid = document.getElementById('globalCuesGrid');
+  if (!grid) return;
+  grid.innerHTML = GLOBAL_INDICES.map(function(idx) {
+    var id = 'gcue-' + idx.symbol.replace(/[^a-z0-9]/gi, '_');
+    return '<div class="global-cue-card skeleton" id="' + id + '">'
+      + '<div class="gcue-flag">' + idx.flag + '</div>'
+      + '<div class="gcue-name">' + idx.name + '</div>'
+      + '<div class="gcue-price">—</div>'
+      + '<div class="gcue-change">Loading…</div>'
+      + '</div>';
+  }).join('');
+
+  await Promise.all(GLOBAL_INDICES.map(async function(idx) {
+    try {
+      var url  = YF_BASE + encodeURIComponent(idx.symbol) + '?interval=1d&range=2d';
+      var json = await proxyFetch(url, 7000);
+      var result = json && json.chart && json.chart.result && json.chart.result[0];
+      if (!result) return;
+      var meta   = result.meta;
+      var price  = meta.regularMarketPrice || 0;
+      var prev   = meta.chartPreviousClose || meta.previousClose || 0;
+      var change = price - prev;
+      var pct    = prev ? (change / prev * 100) : 0;
+      var isUp   = change >= 0;
+      var pStr   = price >= 1000
+        ? price.toLocaleString('en-US', { maximumFractionDigits: 0 })
+        : price.toFixed(2);
+      var cStr   = (isUp ? '+' : '') + change.toFixed(2) + ' (' + (isUp ? '+' : '') + pct.toFixed(2) + '%)';
+      var id   = 'gcue-' + idx.symbol.replace(/[^a-z0-9]/gi, '_');
+      var card = document.getElementById(id);
+      if (!card) return;
+      card.classList.remove('skeleton');
+      card.querySelector('.gcue-price').textContent   = pStr;
+      card.querySelector('.gcue-change').textContent  = cStr;
+      card.querySelector('.gcue-change').className    = 'gcue-change ' + (isUp ? 'up' : 'down');
+    } catch(e) {}
+  }));
+}
 
 // =============================================
 // COMMODITY / FX TILES
@@ -621,9 +745,10 @@ async function loadCommodities() {
     var pct = changePct(data.price, data.prevClose);
     var cls = changeClass(pct);
     var sign = pct != null && pct >= 0 ? '+' : '';
-    var priceStr = c.symbol === 'USDINR=X'
-      ? '₹' + data.price.toFixed(2)
-      : '₹' + fmt(data.price);
+    var displayPrice = data.price * (c.priceMultiplier || 1);
+    var priceStr = c.symbol.endsWith('=X')
+      ? '₹' + displayPrice.toFixed(2)
+      : '₹' + fmt(Math.round(displayPrice));
     el.classList.remove('positive','negative','neutral');
     el.classList.add(cls);
     el.querySelector('.idx-price').textContent = priceStr;
@@ -656,6 +781,7 @@ function renderCommodities() {
   await loadIndices();
   lastRefreshTime = Date.now();
   updateLastUpdated();
+  updateMarketStatus();
   loadPopular();
   loadMovers();
   loadCommodities();

@@ -68,6 +68,7 @@
         <span class="logo-text">GetNifty<span class="logo-accent">Ready</span></span>
       </a>
       <div class="nav-links">
+        <a href="/sip-calculator.html">SIP Calc</a>
         <a href="/about.html">About</a>
         <a href="/contact.html">Contact</a>
       </div>
@@ -96,11 +97,11 @@
   <section class="indices-section">
     <div class="container">
       <div class="live-bar">
-        <span class="live-dot"></span><span class="live-label">LIVE</span>
+        <span class="live-dot" id="marketDot"></span><span class="live-label" id="marketLabel">LIVE</span>
         <span class="live-sep">·</span>
         <span id="lastUpdated">Updating…</span>
         <span class="live-sep">·</span>
-        <span class="live-delay">NSE data · 15-min delayed</span>
+        <span id="marketCountdown" class="live-delay">NSE · 9:15 AM – 3:30 PM IST</span>
       </div>
       <div class="indices-grid" id="indicesGrid">
         <div class="index-card skeleton" id="idx-nifty50" data-tooltip="Top 50 large-cap companies on NSE by market cap">
@@ -136,6 +137,23 @@
       </div>
     </div>
   </section>
+
+  <!-- GLOBAL CUES — shown when NSE market is closed -->
+  <div id="globalCuesSection" class="global-cues-section container" style="display:none">
+    <div class="global-cues-header">
+      <h2 class="section-title">🌍 Global Markets <span class="movers-badge">While You Wait</span></h2>
+      <p class="section-sub" style="margin-bottom:12px">NSE is closed — here's what's moving in global markets right now</p>
+    </div>
+    <div class="global-cues-grid" id="globalCuesGrid"></div>
+    <div class="cues-cta">
+      <span>📊 Plan for next week:</span>
+      <a href="/sip-calculator.html">SIP Calculator</a>
+      <span>·</span>
+      <a href="#" onclick="event.preventDefault();searchBySymbol('GOLDBEES.NS','Gold ETF')">Gold Price</a>
+      <span>·</span>
+      <a href="#" onclick="event.preventDefault();document.getElementById('searchInput').focus();window.scrollTo({top:0,behavior:'smooth'})">Search any stock ↑</a>
+    </div>
+  </div>
 
   <!-- AD SLOT (top) -->
   <div class="ad-slot container">
