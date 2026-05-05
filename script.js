@@ -64,10 +64,13 @@ async function getSparkline(symbol, range, interval) {
   try {
     var url = YF_BASE + encodeURIComponent(symbol) + '?interval=' + interval + '&range=' + range;
     var json = await proxyFetch(url, 5000);
-    var closes = (json && json.chart && json.chart.result && json.chart.result[0] &&
-                  json.chart.result[0].indicators && json.chart.result[0].indicators.quote &&
-                  json.chart.result[0].indicators.quote[0].close) || [];
-    var filtered = closes.filter(function(v) { return v != null; });
+    var result = json && json.chart && json.chart.result && json.chart.result[0];
+    var closes    = (result && result.indicators && result.indicators.quote && result.indicators.quote[0].close) || [];
+    var timestamps = (result && result.timestamp) || [];
+    var filtered = [];
+    for (var i = 0; i < closes.length; i++) {
+      if (closes[i] != null) filtered.push({ price: closes[i], ts: timestamps[i] || 0 });
+    }
     _sparkCache[key] = filtered;
     return filtered;
   } catch(e) {
@@ -75,28 +78,57 @@ async function getSparkline(symbol, range, interval) {
   }
 }
 
-function drawSparklineSVG(prices, w, h) {
+function drawSparklineSVG(data, w, h, showTimeAxis) {
   w = w || 160; h = h || 48;
+  // Accept both old array-of-numbers and new array-of-{price,ts}
+  var prices = data.map(function(d) { return typeof d === 'object' ? d.price : d; });
+  var timestamps = data.map(function(d) { return typeof d === 'object' ? d.ts : 0; });
   if (!prices || prices.length < 2) {
     return '<svg width="' + w + '" height="' + h + '"><text x="' + (w/2) + '" y="' + (h/2+4) + '" text-anchor="middle" fill="#475569" font-size="9">No chart data</text></svg>';
   }
+  var axisH = showTimeAxis ? 18 : 0;
+  var chartH = h - axisH;
   var min = Math.min.apply(null, prices);
   var max = Math.max.apply(null, prices);
   var rng = max - min || 1;
   var pad = 3;
   var pts = prices.map(function(p, i) {
     var x = (i / (prices.length - 1)) * (w - pad*2) + pad;
-    var y = (h - pad*2) - ((p - min) / rng) * (h - pad*2) + pad;
+    var y = (chartH - pad*2) - ((p - min) / rng) * (chartH - pad*2) + pad;
     return x.toFixed(1) + ',' + y.toFixed(1);
   }).join(' ');
   var isUp = prices[prices.length - 1] >= prices[0];
   var color = isUp ? '#22c55e' : '#ef4444';
-  var fillPts = pts + ' ' + (w-pad) + ',' + (h-pad) + ' ' + pad + ',' + (h-pad);
+  var fillPts = pts + ' ' + (w-pad).toFixed(1) + ',' + (chartH-pad) + ' ' + pad + ',' + (chartH-pad);
   var fillColor = isUp ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
-  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">' +
-    '<polygon points="' + fillPts + '" fill="' + fillColor + '"/>' +
-    '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '</svg>';
+
+  var svg = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">'
+    + '<polygon points="' + fillPts + '" fill="' + fillColor + '"/>'
+    + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // Time axis labels (only when showTimeAxis = true and we have timestamps)
+  if (showTimeAxis && timestamps[0]) {
+    var numLabels = Math.min(5, prices.length);
+    var step = Math.floor((prices.length - 1) / (numLabels - 1));
+    for (var i = 0; i < numLabels; i++) {
+      var idx = Math.min(i * step, prices.length - 1);
+      var tsMs = timestamps[idx] * 1000;
+      var d = new Date(tsMs);
+      var hh = d.getHours();
+      var mm = ('0' + d.getMinutes()).slice(-2);
+      var ampm = hh >= 12 ? 'pm' : 'am';
+      hh = hh % 12 || 12;
+      var label = hh + ':' + mm + ampm;
+      var xPos = (idx / (prices.length - 1)) * (w - pad*2) + pad;
+      var anchor = i === 0 ? 'start' : (i === numLabels - 1 ? 'end' : 'middle');
+      svg += '<text x="' + xPos.toFixed(1) + '" y="' + (h - 3) + '" text-anchor="' + anchor + '" fill="#475569" font-size="9" font-family="Inter,sans-serif">' + label + '</text>';
+    }
+    // axis line
+    svg += '<line x1="' + pad + '" y1="' + (chartH) + '" x2="' + (w-pad) + '" y2="' + (chartH) + '" stroke="#2d3f55" stroke-width="1"/>';
+  }
+
+  svg += '</svg>';
+  return svg;
 }
 
 var _sparkTipEl = null;
@@ -441,13 +473,13 @@ async function searchBySymbol(symbol, name) {
 
   // Async-load intraday chart
   (function(sym, cu) {
-    getSparkline(sym, '1d', '5m').then(function(prices) {
+    getSparkline(sym, '1d', '5m').then(function(data) {
       var chartEl = document.getElementById('resultChart');
       if (!chartEl) return;
-      if (prices.length > 4) {
+      if (data.length > 4) {
         chartEl.innerHTML =
-          '<div class="result-chart-label"><span>Today\'s intraday chart (5-min intervals)</span><span>' + sym.replace(/\.(NS|BO)$/, '') + '</span></div>' +
-          drawSparklineSVG(prices, 560, 88);
+          '<div class="result-chart-label"><span>Today\'s intraday chart (5-min intervals, IST)</span><span>' + sym.replace(/\.(NS|BO)$/, '') + '</span></div>' +
+          drawSparklineSVG(data, 560, 100, true);
       } else {
         chartEl.innerHTML = '<div style="font-size:0.78rem;color:#475569;text-align:center;padding:12px 0;">Intraday chart unavailable (market closed or no data yet)</div>';
       }
@@ -617,6 +649,9 @@ function renderCommodities() {
 // INIT
 // =============================================
 (async function init() {
+  // Hide stuck tooltip on any scroll or touch-scroll
+  document.addEventListener('scroll', hideSparkTip, true);
+  document.addEventListener('touchmove', hideSparkTip, true);
   renderCommodities();
   await loadIndices();
   lastRefreshTime = Date.now();
