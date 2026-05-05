@@ -46,6 +46,80 @@ const NIFTY50_SYMBOLS = [
   'BAJFINANCE.NS','TATAMOTORS.NS',
 ];
 
+// -- Commodities --
+const COMMODITIES = [
+  { symbol: 'GOLDBEES.NS',   label: 'Gold (NSE ETF)',   unit: '₹/unit ≈ ₹/g' },
+  { symbol: 'SILVERBEES.NS', label: 'Silver (NSE ETF)', unit: '₹/unit ≈ ₹/g' },
+];
+
+// =============================================
+// SPARKLINE ENGINE
+// =============================================
+var _sparkCache = {};
+
+async function getSparkline(symbol, range, interval) {
+  var key = symbol + ':' + range + ':' + interval;
+  if (_sparkCache[key]) return _sparkCache[key];
+  try {
+    var url = YF_BASE + encodeURIComponent(symbol) + '?interval=' + interval + '&range=' + range;
+    var json = await proxyFetch(url, 5000);
+    var closes = (json && json.chart && json.chart.result && json.chart.result[0] &&
+                  json.chart.result[0].indicators && json.chart.result[0].indicators.quote &&
+                  json.chart.result[0].indicators.quote[0].close) || [];
+    var filtered = closes.filter(function(v) { return v != null; });
+    _sparkCache[key] = filtered;
+    return filtered;
+  } catch(e) {
+    return [];
+  }
+}
+
+function drawSparklineSVG(prices, w, h) {
+  w = w || 160; h = h || 48;
+  if (!prices || prices.length < 2) {
+    return '<svg width="' + w + '" height="' + h + '"><text x="' + (w/2) + '" y="' + (h/2+4) + '" text-anchor="middle" fill="#475569" font-size="9">No chart data</text></svg>';
+  }
+  var min = Math.min.apply(null, prices);
+  var max = Math.max.apply(null, prices);
+  var rng = max - min || 1;
+  var pad = 3;
+  var pts = prices.map(function(p, i) {
+    var x = (i / (prices.length - 1)) * (w - pad*2) + pad;
+    var y = (h - pad*2) - ((p - min) / rng) * (h - pad*2) + pad;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  var isUp = prices[prices.length - 1] >= prices[0];
+  var color = isUp ? '#22c55e' : '#ef4444';
+  var fillPts = pts + ' ' + (w-pad) + ',' + (h-pad) + ' ' + pad + ',' + (h-pad);
+  var fillColor = isUp ? 'rgba(34,197,94,0.08)' : 'rgba(239,68,68,0.08)';
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">' +
+    '<polygon points="' + fillPts + '" fill="' + fillColor + '"/>' +
+    '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>' +
+    '</svg>';
+}
+
+var _sparkTipEl = null;
+function _getTip() {
+  if (!_sparkTipEl) _sparkTipEl = document.getElementById('sparkTip');
+  return _sparkTipEl;
+}
+function showSparkTip(e, html) {
+  var tip = _getTip(); if (!tip) return;
+  tip.innerHTML = html;
+  tip.classList.remove('hidden'); tip.classList.add('visible');
+  _positionTip(e);
+}
+function _positionTip(e) {
+  var tip = _getTip(); if (!tip || tip.classList.contains('hidden')) return;
+  var x = e.clientX + 14, y = e.clientY - 20;
+  if (x + 220 > window.innerWidth) x = e.clientX - 220;
+  if (y + 180 > window.innerHeight) y = e.clientY - 180;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideSparkTip() {
+  var tip = _getTip(); if (tip) { tip.classList.remove('visible'); tip.classList.add('hidden'); }
+}
+
 // =============================================
 // PROXY FETCH — tries multiple sources
 // =============================================
@@ -211,6 +285,37 @@ async function loadPopular() {
     card.addEventListener('click', (function(sym, nm) {
       return function() { searchBySymbol(sym, nm); };
     })(stock.symbol, data && data.name ? data.name : stock.name));
+    // Hover sparkline tooltip
+    var _tipData = data;
+    var _tipSym  = stock.symbol;
+    var _tipName = stock.name;
+    card.addEventListener('mouseenter', function(e) {
+      var pctVal = _tipData ? changePct(_tipData.price, _tipData.prevClose) : null;
+      var s2 = pctVal != null && pctVal >= 0 ? '+' : '';
+      var col = pctVal != null && pctVal >= 0 ? '#22c55e' : '#ef4444';
+      showSparkTip(e,
+        '<div class="stip-name">' + _tipName + '</div>' +
+        '<div class="stip-price">' + (_tipData ? '₹' + fmt(_tipData.price) : '—') +
+        (_tipData ? ' <span style="color:' + col + '">' + s2 + pctVal.toFixed(2) + '%</span>' : '') + '</div>' +
+        '<div class="stip-loading">Loading 5-day chart…</div>'
+      );
+      getSparkline(_tipSym, '5d', '60m').then(function(prices) {
+        var p2 = _tipData ? changePct(_tipData.price, _tipData.prevClose) : null;
+        var s3 = p2 != null && p2 >= 0 ? '+' : '';
+        var c2 = p2 != null && p2 >= 0 ? '#22c55e' : '#ef4444';
+        showSparkTip(e,
+          '<div class="stip-name">' + _tipName + '</div>' +
+          '<div class="stip-price">' + (_tipData ? '₹' + fmt(_tipData.price) : '—') +
+          (_tipData ? ' <span style="color:' + c2 + '">' + s3 + p2.toFixed(2) + '%</span>' : '') + '</div>' +
+          drawSparklineSVG(prices, 170, 52) +
+          '<div class="stip-label">5-day · hover to explore · click for details</div>'
+        );
+      });
+    });
+    card.addEventListener('mousemove', function(e) {
+      var tip = _getTip(); if (tip && !tip.classList.contains('hidden')) _positionTip(e);
+    });
+    card.addEventListener('mouseleave', hideSparkTip);
   }));
 }
 
@@ -247,12 +352,42 @@ function renderMovers(elId, items, cls) {
   el.innerHTML = items.map(function(d) {
     var sign = d.pct >= 0 ? '+' : '';
     var shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
-    return '<div class="mover-row" onclick="searchBySymbol(\'' + d.symbol + '\', \'' + shortName.replace(/'/g, "\\'") + '\')">'
+    return '<div class="mover-row" data-sym="' + d.symbol + '" data-name="' + shortName.replace(/"/g, '&quot;') + '" data-price="' + d.price + '" data-pct="' + d.pct.toFixed(2) + '" data-cls="' + cls + '" onclick="searchBySymbol(\'' + d.symbol + '\', \'' + shortName.replace(/'/g, "\\'") + '\')">'
       + '<div class="mover-name">' + shortName + '</div>'
       + '<div class="mover-price">₹' + fmt(d.price) + '</div>'
       + '<div class="mover-pct ' + cls + '">' + sign + d.pct.toFixed(2) + '%</div>'
       + '</div>';
   }).join('');
+
+  // Attach hover sparkline events
+  el.querySelectorAll('.mover-row').forEach(function(row) {
+    var sym  = row.dataset.sym;
+    var nm   = row.dataset.name;
+    var pr   = row.dataset.price;
+    var pct  = parseFloat(row.dataset.pct);
+    var isUp = pct >= 0;
+    var col  = isUp ? '#22c55e' : '#ef4444';
+    var sign = isUp ? '+' : '';
+    row.addEventListener('mouseenter', function(e) {
+      showSparkTip(e,
+        '<div class="stip-name">' + nm + '</div>' +
+        '<div class="stip-price">₹' + fmt(parseFloat(pr)) + ' <span style="color:' + col + '">' + sign + pct.toFixed(2) + '%</span></div>' +
+        '<div class="stip-loading">Loading today\'s chart…</div>'
+      );
+      getSparkline(sym, '1d', '5m').then(function(prices) {
+        showSparkTip(e,
+          '<div class="stip-name">' + nm + '</div>' +
+          '<div class="stip-price">₹' + fmt(parseFloat(pr)) + ' <span style="color:' + col + '">' + sign + pct.toFixed(2) + '%</span></div>' +
+          drawSparklineSVG(prices, 170, 52) +
+          '<div class="stip-label">Today\'s intraday performance</div>'
+        );
+      });
+    });
+    row.addEventListener('mousemove', function(e) {
+      var tip = _getTip(); if (tip && !tip.classList.contains('hidden')) _positionTip(e);
+    });
+    row.addEventListener('mouseleave', hideSparkTip);
+  });
 }
 
 // =============================================
@@ -297,10 +432,26 @@ async function searchBySymbol(symbol, name) {
     + '<div class="stat-item"><div class="stat-label">Volume</div><div class="stat-value">' + fmtVol(data.volume) + '</div></div>'
     + '<div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">' + fmtCap(data.marketCap) + '</div></div>'
     + '</div>'
+    + '<div id="resultChart" class="result-chart"><div style="font-size:0.78rem;color:#475569;text-align:center;padding:12px 0;">Loading chart…</div></div>'
     + '<div class="result-footer">'
     + '<span>Data may be delayed up to 15 minutes · Not financial advice</span>'
     + '<button class="btn-close" onclick="document.getElementById(\'resultSection\').classList.add(\'hidden\')">✕ Close</button>'
     + '</div>';
+
+  // Async-load intraday chart
+  (function(sym, cu) {
+    getSparkline(sym, '1d', '5m').then(function(prices) {
+      var chartEl = document.getElementById('resultChart');
+      if (!chartEl) return;
+      if (prices.length > 4) {
+        chartEl.innerHTML =
+          '<div class="result-chart-label"><span>Today\'s intraday chart (5-min intervals)</span><span>' + sym.replace(/\.(NS|BO)$/, '') + '</span></div>' +
+          drawSparklineSVG(prices, 560, 88);
+      } else {
+        chartEl.innerHTML = '<div style="font-size:0.78rem;color:#475569;text-align:center;padding:12px 0;">Intraday chart unavailable (market closed or no data yet)</div>';
+      }
+    });
+  })(symbol, cur);
 }
 
 // =============================================
@@ -416,17 +567,56 @@ function updateLastUpdated() {
 setInterval(function() {
   lastRefreshTime = Date.now();
   loadIndices();
+  loadCommodities();
 }, 20000);
 
 setInterval(updateLastUpdated, 1000);
 
 // =============================================
+// COMMODITY TILES (Gold & Silver via NSE ETFs)
+// =============================================
+async function loadCommodities() {
+  var row = document.getElementById('commodityRow');
+  if (!row) return;
+  await Promise.all(COMMODITIES.map(async function(c) {
+    var data = await fetchYahoo(c.symbol);
+    var id = 'cmd-' + c.symbol.replace(/\./g,'-').toLowerCase();
+    var el = document.getElementById(id);
+    if (!el) return; // skeleton not yet in DOM? skip
+    el.classList.remove('skeleton');
+    if (!data) { el.querySelector('.commodity-price').textContent = '—'; return; }
+    var pct = changePct(data.price, data.prevClose);
+    var cls = changeClass(pct);
+    var sign = pct != null && pct >= 0 ? '+' : '';
+    el.querySelector('.commodity-price').textContent = '₹' + fmt(data.price);
+    var chEl = el.querySelector('.commodity-change');
+    chEl.textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
+    chEl.className = 'commodity-change ' + cls;
+  }));
+}
+
+function renderCommodities() {
+  var row = document.getElementById('commodityRow');
+  if (!row) return;
+  row.innerHTML = COMMODITIES.map(function(c) {
+    var id = 'cmd-' + c.symbol.replace(/\./g,'-').toLowerCase();
+    return '<div class="commodity-card skeleton" id="' + id + '">'
+      + '<div class="commodity-label">' + c.label + '</div>'
+      + '<div class="commodity-price">—</div>'
+      + '<div class="commodity-change">—</div>'
+      + '</div>';
+  }).join('');
+}
+
+// =============================================
 // INIT
 // =============================================
 (async function init() {
+  renderCommodities();
   await loadIndices();
   lastRefreshTime = Date.now();
   updateLastUpdated();
   loadPopular();
   loadMovers();
+  loadCommodities();
 })();

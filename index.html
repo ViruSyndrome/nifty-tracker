@@ -139,6 +139,13 @@
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </div>
 
+  <!-- COMMODITY TILES: Gold & Silver -->
+  <section class="commodities-section container">
+    <div class="commodities-row" id="commodityRow">
+      <!-- filled by JS -->
+    </div>
+  </section>
+
   <!-- STOCK RESULT (shown after search) -->
   <section class="result-section container hidden" id="resultSection">
     <div class="result-card" id="resultCard"></div>
@@ -184,7 +191,7 @@
       <div class="info-card">
         <div class="info-icon">⚡</div>
         <h3>Real-Time Data</h3>
-        <p>Prices refresh automatically every 30 seconds during market hours (9:15 AM – 3:30 PM IST, Mon–Fri). Data sourced from NSE/BSE via Yahoo Finance.</p>
+        <p>Prices refresh automatically every 20 seconds during market hours (9:15 AM – 3:30 PM IST, Mon–Fri). Data sourced from NSE/BSE via Yahoo Finance.</p>
       </div>
       <div class="info-card">
         <div class="info-icon">🔒</div>
@@ -213,5 +220,7 @@
   </footer>
 
   <script src="script.js"></script>
+  <!-- Sparkline hover tooltip -->
+  <div id="sparkTip" class="spark-tooltip hidden"></div>
 </body>
 </html>
