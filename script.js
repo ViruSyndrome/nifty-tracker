@@ -623,10 +623,16 @@ function getISTDate() {
 }
 
 function getMarketStatus() {
-  var ist = getISTDate();
-  var day = ist.getDay(); // 0=Sun, 6=Sat
-  var h = ist.getHours(), m = ist.getMinutes();
-  var totalMins = h * 60 + m;
+  var now = new Date();
+  // Compute IST using UTC methods — avoids browser timezone interfering with NSE hours
+  // getISTDate() was broken: getTimezoneOffset() is negative for IST, so formula returned UTC
+  var utcMins = now.getUTCHours() * 60 + now.getUTCMinutes();
+  var istTotalMins = utcMins + 330; // IST = UTC + 5h30m
+  var dayOffset = istTotalMins >= 1440 ? 1 : 0;
+  var totalMins = istTotalMins % 1440;
+  var day = (now.getUTCDay() + dayOffset) % 7; // 0=Sun, 6=Sat
+  var h = Math.floor(totalMins / 60);
+  var m = totalMins % 60;
 
   if (day === 0 || day === 6) {
     var daysUntilMon = day === 0 ? 1 : 2;
@@ -637,9 +643,7 @@ function getMarketStatus() {
   if (totalMins < 930)  return { status: 'open',     minsUntilClose: 930 - totalMins };
 
   // After 3:30 PM — find next trading day
-  var tomorrow = new Date(ist);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  var tDay = tomorrow.getDay();
+  var tDay = (day + 1) % 7; // tomorrow's day in IST
   var daysToAdd = tDay === 6 ? 3 : tDay === 0 ? 2 : 1;
   return { status: 'closed', minsUntilOpen: daysToAdd * 24 * 60 - totalMins + 540 };
 }
