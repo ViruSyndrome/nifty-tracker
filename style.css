@@ -529,8 +529,60 @@ a { color: inherit; text-decoration: none; }
 .footer-links a:hover { color: var(--text); }
 .footer-copy { font-size: 0.78rem; color: var(--text-muted); }
 
+/* ---- HAMBURGER ---- */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 4px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  transition: transform 0.22s ease, opacity 0.22s ease;
+  pointer-events: none;
+}
+.hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0.1); }
+.hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
 /* ---- RESPONSIVE ---- */
 @media (max-width: 640px) {
+  /* --- Nav hamburger --- */
+  .hamburger { display: flex; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0; right: 0;
+    background: rgba(15,23,42,0.97);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    flex-direction: column;
+    padding: 4px 20px 12px;
+    gap: 0;
+    z-index: 99;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a {
+    padding: 14px 0;
+    font-size: 1rem;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-links a:last-child { border-bottom: none; }
+
+  /* --- General mobile fixes --- */
   .hero { padding: 40px 16px 32px; }
   .hero h1 { font-size: 1.8rem; }
   .search-box { padding: 6px 6px 6px 14px; }
@@ -541,6 +593,13 @@ a { color: inherit; text-decoration: none; }
   .result-price { font-size: 1.6rem; }
   .indices-grid { grid-template-columns: repeat(2, 1fr); }
   .popular-grid { grid-template-columns: repeat(2, 1fr); }
+  .result-card { padding: 16px; }
+  .movers-card { padding: 14px 12px; }
+  .popular-card { padding: 12px; }
+  .mover-row { min-height: 44px; }                        /* WCAG touch target */
+  .commodities-row { grid-template-columns: repeat(2, 1fr); }
+  .index-card[data-tooltip]::after { display: none; }     /* hover tooltips don't work on touch */
+  .result-stats { grid-template-columns: repeat(2, 1fr); }/* prevent 1-wide on narrow screen */
 }
 
 /* ── MARKET STATUS STATES ── */
