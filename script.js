@@ -47,11 +47,13 @@ const NIFTY50_SYMBOLS = [
 ];
 
 // -- Commodities --
-// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × 10 = INR per 10g
+// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × 10 × India duties = INR per 10g
+// India duties: import duty 6% + GST 3% = ×1.0918 (as per July 2024 Budget)
+const INDIA_METAL_DUTY = 1.06 * 1.03; // import duty 6% + GST 3%
 const COMMODITIES = [
-  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true, purity: 1,      tooltip: 'Live 24K gold spot price per 10g in INR — international spot (GC=F) × USD/INR ÷ 31.1035 g/oz. Matches Google gold price.' },
-  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true, purity: 22/24,  tooltip: 'Live 22K gold price per 10g in INR — 91.67% of 24K spot. Standard karat for jewellery in India.' },
-  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true, purity: 1,      tooltip: 'Live silver spot price per 10g in INR — international spot (SI=F) × USD/INR ÷ 31.1035 g/oz.' },
+  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true, purity: 1,      tooltip: 'Gold 24K per 10g in INR — international spot (GC=F) × USD/INR ÷ 31.1035 g/oz × India import duty (6%) × GST (3%). Matches Google/IBJA India price.' },
+  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true, purity: 22/24,  tooltip: 'Gold 22K per 10g in INR — 91.67% of 24K with India import duty (6%) + GST (3%). Standard jewellery karat in India.' },
+  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true, purity: 1,      tooltip: 'Silver per 10g in INR — international spot (SI=F) × USD/INR ÷ 31.1035 g/oz × India import duty (6%) × GST (3%).' },
   { id: 'usd-inr',  symbol: 'USDINR=X', label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
   { id: 'gbp-inr',  symbol: 'GBPINR=X', label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
   { id: 'eur-inr',  symbol: 'EURINR=X', label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
@@ -765,9 +767,9 @@ async function loadCommodities() {
 
     var displayPrice;
     if (c.isSpot) {
-      // USD/troy oz → INR/10g at given purity (1 troy oz = 31.1035 g)
+      // USD/troy oz → INR/10g at given purity, including India import duty + GST
       displayPrice = usdInr
-        ? Math.round((data.price * usdInr / 31.1035) * 10 * (c.purity || 1))
+        ? Math.round((data.price * usdInr / 31.1035) * 10 * (c.purity || 1) * INDIA_METAL_DUTY)
         : null;
     } else {
       displayPrice = data.price * (c.priceMultiplier || 1);
