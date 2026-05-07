@@ -724,3 +724,14 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 600px) {
   .fiidii-grid { grid-template-columns: 1fr; }
 }
+
+/* ---- FAQ ---- */
+.faq-section { padding: 48px 0; border-top: 1px solid var(--border); }
+.faq-grid { display: grid; gap: 16px; max-width: 800px; margin: 0 auto; }
+.faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.faq-q { padding: 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; transition: background 0.2s; }
+.faq-q:hover { background: rgba(255,255,255,0.03); }
+.faq-q svg { transition: transform 0.2s; color: var(--primary); }
+.faq-q.open svg { transform: rotate(45deg); }
+.faq-a { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.2s; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; }
+.faq-a.open { max-height: 400px; padding: 0 20px 20px; }
