@@ -1,4 +1,4 @@
-﻿// =============================================
+// =============================================
 // GetNiftyReady — script.js
 // =============================================
 
@@ -808,6 +808,49 @@ function renderCommodities() {
 }
 
 // =============================================
+// FII / DII WIDGET
+// =============================================
+async function loadFIIDII() {
+  const grid = document.getElementById('fiidiiGrid');
+  const dateEl = document.getElementById('fiidiiDate');
+  if (!grid) return;
+  
+  try {
+    const res = await fetch('data/fiidii.json?v=' + Date.now());
+    if (!res.ok) throw new Error('Network err');
+    const data = await res.json();
+    
+    if (data && data.length > 0) {
+      dateEl.textContent = 'For ' + data[0].date;
+      grid.innerHTML = data.map(item => {
+        const net = parseFloat(item.netValue);
+        const isUp = net >= 0;
+        const color = isUp ? '#22c55e' : '#ef4444';
+        const sign = isUp ? '+' : '';
+        return `
+          <div class="fiidii-item">
+            <div class="fiidii-cat">${item.category}</div>
+            <div class="fiidii-net" style="color: ${color}">
+              ${sign}₹${fmt(Math.abs(net))} <span style="font-size:0.85rem; font-weight:600;">Cr</span>
+            </div>
+            <div class="fiidii-details">
+              <span>Buy: ₹${fmt(parseFloat(item.buyValue))}</span>
+              <span>Sell: ₹${fmt(parseFloat(item.sellValue))}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      grid.innerHTML = '<div class="mover-empty" style="text-align:left;">Data temporarily unavailable</div>';
+      dateEl.textContent = '';
+    }
+  } catch(e) {
+    grid.innerHTML = '<div class="mover-empty" style="text-align:left;">Could not load FII/DII data</div>';
+    dateEl.textContent = '';
+  }
+}
+
+// =============================================
 // INIT
 // =============================================
 (async function init() {
@@ -822,4 +865,5 @@ function renderCommodities() {
   loadPopular();
   loadMovers();
   loadCommodities();
+  loadFIIDII();
 })();
