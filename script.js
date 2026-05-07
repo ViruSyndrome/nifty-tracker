@@ -828,7 +828,7 @@ async function loadFIIDII() {
         const color = isUp ? '#22c55e' : '#ef4444';
         const sign = isUp ? '+' : '';
         return `
-          <div class="fiidii-item">
+          <div class="fiidii-item" data-cat="${item.category}" data-buy="${item.buyValue}" data-sell="${item.sellValue}" data-net="${item.netValue}">
             <div class="fiidii-cat">${item.category}</div>
             <div class="fiidii-net" style="color: ${color}">
               ${sign}₹${fmt(Math.abs(net))} <span style="font-size:0.85rem; font-weight:600;">Cr</span>
@@ -840,6 +840,34 @@ async function loadFIIDII() {
           </div>
         `;
       }).join('');
+
+      // Add hover effects
+      document.querySelectorAll('.fiidii-item').forEach(item => {
+        item.addEventListener('mouseenter', e => {
+          const cat = item.dataset.cat;
+          const buy = parseFloat(item.dataset.buy);
+          const sell = parseFloat(item.dataset.sell);
+          const net = parseFloat(item.dataset.net);
+          const isUp = net >= 0;
+          const color = isUp ? '#22c55e' : '#ef4444';
+          const sign = isUp ? '+' : '';
+          
+          let desc = cat === 'DII' 
+            ? 'Domestic Institutional Investors (Indian Mutual Funds, Banks, Insurance Cos). They provide liquidity and stabilize the market.'
+            : 'Foreign Institutional Investors (Foreign Funds). They drive major market trends due to high capital volume.';
+            
+          showSparkTip(e,
+            '<div class="stip-name">' + cat + ' Activity Today</div>' +
+            '<div class="stip-price" style="color:' + color + '">Net: ' + sign + '₹' + fmt(Math.abs(net)) + ' Cr</div>' +
+            '<div class="stip-label" style="white-space:normal; max-width:200px; margin-top:8px;">' + desc + '</div>' +
+            '<div class="stip-label" style="margin-top:8px;">Total Buy: ₹' + fmt(buy) + ' Cr<br>Total Sell: ₹' + fmt(sell) + ' Cr</div>'
+          );
+        });
+        item.addEventListener('mousemove', e => {
+          const tip = _getTip(); if (tip && !tip.classList.contains('hidden')) _positionTip(e);
+        });
+        item.addEventListener('mouseleave', hideSparkTip);
+      });
     } else {
       grid.innerHTML = '<div class="mover-empty" style="text-align:left;">Data temporarily unavailable</div>';
       dateEl.textContent = '';
