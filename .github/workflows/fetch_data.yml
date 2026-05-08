@@ -10,13 +10,17 @@ on:
 jobs:
   fetch_data:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # Required to push changes back to the repo
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
@@ -33,5 +37,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add data/fiidii.json
-          git commit -m "chore: auto-update FII/DII data [skip ci]" || echo "No changes to commit"
-          git push
+          git commit -m "chore: auto-update FII/DII data [skip ci]" || exit 0
+          git push origin main
