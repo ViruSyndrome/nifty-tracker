@@ -380,19 +380,24 @@
   <!-- NAV -->
   <nav class="navbar">
     <div class="nav-inner">
-      <a href="/" class="logo">
-        <svg class="logo-svg" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2,12 C8,0 14,0 22,12 C30,24 36,24 42,12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
+      <a href="index.html" class="logo">
+        <svg class="logo-svg" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2,12 C8,0 14,0 22,12 C30,24 36,24 42,12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
         <span class="logo-text">GetNifty<span class="logo-accent">Ready</span></span>
       </a>
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
-        <a href="/sip-calculator.html">SIP Calc</a>
-        <a href="/swp-calculator.html" style="color: var(--primary);">SWP Calc</a>
-        <a href="/about.html">About</a>
-        <a href="/contact.html">Contact</a>
+        <a href="index.html">Home</a>
+        <a href="sip-calculator.html">SIP Calc</a>
+        <a href="swp-calculator.html" class="active">SWP Calc</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
       </div>
+    </div>
+    <div class="nav-sub">
+        <div class="nav-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+            Privacy-First · Real-Time · No-Signup
+        </div>
     </div>
   </nav>
 
@@ -511,7 +516,7 @@
           <thead>
             <tr>
               <th>Year</th>
-              <th>Withdrawn</th>
+              <th>Annual Withdrawal</th>
               <th>Interest Earned</th>
               <th>Corpus Remaining</th>
             </tr>
@@ -807,7 +812,7 @@
         var rowClass = row.depleted && row.balance <= 0 ? ' class="depleted-row"' : '';
         html += '<tr' + rowClass + '>'
           + '<td>Year ' + row.year + '</td>'
-          + '<td>' + fmtINR(row.withdrawn) + '</td>'
+          + '<td>' + fmtINR(row.withdrawn) + ' <span style="font-size:0.75rem; color:var(--text-muted); display:block;">(' + fmtINR(_withdrawal) + '/mo)</span></td>'
           + '<td class="pos-cell">' + fmtINR(row.interest) + '</td>'
           + '<td class="' + balClass + '">' + (row.balance <= 0 ? 'Depleted' : fmtINR(row.balance)) + '</td>'
           + '</tr>';

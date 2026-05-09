@@ -23,6 +23,8 @@ const INDICES = [
   { id: 'idx-sgxnifty',  symbol: '^INDIAVIX',   name: 'India VIX' },
 ];
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 // -- Popular stocks --
 const POPULAR = [
   { symbol: 'RELIANCE.NS',  name: 'Reliance Industries' },
@@ -816,11 +818,12 @@ function renderCommodities() {
 }
 
 // =============================================
-// FII / DII WIDGET
+// FII / DII WIDGET & TRENDS
 // =============================================
 async function loadFIIDII() {
   const grid = document.getElementById('fiidiiGrid');
   const dateEl = document.getElementById('fiidiiDate');
+  const sentimentEl = document.getElementById('marketSentiment');
   if (!grid) return;
   
   try {
@@ -829,60 +832,112 @@ async function loadFIIDII() {
     const data = await res.json();
     
     if (data && data.length > 0) {
-      dateEl.textContent = 'For ' + data[0].date;
-      grid.innerHTML = data.map(item => {
+      // Latest data is the first 2 entries (FII & DII for the same day)
+      const latestDay = [data[0], data[1]];
+      const history = data;
+
+      // 1. Render Latest Activity
+      const nowIST = getISTDate();
+      const todayStr = nowIST.getDate() + '-' + MONTHS[nowIST.getMonth()] + '-' + nowIST.getFullYear();
+      const isToday = latestDay[0].date === todayStr;
+      const statusBadge = isToday 
+        ? '<span class="badge-live">LIVE</span>'
+        : '<span class="badge-latest">LATEST</span>';
+      
+      dateEl.innerHTML = 'Data for ' + latestDay[0].date + statusBadge;
+      
+      grid.innerHTML = latestDay.map(item => {
         const net = parseFloat(item.netValue);
         const isUp = net >= 0;
-        const color = isUp ? '#22c55e' : '#ef4444';
+        const color = isUp ? 'var(--success)' : 'var(--error)';
         const sign = isUp ? '+' : '';
         return `
-          <div class="fiidii-item" data-cat="${item.category}" data-buy="${item.buyValue}" data-sell="${item.sellValue}" data-net="${item.netValue}">
+          <div class="fiidii-item">
             <div class="fiidii-cat">${item.category}</div>
             <div class="fiidii-net" style="color: ${color}">
-              ${sign}₹${fmt(Math.abs(net))} <span style="font-size:0.85rem; font-weight:600;">Cr</span>
+              ${sign}₹${fmt(Math.abs(net))} <small>Cr</small>
             </div>
             <div class="fiidii-details">
-              <span>Buy: ₹${fmt(parseFloat(item.buyValue))}</span>
-              <span>Sell: ₹${fmt(parseFloat(item.sellValue))}</span>
+              <span>B: ₹${fmt(parseFloat(item.buyValue))}</span>
+              <span>S: ₹${fmt(parseFloat(item.sellValue))}</span>
             </div>
           </div>
         `;
       }).join('');
 
-      // Add hover effects
-      document.querySelectorAll('.fiidii-item').forEach(item => {
-        item.addEventListener('mouseenter', e => {
-          const cat = item.dataset.cat;
-          const buy = parseFloat(item.dataset.buy);
-          const sell = parseFloat(item.dataset.sell);
-          const net = parseFloat(item.dataset.net);
-          const isUp = net >= 0;
-          const color = isUp ? '#22c55e' : '#ef4444';
-          const sign = isUp ? '+' : '';
-          
-          let desc = cat === 'DII' 
-            ? 'Domestic Institutional Investors (Indian Mutual Funds, Banks, Insurance Cos). They provide liquidity and stabilize the market.'
-            : 'Foreign Institutional Investors (Foreign Funds). They drive major market trends due to high capital volume.';
-            
-          showSparkTip(e,
-            '<div class="stip-name">' + cat + ' Activity Today</div>' +
-            '<div class="stip-price" style="color:' + color + '">Net: ' + sign + '₹' + fmt(Math.abs(net)) + ' Cr</div>' +
-            '<div class="stip-label" style="white-space:normal; max-width:200px; margin-top:8px;">' + desc + '</div>' +
-            '<div class="stip-label" style="margin-top:8px;">Total Buy: ₹' + fmt(buy) + ' Cr<br>Total Sell: ₹' + fmt(sell) + ' Cr</div>'
-          );
+      // 2. Calculate Sentiment & Retail Guidance
+      if (sentimentEl) {
+        const fiiLatest = history.find(d => d.category === 'FII/FPI');
+        const diiLatest = history.find(d => d.category === 'DII');
+        const fiiNet = parseFloat(fiiLatest.netValue);
+        const diiNet = parseFloat(diiLatest.netValue);
+        
+        let sentiment = "Neutral";
+        let guidance = "Market is in a wait-and-watch mode.";
+        let color = "var(--text-muted)";
+
+        if (fiiNet > 0 && diiNet > 0) {
+          sentiment = "Strongly Bullish";
+          guidance = "Both Big Money (FII) and Domestic Funds (DII) are buying. Strong confidence.";
+          color = "var(--success)";
+        } else if (fiiNet < -2000) {
+          sentiment = "Bearish (FII Selling)";
+          guidance = "FIIs are heavy sellers. Retail investors should be cautious and wait for stability.";
+          color = "var(--error)";
+        } else if (fiiNet > 0 && diiNet < 0) {
+          sentiment = "Cautiously Bullish";
+          guidance = "Foreign investors are buying, but domestic funds are booking profits.";
+          color = "var(--primary)";
+        } else if (fiiNet < 0 && diiNet > 0) {
+          sentiment = "DII Supported";
+          guidance = "FIIs are selling, but Domestic Funds are supporting the market. Sideways trend expected.";
+          color = "var(--accent)";
+        }
+
+        sentimentEl.innerHTML = `
+          <div class="sentiment-box" style="border-left: 4px solid ${color}">
+            <div class="sentiment-label">Market Sentiment: <strong style="color:${color}">${sentiment}</strong></div>
+            <div class="sentiment-desc">${guidance}</div>
+          </div>
+        `;
+      }
+
+      // 3. Render Trend History (Last 5 Days)
+      const historyTable = document.getElementById('fiidiiHistory');
+      if (historyTable) {
+        // Group by date
+        const grouped = {};
+        history.forEach(item => {
+          if (!grouped[item.date]) grouped[item.date] = {};
+          grouped[item.date][item.category === 'DII' ? 'dii' : 'fii'] = parseFloat(item.netValue);
         });
-        item.addEventListener('mousemove', e => {
-          const tip = _getTip(); if (tip && !tip.classList.contains('hidden')) _positionTip(e);
-        });
-        item.addEventListener('mouseleave', hideSparkTip);
-      });
+
+        const rows = Object.keys(grouped).slice(0, 5).map(date => {
+          const fii = grouped[date].fii || 0;
+          const dii = grouped[date].dii || 0;
+          return `
+            <tr>
+              <td>${date}</td>
+              <td class="${fii >= 0 ? 'up' : 'down'}">${fii >= 0 ? '+' : ''}${fmt(fii)}</td>
+              <td class="${dii >= 0 ? 'up' : 'down'}">${dii >= 0 ? '+' : ''}${fmt(dii)}</td>
+            </tr>
+          `;
+        }).join('');
+
+        historyTable.innerHTML = `
+          <table class="trend-table">
+            <thead><tr><th>Date</th><th>FII (Cr)</th><th>DII (Cr)</th></tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+      }
+
     } else {
-      grid.innerHTML = '<div class="mover-empty" style="text-align:left;">Data temporarily unavailable</div>';
-      dateEl.textContent = '';
+      grid.innerHTML = '<div class="mover-empty">Data temporarily unavailable</div>';
     }
   } catch(e) {
-    grid.innerHTML = '<div class="mover-empty" style="text-align:left;">Could not load FII/DII data</div>';
-    dateEl.textContent = '';
+    console.error("FII/DII Error:", e);
+    grid.innerHTML = '<div class="mover-empty">Could not load FII/DII data</div>';
   }
 }
 
