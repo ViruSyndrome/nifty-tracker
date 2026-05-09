@@ -908,11 +908,26 @@ async function loadFIIDII() {
         // Group by date
         const grouped = {};
         history.forEach(item => {
-          if (!grouped[item.date]) grouped[item.date] = {};
-          grouped[item.date][item.category === 'DII' ? 'dii' : 'fii'] = parseFloat(item.netValue);
+          if (!item.date) return;
+          if (!grouped[item.date]) grouped[item.date] = { fii: 0, dii: 0 };
+          const val = parseFloat(item.netValue) || 0;
+          if (item.category === 'DII') grouped[item.date].dii = val;
+          else grouped[item.date].fii = val;
         });
 
-        const rows = Object.keys(grouped).slice(0, 5).map(date => {
+        const dates = Object.keys(grouped).sort((a,b) => {
+           // Simple string sort isn't perfect for DD-MMM-YYYY but works for NSE format usually
+           // If needed, parse properly. For now, assume NSE gives them in reverse chronological
+           return 0; 
+        });
+
+        // Use the original order from the JSON which is reverse chronological
+        const uniqueDates = [];
+        history.forEach(item => {
+          if (item.date && !uniqueDates.includes(item.date)) uniqueDates.push(item.date);
+        });
+
+        const rows = uniqueDates.slice(0, 5).map(date => {
           const fii = grouped[date].fii || 0;
           const dii = grouped[date].dii || 0;
           return `
@@ -931,7 +946,6 @@ async function loadFIIDII() {
           </table>
         `;
       }
-
     } else {
       grid.innerHTML = '<div class="mover-empty">Data temporarily unavailable</div>';
     }
@@ -939,6 +953,11 @@ async function loadFIIDII() {
     console.error("FII/DII Error:", e);
     grid.innerHTML = '<div class="mover-empty">Could not load FII/DII data</div>';
   }
+}
+
+function toggleHistory() {
+  const el = document.getElementById('fiidiiHistory');
+  if (el) el.classList.toggle('hidden');
 }
 
 // =============================================

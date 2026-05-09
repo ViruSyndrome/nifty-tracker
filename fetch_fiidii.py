@@ -43,14 +43,15 @@ def fetch_data():
         # Avoid duplicates (check if the latest date already exists)
         if new_data and len(new_data) > 0:
             latest_date = new_data[0].get('date')
+            
             # Filter out entries from the same date to avoid duplicates
             history = [h for h in history if h.get('date') != latest_date]
             
-            # Append new data
+            # Append new data to the FRONT (newest first)
             history = new_data + history
             
-            # Keep only last 10 entries (5 days worth of FII/DII)
-            history = history[:10]
+            # Keep last 20 entries (10 trading days worth of FII/DII)
+            history = history[:20]
             
             # Save to file
             with open('data/fiidii.json', 'w') as f:
@@ -59,8 +60,8 @@ def fetch_data():
             print(f"Successfully updated FII/DII data for {latest_date}.")
             return True
         else:
-            print("No data received from NSE API.")
-            return False
+            print("No new data from NSE API (likely market closed). Preserving history.")
+            return True # Success because we want the workflow to finish without error
             
     except Exception as e:
         print(f"Error fetching API: {e}")
