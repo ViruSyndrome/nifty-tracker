@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://js.sentry-cdn.com/d62024e9014b97cc89780c4a0051997e.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        tracesSampleRate: 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
   <title>About Us - GetNiftyReady</title>
   <meta name="description" content="About GetNiftyReady — a free tool to track live NSE/BSE share prices, Nifty 50, Sensex and Indian stock market data." />
   <link rel="canonical" href="https://www.getniftyready.com/about.html" />

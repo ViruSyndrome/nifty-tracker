@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://js.sentry-cdn.com/d62024e9014b97cc89780c4a0051997e.min.js" crossorigin="anonymous"></script>
+  <script>
+    Sentry.onLoad(function() {
+      Sentry.init({
+        tracesSampleRate: 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      });
+    });
+  </script>
   <title>GetNiftyReady — Live NSE/BSE Share Prices, Nifty 50 & Sensex</title>
   <meta name="description" content="Live NSE and BSE share prices, Nifty 50 index, Sensex, top gainers and losers. Search any Indian stock instantly. Free, real-time, no signup." />
   <meta name="keywords" content="nse india, share price, nifty 50, sensex, bse share price, live stock price india, nifty live, indian stock market" />
