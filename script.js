@@ -824,155 +824,49 @@ async function loadFIIDII() {
   const grid = document.getElementById('fiidiiGrid');
   const dateEl = document.getElementById('fiidiiDate');
   const sentimentEl = document.getElementById('marketSentiment');
+  const historyTable = document.getElementById('fiidiiHistory');
   if (!grid) return;
-  
+
   try {
     const res = await fetch('data/fiidii.json?v=' + Date.now());
     if (!res.ok) throw new Error('Network err');
     const data = await res.json();
     
     if (data && data.length > 0) {
-      // Latest data is the first 2 entries (FII & DII for the same day)
-      const latestDay = [data[0], data[1]];
-      const history = data;
-
-      // 1. Render Latest Activity
-      const nowIST = getISTDate();
-      const todayStr = nowIST.getDate() + '-' + MONTHS[nowIST.getMonth()] + '-' + nowIST.getFullYear();
-      const isToday = latestDay[0].date === todayStr;
-      const statusBadge = isToday 
-        ? '<span class="badge-live">LIVE</span>'
-        : '<span class="badge-latest">LATEST</span>';
-      
-      dateEl.innerHTML = 'Data for ' + latestDay[0].date + statusBadge;
+      // 1. Render Latest
+      const latestDay = data.slice(0, 2);
+      if (dateEl) dateEl.innerHTML = 'Data for ' + latestDay[0].date;
       
       grid.innerHTML = latestDay.map(item => {
         const net = parseFloat(item.netValue);
         const isUp = net >= 0;
-        const color = isUp ? 'var(--success)' : 'var(--error)';
-        const sign = isUp ? '+' : '';
-        return `
-          <div class="fiidii-item">
-            <div class="fiidii-cat">${item.category}</div>
-            <div class="fiidii-net" style="color: ${color}">
-              ${sign}₹${fmt(Math.abs(net))} <small>Cr</small>
-            </div>
-            <div class="fiidii-details">
-              <span>B: ₹${fmt(parseFloat(item.buyValue))}</span>
-              <span>S: ₹${fmt(parseFloat(item.sellValue))}</span>
-            </div>
-          </div>
-        `;
+        return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
       }).join('');
 
-      // 2. Calculate Sentiment & Retail Guidance
-      if (sentimentEl) {
-        const fiiLatest = history.find(d => d.category === 'FII/FPI');
-        const diiLatest = history.find(d => d.category === 'DII');
-        const fiiNet = parseFloat(fiiLatest.netValue);
-        const diiNet = parseFloat(diiLatest.netValue);
-        
-        let sentiment = "Neutral";
-        let guidance = "Market is in a wait-and-watch mode.";
-        let color = "var(--text-muted)";
-
-        if (fiiNet > 0 && diiNet > 0) {
-          sentiment = "Strongly Bullish";
-          guidance = "Both Big Money (FII) and Domestic Funds (DII) are buying. Strong confidence.";
-          color = "var(--success)";
-          updateGauge(80); // Near far right
-        } else if (fiiNet < -2000) {
-          sentiment = "Bearish (FII Selling)";
-          guidance = "FIIs are heavy sellers. Retail investors should be cautious.";
-          color = "var(--error)";
-          updateGauge(-80); // Near far left
-        } else if (fiiNet > 0 && diiNet < 0) {
-          sentiment = "Cautiously Bullish";
-          guidance = "Foreign investors are buying, but domestic funds are booking profits.";
-          color = "var(--primary)";
-          updateGauge(40);
-        } else if (fiiNet < 0 && diiNet > 0) {
-          sentiment = "DII Supported";
-          guidance = "FIIs are selling, but Domestic Funds are supporting the market.";
-          color = "var(--accent)";
-          updateGauge(-20);
-        } else {
-          updateGauge(0); // Neutral
-        }
-
-        sentimentEl.innerHTML = `
-          <div class="sentiment-box" style="border-left: 4px solid ${color}">
-            <div class="sentiment-label">Market Sentiment: <strong style="color:${color}">${sentiment}</strong></div>
-            <div class="sentiment-desc">${guidance}</div>
-          </div>
-        `;
-      }
-
-      // 3. Render Trend History (Last 5 Days)
-      const historyTable = document.getElementById('fiidiiHistory');
+      // 2. Render Trend Table
       if (historyTable) {
-        // Group by date
+        const uniqueDates = [];
         const grouped = {};
-        history.forEach(item => {
+        data.forEach(item => {
           if (!item.date) return;
+          if (!uniqueDates.includes(item.date)) uniqueDates.push(item.date);
           if (!grouped[item.date]) grouped[item.date] = { fii: 0, dii: 0 };
           const val = parseFloat(item.netValue) || 0;
           if (item.category === 'DII') grouped[item.date].dii = val;
           else grouped[item.date].fii = val;
         });
 
-        const dates = Object.keys(grouped).sort((a,b) => {
-           // Simple string sort isn't perfect for DD-MMM-YYYY but works for NSE format usually
-           // If needed, parse properly. For now, assume NSE gives them in reverse chronological
-           return 0; 
-        });
-
-        // Use the original order from the JSON which is reverse chronological
-        const uniqueDates = [];
-        history.forEach(item => {
-          if (item.date && !uniqueDates.includes(item.date)) uniqueDates.push(item.date);
-        });
-
-                    <td class="${fii >= 0 ? 'up' : 'down'}">${fii >= 0 ? '+' : ''}${fmt(fii)}</td>
-              <td class="${dii >= 0 ? 'up' : 'down'}">${dii >= 0 ? '+' : ''}${fmt(dii)}</td>
-            </tr>
-          `;
+        const rows = uniqueDates.slice(0, 5).map(date => {
+          const fii = grouped[date].fii, dii = grouped[date].dii;
+          return `<tr><td>${date}</td><td class="${fii>=0?'up':'down'}">${fii>=0?'+':''}${fmt(fii)}</td><td class="${dii>=0?'up':'down'}">${dii>=0?'+':''}${fmt(dii)}</td></tr>`;
         }).join('');
-
-        historyTable.innerHTML = `
-          <table class="trend-table">
-            <thead><tr><th>Date</th><th>FII (Cr)</th><th>DII (Cr)</th></tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        `;
+        historyTable.innerHTML = `<table class="trend-table"><thead><tr><th>Date</th><th>FII (Cr)</th><th>DII (Cr)</th></tr></thead><tbody>${rows}</tbody></table>`;
       }
+      updateGauge(40);
     }
   } catch(e) {
-    console.error("FII/DII Error:", e);
-  }
-}
-
-async function loadFIIDII() {
-  const grid = document.getElementById('fiidiiGrid');
-  const sentimentEl = document.getElementById('marketSentiment');
-  if (!grid) return;
-
-  try {
-    const response = await fetch('fiidii.json');
-    if (!response.ok) throw new Error("Fetch failed");
-    const data = await response.json();
-    if (data && data.history) {
-      grid.innerHTML = data.history.slice(0, 2).map(item => {
-        const net = parseFloat(item.netValue);
-        const color = net >= 0 ? 'var(--success)' : 'var(--error)';
-        return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color:${color}">${net>=0?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
-      }).join('');
-      if (sentimentEl) { updateGauge(40); sentimentEl.innerHTML = "Sentiment: <strong>Bullish</strong>"; }
-    }
-  } catch(e) {
-    console.warn("Demo mode active:", e);
-    grid.innerHTML = `<div class="fiidii-item"><div class="fiidii-cat">FII (Demo)</div><div class="fiidii-net" style="color:var(--success)">+₹1,450 <small>Cr</small></div></div>`;
-    if (sentimentEl) { updateGauge(60); sentimentEl.innerHTML = "Sentiment: <strong>Bullish (Local)</strong>"; }
+    console.error("FII/DII Data Unavailable:", e);
+    grid.innerHTML = `<div class="mover-empty">Live data temporarily unavailable</div>`;
   }
 }
 
@@ -994,15 +888,6 @@ function goSwp() { window.location.href = "swp-calculator.html"; }
   renderCommodities();
   await loadIndices();
   updateLastUpdated();
-  loadPopular();
-  loadMovers();
-  loadCommodities();
-  loadFIIDII();
-})();
-ndices();
-  lastRefreshTime = Date.now();
-  updateLastUpdated();
-  updateMarketStatus();
   loadPopular();
   loadMovers();
   loadCommodities();
