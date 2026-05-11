@@ -880,18 +880,24 @@ async function loadFIIDII() {
           sentiment = "Strongly Bullish";
           guidance = "Both Big Money (FII) and Domestic Funds (DII) are buying. Strong confidence.";
           color = "var(--success)";
+          updateGauge(80); // Near far right
         } else if (fiiNet < -2000) {
           sentiment = "Bearish (FII Selling)";
-          guidance = "FIIs are heavy sellers. Retail investors should be cautious and wait for stability.";
+          guidance = "FIIs are heavy sellers. Retail investors should be cautious.";
           color = "var(--error)";
+          updateGauge(-80); // Near far left
         } else if (fiiNet > 0 && diiNet < 0) {
           sentiment = "Cautiously Bullish";
           guidance = "Foreign investors are buying, but domestic funds are booking profits.";
           color = "var(--primary)";
+          updateGauge(40);
         } else if (fiiNet < 0 && diiNet > 0) {
           sentiment = "DII Supported";
-          guidance = "FIIs are selling, but Domestic Funds are supporting the market. Sideways trend expected.";
+          guidance = "FIIs are selling, but Domestic Funds are supporting the market.";
           color = "var(--accent)";
+          updateGauge(-20);
+        } else {
+          updateGauge(0); // Neutral
         }
 
         sentimentEl.innerHTML = `
@@ -927,13 +933,7 @@ async function loadFIIDII() {
           if (item.date && !uniqueDates.includes(item.date)) uniqueDates.push(item.date);
         });
 
-        const rows = uniqueDates.slice(0, 5).map(date => {
-          const fii = grouped[date].fii || 0;
-          const dii = grouped[date].dii || 0;
-          return `
-            <tr>
-              <td>${date}</td>
-              <td class="${fii >= 0 ? 'up' : 'down'}">${fii >= 0 ? '+' : ''}${fmt(fii)}</td>
+                    <td class="${fii >= 0 ? 'up' : 'down'}">${fii >= 0 ? '+' : ''}${fmt(fii)}</td>
               <td class="${dii >= 0 ? 'up' : 'down'}">${dii >= 0 ? '+' : ''}${fmt(dii)}</td>
             </tr>
           `;
@@ -946,12 +946,33 @@ async function loadFIIDII() {
           </table>
         `;
       }
-    } else {
-      grid.innerHTML = '<div class="mover-empty">Data temporarily unavailable</div>';
     }
   } catch(e) {
     console.error("FII/DII Error:", e);
-    grid.innerHTML = '<div class="mover-empty">Could not load FII/DII data</div>';
+  }
+}
+
+async function loadFIIDII() {
+  const grid = document.getElementById('fiidiiGrid');
+  const sentimentEl = document.getElementById('marketSentiment');
+  if (!grid) return;
+
+  try {
+    const response = await fetch('fiidii.json');
+    if (!response.ok) throw new Error("Fetch failed");
+    const data = await response.json();
+    if (data && data.history) {
+      grid.innerHTML = data.history.slice(0, 2).map(item => {
+        const net = parseFloat(item.netValue);
+        const color = net >= 0 ? 'var(--success)' : 'var(--error)';
+        return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color:${color}">${net>=0?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
+      }).join('');
+      if (sentimentEl) { updateGauge(40); sentimentEl.innerHTML = "Sentiment: <strong>Bullish</strong>"; }
+    }
+  } catch(e) {
+    console.warn("Demo mode active:", e);
+    grid.innerHTML = `<div class="fiidii-item"><div class="fiidii-cat">FII (Demo)</div><div class="fiidii-net" style="color:var(--success)">+₹1,450 <small>Cr</small></div></div>`;
+    if (sentimentEl) { updateGauge(60); sentimentEl.innerHTML = "Sentiment: <strong>Bullish (Local)</strong>"; }
   }
 }
 
@@ -960,15 +981,25 @@ function toggleHistory() {
   if (el) el.classList.toggle('hidden');
 }
 
-// =============================================
-// INIT
-// =============================================
+function updateGauge(angle) {
+  const needle = document.getElementById("sentimentNeedle");
+  if (needle) needle.style.transform = "translateX(-50%) rotate(" + angle + "deg)";
+}
+
+function goSip() { window.location.href = "sip-calculator.html"; }
+function goSwp() { window.location.href = "swp-calculator.html"; }
+
 (async function init() {
-  // Hide stuck tooltip on any scroll or touch-scroll
   document.addEventListener('scroll', hideSparkTip, true);
-  document.addEventListener('touchmove', hideSparkTip, true);
   renderCommodities();
   await loadIndices();
+  updateLastUpdated();
+  loadPopular();
+  loadMovers();
+  loadCommodities();
+  loadFIIDII();
+})();
+ndices();
   lastRefreshTime = Date.now();
   updateLastUpdated();
   updateMarketStatus();

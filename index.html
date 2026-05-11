@@ -168,27 +168,85 @@
     <div class="result-card" id="resultCard"></div>
   </section>
 
-  <!-- FII / DII ACTIVITY -->
+  <!-- SMART TOOLS & CALCULATORS -->
+  <section class="tools-section container">
+    <h2 class="section-title">⚡ Smart Tools</h2>
+    <div class="mini-tools-grid">
+      <!-- SIP -->
+      <div class="mini-tool-card" onclick="window.location.href='sip-calculator.html'">
+        <h3>💰 Quick SIP Calculator</h3>
+        <p>Estimate your wealth creation over time.</p>
+        <div class="mini-calc-form" onclick="event.stopPropagation()">
+          <div class="mini-calc-row">
+            <label>Monthly (₹)</label>
+            <input type="number" id="miniSipAmt" class="mini-calc-input" value="5000" step="500">
+          </div>
+          <div class="mini-calc-row">
+            <label>Years</label>
+            <input type="number" id="miniSipYrs" class="mini-calc-input" value="10">
+          </div>
+          <button class="btn-primary" style="width:100%; margin-top:10px; font-size:0.8rem; padding:8px;" onclick="goSip()">Full Report →</button>
+        </div>
+      </div>
+      <!-- SWP -->
+      <div class="mini-tool-card" onclick="window.location.href='swp-calculator.html'">
+        <h3>🏦 Retirement SWP</h3>
+        <p>Plan your monthly pension withdrawals.</p>
+        <div class="mini-calc-form" onclick="event.stopPropagation()">
+          <div class="mini-calc-row">
+            <label>Lump Sum (₹)</label>
+            <input type="number" id="miniSwpAmt" class="mini-calc-input" value="1000000" step="50000">
+          </div>
+          <div class="mini-calc-row">
+            <label>Withdrawal (₹)</label>
+            <input type="number" id="miniSwpWd" class="mini-calc-input" value="10000">
+          </div>
+          <button class="btn-primary" style="width:100%; margin-top:10px; font-size:0.8rem; padding:8px;" onclick="goSwp()">Plan Withdrawal →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARKET SENTIMENT & FII / DII -->
   <section class="movers-section container" id="fiidiiSection">
     <div class="movers-grid">
-      <div class="movers-card" style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 1rem;">
-        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px;">
-          <h2 class="section-title" style="margin-bottom:0;">Institutions <span class="movers-badge" style="background:var(--primary-dark)">FII / DII</span></h2>
-          <span class="section-sub" id="fiidiiDate" style="margin:0; font-size:0.875rem;">Loading…</span>
-        </div>
-        <div class="fiidii-grid" id="fiidiiGrid">
-          <div class="mover-empty" style="text-align:left; padding: 20px 0;">Fetching institutional activity…</div>
-        </div>
+      <div class="movers-card" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: start;">
         
-        <div id="marketSentiment"></div>
-        
-        <div class="fiidii-history-wrap">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 style="font-size: 0.95rem; color: var(--text);">📅 5-Day Trend</h3>
-            <button class="btn-toggle-history" onclick="toggleHistory()">Show/Hide History</button>
+        <!-- Gauge Column -->
+        <div class="sentiment-container" style="background: none; border: none; padding: 0; margin-top: 0;">
+          <h2 class="section-title" style="margin-bottom:12px; width:100%;">Market Sentiment</h2>
+          <div class="gauge-wrap">
+            <div class="gauge-bg"></div>
+            <div class="gauge-needle" id="sentimentNeedle"></div>
+            <div class="gauge-center"></div>
           </div>
-          <div id="fiidiiHistory" class="hidden"></div>
+          <div class="gauge-labels">
+            <span>BEARISH</span>
+            <span>NEUTRAL</span>
+            <span>BULLISH</span>
+          </div>
+          <div id="marketSentiment" style="margin-top:12px; width:100%;"></div>
         </div>
+
+        <!-- Activity Table Column -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+            <h2 class="section-title" style="margin-bottom:0;">FII / DII <span class="movers-badge" style="background:var(--primary-dark)">Activity</span></h2>
+            <span class="section-sub" id="fiidiiDate" style="margin:0; font-size:0.875rem;">Loading…</span>
+          </div>
+          <div class="fiidii-grid" id="fiidiiGrid">
+            <div class="mover-empty" style="text-align:left; padding: 20px 0;">Fetching institutional activity…</div>
+          </div>
+          
+          <div class="fiidii-history-wrap" style="margin-top: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h3 style="font-size: 0.95rem; color: var(--text);">📅 10-Day Trend History</h3>
+              <button class="btn-toggle-history" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" onclick="toggleHistory()">Show/Hide</button>
+            </div>
+            <div id="fiidiiHistory" class="hidden"></div>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -224,7 +282,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         </div>
         <div class="faq-a">
-          During market hours (9:15 AM – 3:30 PM IST, Monday to Friday), live indices and stock prices refresh automatically every 20 seconds. Global cues and commodity prices are updated throughout the day. Institutional (FII/DII) data is updated once daily, usually by 7:30 PM IST after NSE releases the final figures.
+          During market hours (9:15 AM – 3:30 PM IST), live indices and stock prices refresh every 20 seconds. Global cues and commodity prices are updated throughout the day.
         </div>
       </div>
       <div class="faq-item">
@@ -233,7 +291,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         </div>
         <div class="faq-a">
-          We use international spot prices (GC=F and SI=F) converted to INR using live USD/INR exchange rates, adjusted for India's import duties (6%) and GST (3%). This provides an indicative price for 10 grams of 24K/22K Gold and 10 grams of Silver, closely matching local IBJA rates.
+          We use international spot prices converted to INR using live exchange rates, adjusted for India's 6% import duty and 3% GST.
         </div>
       </div>
       <div class="faq-item">
@@ -242,7 +300,189 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
         </div>
         <div class="faq-a">
-          FII (Foreign Institutional Investors) and DII (Domestic Institutional Investors like Mutual Funds) are the major participants in the market. Tracking their net buy/sell value helps retail investors understand institutional sentiment and liquidity trends.
+          FII (Foreign Institutional Investors) and DII (Domestic Institutional Investors) are the "Big Money" in the market. Tracking their net buying/selling helps gauge institutional sentiment.
+        </div>
+      </div>
+      <!-- Additional FAQs -->
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is the difference between NSE and BSE?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          NSE (National Stock Exchange) is the leading digital exchange in India, while BSE (Bombay Stock Exchange) is the oldest. Nifty 50 tracks NSE, and Sensex tracks BSE.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>How do I start investing in the Indian Stock Market?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          You need a Demat and Trading account with a SEBI-registered broker. Once your KYC is complete, you can transfer funds and start buying stocks or mutual funds.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is a SIP (Systematic Investment Plan)?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          SIP allows you to invest a fixed amount regularly (monthly or quarterly) in a mutual fund, promoting disciplined saving and rupee-cost averaging.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What are Short-Term and Long-Term Capital Gains (STCG/LTCG)?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          STCG (held < 1 year) is taxed at 20%. LTCG (held > 1 year) is taxed at 12.5% for gains exceeding ₹1.25 lakh in a financial year (as per latest 2024 rules).
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is India VIX?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          India VIX is the volatility index. It measures market's expectation of volatility over the next 30 days. Higher VIX usually indicates fear or uncertainty.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>Can NRIs invest in Indian stocks?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Yes, NRIs can invest via the Portfolio Investment Scheme (PIS) using NRE/NRO accounts, subject to certain FEMA regulations and sectoral caps.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is Market Capitalization?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          It is the total value of a company's shares (Current Price x Total Shares). Companies are classified as Large-cap, Mid-cap, or Small-cap based on this value.
+        </div>
+      </div>
+      <!-- Repeating to 23 for bulk coverage -->
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is an Upper and Lower Circuit?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          These are price limits set by the exchange to prevent extreme volatility. If a stock hits a circuit, trading is halted or restricted for a period.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is the Ex-Dividend Date?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          The date on or after which a security is traded without a previously declared dividend. You must own the stock before this date to receive the dividend.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is a Bonus Issue?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Free additional shares given to existing shareholders in a specific ratio (e.g., 1:1), based on the number of shares they already own.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is Dividend Yield?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          A financial ratio that shows how much a company pays out in dividends each year relative to its stock price (Annual Dividend / Stock Price).
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is the PE Ratio?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          The Price-to-Earnings ratio measures a company's current share price relative to its per-share earnings. It helps value if a stock is over or undervalued.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is Intraday Trading?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Buying and selling stocks within the same trading day to profit from short-term price movements. All positions must be squared off before market close.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is a Blue-Chip Stock?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Shares of very large, well-established, and financially sound companies with a history of reliable growth and dividend payments (e.g., Reliance, HDFC Bank).
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is an IPO (Initial Public Offering)?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          When a private company offers its shares to the public for the first time to raise capital. It marks the company's transition to being publicly traded.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is a Demat Account?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Short for Dematerialized account, it is used to hold shares and securities in electronic format, eliminating the need for physical share certificates.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is a Stop-Loss Order?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          An order placed with a broker to buy or sell once the stock reaches a certain price. It is designed to limit an investor's loss on a position.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is Bull and Bear Market?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          A Bull market is when prices are rising or expected to rise. A Bear market is when prices are falling and widespread pessimism causes the downward spiral.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is Face Value vs Market Value?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Face Value is the fixed value assigned to a share by the company. Market Value is the current trading price determined by supply and demand.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What is SEBI?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          SEBI (Securities and Exchange Board of India) is the regulatory body for the securities market in India, protecting investors and promoting market development.
         </div>
       </div>
     </div>
