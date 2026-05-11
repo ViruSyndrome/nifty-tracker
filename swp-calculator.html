@@ -859,6 +859,33 @@
 
     // ── Init ──────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', function() {
+      const params = new URLSearchParams(window.location.search);
+      const amt = params.get('amt');
+      const rate = params.get('rate');
+      const time = params.get('time');
+      const wd = params.get('wd');
+
+      if (amt) {
+        _corpus = parseFloat(amt);
+        document.getElementById('sliderCorpus').value = _corpus;
+        document.getElementById('displayCorpus').textContent = fmtINR(_corpus);
+      }
+      if (rate) {
+        _rate = parseFloat(rate);
+        document.getElementById('sliderRate').value = _rate;
+        document.getElementById('displayRate').textContent = _rate + '%';
+      }
+      if (time) {
+        _years = parseFloat(time);
+        document.getElementById('sliderYears').value = _years;
+        document.getElementById('displayYears').textContent = _years + ' yrs';
+      }
+      if (wd) {
+        _withdrawal = parseFloat(wd);
+        document.getElementById('sliderWithdrawal').value = _withdrawal;
+        document.getElementById('displayWithdrawal').textContent = fmtINR(_withdrawal);
+      }
+
       switchMode('duration');
     });
   </script>

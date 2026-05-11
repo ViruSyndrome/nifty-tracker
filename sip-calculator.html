@@ -572,6 +572,30 @@
       update();
     }
 
+    function initFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const amt = params.get('amt');
+      const rate = params.get('rate');
+      const time = params.get('time');
+
+      if (amt) {
+        _amount = parseFloat(amt);
+        document.getElementById('sliderAmount').value = _amount;
+        document.getElementById('displayAmount').textContent = '₹' + Math.round(_amount).toLocaleString('en-IN');
+      }
+      if (rate) {
+        _rate = parseFloat(rate);
+        document.getElementById('sliderRate').value = _rate;
+        document.getElementById('displayRate').textContent = _rate + '%';
+      }
+      if (time) {
+        _years = parseFloat(time);
+        document.getElementById('sliderYears').value = _years;
+        document.getElementById('displayYears').textContent = _years + ' yr' + (_years > 1 ? 's' : '');
+      }
+    }
+
+    initFromUrl();
     update(); // initial render on load
   </script>
 

@@ -880,8 +880,20 @@ function updateGauge(angle) {
   if (needle) needle.style.transform = "translateX(-50%) rotate(" + angle + "deg)";
 }
 
-function goSip() { window.location.href = "sip-calculator.html"; }
-function goSwp() { window.location.href = "swp-calculator.html"; }
+function goSip() {
+  const amt = document.getElementById('miniSipAmt').value;
+  const rate = document.getElementById('miniSipRate').value;
+  const time = document.getElementById('miniSipTime').value;
+  window.location.href = `sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
+}
+
+function goSwp() {
+  const amt = document.getElementById('miniSwpAmt').value;
+  const rate = document.getElementById('miniSwpRate').value;
+  const time = document.getElementById('miniSwpTime').value;
+  const wd = document.getElementById('miniSwpWd').value;
+  window.location.href = `swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
+}
 
 (async function init() {
   document.addEventListener('scroll', hideSparkTip, true);
