@@ -2,22 +2,21 @@ name: Fetch Daily FII/DII Data
 
 on:
   schedule:
-    # Run every weekday at 14:00 UTC (19:30 IST)
-    # NSE usually updates the cash market data between 18:00 and 19:30 IST
-    - cron: '0 14 * * 1-5'
+    # Run every weekday at 14:30 UTC (20:00 IST) to ensure NSE data is published
+    - cron: '30 14 * * 1-5'
   workflow_dispatch: # Allow manual triggers
 
 jobs:
   fetch_data:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # Required to push changes back to the repo
+      contents: write
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -34,8 +33,8 @@ jobs:
           
       - name: Commit and Push Changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add data/fiidii.json
-          git commit -m "chore: auto-update FII/DII data [skip ci]" || exit 0
-          git push origin main
+          # Only commit if there are changes
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update FII/DII data for $(date +'%Y-%m-%d') [skip ci]" && git push origin main)
