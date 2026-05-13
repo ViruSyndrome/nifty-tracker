@@ -12,6 +12,7 @@ const CF_WORKER = 'https://nifty-proxy.vinodjamesisaac.workers.dev';
 
 const YF_BASE   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF_SEARCH = 'https://query1.finance.yahoo.com/v1/finance/search?q=';
+const YF_QUOTE  = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=';
 
 // -- Index symbols --
 const INDICES = [
@@ -20,6 +21,7 @@ const INDICES = [
   { id: 'idx-banknifty', symbol: '^NSEBANK',    name: 'Bank Nifty' },
   { id: 'idx-niftyit',   symbol: '^CNXIT',      name: 'Nifty IT' },
   { id: 'idx-midcap',    symbol: '^NSEMDCP50',  name: 'Nifty Midcap' },
+  { id: 'idx-nifty200',  symbol: '^CNX200',     name: 'Nifty 200' },
   { id: 'idx-sgxnifty',  symbol: '^INDIAVIX',   name: 'India VIX' },
 ];
 
@@ -236,28 +238,39 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
 // FETCH STOCK DATA
 // =============================================
 async function fetchYahoo(symbol) {
-  const url = YF_BASE + encodeURIComponent(symbol) + '?interval=1d&range=1d';
+  // Use Quote API for basic price data - much faster for single symbols too
+  const data = await fetchQuotesBatch([symbol]);
+  return data.length ? data[0] : null;
+}
+
+// Fetch multiple symbols in a single request (MUCH faster)
+async function fetchQuotesBatch(symbols) {
+  if (!symbols || !symbols.length) return [];
+  const url = YF_QUOTE + encodeURIComponent(symbols.join(','));
   try {
     const data = await proxyFetch(url);
-    const meta = data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
-    if (!meta) return null;
-    return {
-      symbol,
-      name: meta.longName || meta.shortName || symbol,
-      price: meta.regularMarketPrice,
-      prevClose: meta.chartPreviousClose || meta.previousClose,
-      open: meta.regularMarketOpen,
-      high: meta.regularMarketDayHigh,
-      low: meta.regularMarketDayLow,
-      weekHigh52: meta.fiftyTwoWeekHigh,
-      weekLow52: meta.fiftyTwoWeekLow,
-      volume: meta.regularMarketVolume,
-      marketCap: meta.marketCap,
-      currency: meta.currency,
-      exchange: meta.exchangeName,
-    };
-  } catch {
-    return null;
+    const quotes = data && data.quoteResponse && data.quoteResponse.result;
+    if (!quotes) return [];
+    return quotes.map(function(q) {
+      return {
+        symbol: q.symbol,
+        name: q.longName || q.shortName || q.symbol,
+        price: q.regularMarketPrice,
+        prevClose: q.regularMarketPreviousClose,
+        open: q.regularMarketOpen,
+        high: q.regularMarketDayHigh,
+        low: q.regularMarketDayLow,
+        weekHigh52: q.fiftyTwoWeekHigh,
+        weekLow52: q.fiftyTwoWeekLow,
+        volume: q.regularMarketVolume,
+        marketCap: q.marketCap,
+        currency: q.currency,
+        exchange: q.fullExchangeName || q.exchange,
+      };
+    });
+  } catch (e) {
+    console.error("Batch fetch failed:", e);
+    return [];
   }
 }
 
@@ -385,14 +398,9 @@ async function loadMovers() {
   var bgEl = document.getElementById('broadGainersList');
   var blEl = document.getElementById('broadLosersList');
 
-  if (gEl) gEl.innerHTML = '<div class="mover-empty">Loading…</div>';
-  if (lEl) lEl.innerHTML = '<div class="mover-empty">Loading…</div>';
-  if (bgEl) bgEl.innerHTML = '<div class="mover-empty">Loading…</div>';
-  if (blEl) blEl.innerHTML = '<div class="mover-empty">Loading…</div>';
-
-  // 1. Fetch Nifty 50
-  var results = await Promise.all(NIFTY50_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
-  var valid = results.filter(Boolean).map(function(d) {
+  // 1. Fetch Nifty 50 (In one go)
+  var results = await fetchQuotesBatch(NIFTY50_SYMBOLS);
+  var valid = results.map(function(d) {
     return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
   }).filter(function(d) { return d.pct != null; });
 
@@ -401,17 +409,18 @@ async function loadMovers() {
     renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
     renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
   } else {
-    var msg = '<div class="mover-empty">Market closed or data unavailable</div>';
+    var msg = '<div class="mover-empty">Data unavailable</div>';
     if (gEl) gEl.innerHTML = msg;
     if (lEl) lEl.innerHTML = msg;
   }
 
-  // 2. Fetch Broad Market (in batches of 25 to avoid rate limits)
+  // 2. Fetch Broad Market (In 2 big batches to be safe)
   var bValid = [];
-  for (var i = 0; i < BROAD_MARKET_SYMBOLS.length; i += 25) {
-    var batch = BROAD_MARKET_SYMBOLS.slice(i, i + 25);
-    var bResults = await Promise.all(batch.map(function(sym) { return fetchYahoo(sym); }));
-    var bProcessed = bResults.filter(Boolean).map(function(d) {
+  var batchSize = 60; 
+  for (var i = 0; i < BROAD_MARKET_SYMBOLS.length; i += batchSize) {
+    var batch = BROAD_MARKET_SYMBOLS.slice(i, i + batchSize);
+    var bResults = await fetchQuotesBatch(batch);
+    var bProcessed = bResults.map(function(d) {
       return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
     }).filter(function(d) { return d.pct != null; });
     bValid = bValid.concat(bProcessed);
