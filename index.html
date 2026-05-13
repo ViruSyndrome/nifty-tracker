@@ -14,7 +14,7 @@
     });
   </script>
   <title>GetNiftyReady — Live NSE/BSE Share Prices, Nifty 50 & Sensex</title>
-  <meta name="description" content="Live NSE and BSE share prices, Nifty 50 index, Sensex, top gainers and losers. Search any Indian stock instantly. Free, real-time, no signup." />
+  <meta name="description" content="Live Indian Share Prices. Real-time NSE & BSE data — Nifty 50, Sensex, and any stock in seconds. No signup. 100% free. The fastest, privacy-first market tracker for India." />
   <meta name="keywords" content="nse india, share price, nifty 50, sensex, bse share price, live stock price india, nifty live, indian stock market" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.getniftyready.com/" />
@@ -121,6 +121,27 @@
         <span id="lastUpdated">Updating…</span>
         <span class="live-sep">·</span>
         <span id="marketCountdown" class="live-delay">NSE · 9:15 AM – 3:30 PM IST</span>
+      </div>
+
+      <!-- MARKET SUMMARY WIDGET -->
+      <div id="marketSummary" class="market-summary-card">
+        <div class="summary-top">
+          <div class="breadth-wrap">
+            <span class="summary-label">Nifty 50 Breadth</span>
+            <div class="breadth-bar">
+              <div id="advancesBar" class="b-adv" style="width: 50%;"></div>
+              <div id="declinesBar" class="b-dec" style="width: 50%;"></div>
+            </div>
+            <div class="breadth-labels">
+              <span class="lbl-adv"><span id="advancesCount">--</span> Advancing</span>
+              <span class="lbl-dec"><span id="declinesCount">--</span> Declining</span>
+            </div>
+          </div>
+          <div class="sentiment-wrap">
+            <span class="summary-label">Market Sentiment</span>
+            <div id="sentimentStatus" class="sentiment-status">Neutral</div>
+          </div>
+        </div>
       </div>
       <div class="indices-grid" id="indicesGrid">
         <div class="index-card skeleton" id="idx-nifty50" data-tooltip="Top 50 large-cap companies on NSE by market cap">

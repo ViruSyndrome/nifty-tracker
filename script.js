@@ -64,7 +64,10 @@ const BROAD_MARKET_SYMBOLS = [
   'BHEL.NS', 'NHPC.NS', 'YESBANK.NS', 'PFC.NS', 'RECLTD.NS',
   'GMRINFRA.NS', 'KALYANKJIL.NS', 'HDFCAMC.NS', 'CDSL.NS', 'MAPMYINDIA.NS',
   'AUsmall.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS',
-  'FEDERALBNK.NS', 'FORTIS.NS', 'IDFCFIRSTB.NS', 'JUBLFOOD.NS', 'LUPIN.NS'
+  'FEDERALBNK.NS', 'FORTIS.NS', 'IDFCFIRSTB.NS', 'JUBLFOOD.NS', 'LUPIN.NS',
+  'CENTRALBK.NS', 'IOB.NS', 'PNB.NS', 'HUDCO.NS', 'IRCTC.NS',
+  'SAIL.NS', 'NBCC.NS', 'NMDC.NS', 'MANAPPURAM.NS', 'MUTHOOTFIN.NS',
+  'LICI.NS', 'GLENMARK.NS', 'ESCORTS.NS', 'ASTRAL.NS', 'CONCOR.NS'
 ];
 
 // -- Commodities --
@@ -398,6 +401,7 @@ async function loadMovers() {
     valid.sort(function(a, b) { return b.pct - a.pct; });
     renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
     renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+    updateMarketSummary(valid);
   } else {
     var msg = '<div class="mover-empty">Data unavailable</div>';
     if (gEl) gEl.innerHTML = msg;
@@ -466,6 +470,48 @@ function renderMovers(elId, items, cls) {
     });
     row.addEventListener('mouseleave', hideSparkTip);
   });
+}
+
+function updateMarketSummary(niftyStocks) {
+  const adv = niftyStocks.filter(s => s.pct > 0.05).length;
+  const dec = niftyStocks.filter(s => s.pct < -0.05).length;
+  const total = niftyStocks.length;
+
+  const advEl = document.getElementById('advancesCount');
+  const decEl = document.getElementById('declinesCount');
+  const advBar = document.getElementById('advancesBar');
+  const decBar = document.getElementById('declinesBar');
+  const sentEl = document.getElementById('sentimentStatus');
+
+  if (advEl) advEl.innerText = adv;
+  if (decEl) decEl.innerText = dec;
+
+  if (advBar && decBar) {
+    const advPct = (adv / total) * 100;
+    const decPct = (dec / total) * 100;
+    advBar.style.width = advPct + '%';
+    decBar.style.width = decPct + '%';
+  }
+
+  if (sentEl) {
+    sentEl.className = 'sentiment-status';
+    if (adv > 30) {
+      sentEl.innerText = 'Strong Bullish';
+      sentEl.classList.add('bullish');
+    } else if (adv > 25) {
+      sentEl.innerText = 'Bullish';
+      sentEl.classList.add('bullish');
+    } else if (dec > 30) {
+      sentEl.innerText = 'Strong Bearish';
+      sentEl.classList.add('bearish');
+    } else if (dec > 25) {
+      sentEl.innerText = 'Bearish';
+      sentEl.classList.add('bearish');
+    } else {
+      sentEl.innerText = 'Neutral';
+      sentEl.classList.add('neutral');
+    }
+  }
 }
 
 // =============================================

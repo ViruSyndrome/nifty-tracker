@@ -258,6 +258,68 @@ a { color: inherit; text-decoration: none; }
 .live-sep { color: #2d3f55; }
 .live-delay { color: #475569; font-size: 0.7rem; }
 #lastUpdated { color: #e2e8f0; font-weight: 600; }
+
+/* ---- MARKET SUMMARY ---- */
+.market-summary-card {
+  background: rgba(15, 23, 42, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  backdrop-filter: blur(8px);
+}
+.summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.breadth-wrap { flex: 2; min-width: 280px; }
+.sentiment-wrap { flex: 1; min-width: 140px; text-align: right; }
+.summary-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.breadth-bar {
+  height: 10px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.b-adv { background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.6s ease; }
+.b-dec { background: linear-gradient(90deg, #f87171, #ef4444); transition: width 0.6s ease; }
+.breadth-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+.lbl-adv { color: #10b981; }
+.lbl-dec { color: #f87171; }
+.sentiment-status {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  transition: color 0.3s;
+}
+.sentiment-status.bullish { color: #10b981; }
+.sentiment-status.bearish { color: #f87171; }
+.sentiment-status.neutral { color: var(--text); }
+
+@media (max-width: 640px) {
+  .sentiment-wrap { text-align: left; }
+  .summary-top { gap: 20px; }
+}
+
 .indices-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
