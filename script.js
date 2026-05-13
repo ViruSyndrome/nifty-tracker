@@ -12,7 +12,6 @@ const CF_WORKER = 'https://nifty-proxy.vinodjamesisaac.workers.dev';
 
 const YF_BASE   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF_SEARCH = 'https://query1.finance.yahoo.com/v1/finance/search?q=';
-const YF_QUOTE  = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=';
 
 // -- Index symbols --
 const INDICES = [
@@ -21,7 +20,6 @@ const INDICES = [
   { id: 'idx-banknifty', symbol: '^NSEBANK',    name: 'Bank Nifty' },
   { id: 'idx-niftyit',   symbol: '^CNXIT',      name: 'Nifty IT' },
   { id: 'idx-midcap',    symbol: '^NSEMDCP50',  name: 'Nifty Midcap' },
-  { id: 'idx-nifty200',  symbol: '^CNX200',     name: 'Nifty 200' },
   { id: 'idx-sgxnifty',  symbol: '^INDIAVIX',   name: 'India VIX' },
 ];
 
@@ -58,12 +56,15 @@ const NIFTY50_SYMBOLS = [
   'TECHM.NS', 'TITAN.NS', 'ULTRACEMCO.NS', 'UPL.NS', 'WIPRO.NS'
 ];
 
-// -- Broad Market (Nifty Next 50 + Midcap 100) --
+// -- Broad Market (Mid-cap High Volatility) --
 const BROAD_MARKET_SYMBOLS = [
-  // Nifty Next 50
-  'ABB.NS', 'ADANIENSOL.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ATGL.NS', 'AMBUJACEM.NS', 'BEL.NS', 'BANKBARODA.NS', 'BERGEPAINT.NS', 'BHEL.NS', 'CHOLAFIN.NS', 'COLPAL.NS', 'DLF.NS', 'GAIL.NS', 'HAL.NS', 'HAVELLS.NS', 'HDFCAMC.NS', 'ICICIPRULI.NS', 'IOC.NS', 'IRCTC.NS', 'IRFC.NS', 'INDIGO.NS', 'JIOFIN.NS', 'JSL.NS', 'LICI.NS', 'MARICO.NS', 'MUTHOOTFIN.NS', 'PIIND.NS', 'PFC.NS', 'PNB.NS', 'RECLTD.NS', 'SBICARD.NS', 'SHREECEM.NS', 'SRF.NS', 'SIEMENS.NS', 'TATAELXSI.NS', 'TATAPOWER.NS', 'TRENT.NS', 'TVSMOTOR.NS', 'UNITDSPR.NS', 'VBL.NS', 'VEDL.NS', 'ZOMATO.NS', 'ZYDUSLIFE.NS',
-  // High Volatility Mid-caps
-  'PAYTM.NS', 'NYKAA.NS', 'IDEA.NS', 'SUZLON.NS', 'RVNL.NS', 'MAZDOCK.NS', 'POLYCAB.NS', 'MCX.NS', 'IREDA.NS', 'NHPC.NS', 'YESBANK.NS', 'GMRINFRA.NS', 'KALYANKJIL.NS', 'CDSL.NS', 'MAPMYINDIA.NS', 'AUsmall.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS', 'ASTRAL.NS', 'BALKRISIND.NS', 'BANDHANBNK.NS', 'BATAINDIA.NS', 'BHARATFORG.NS', 'CONCOR.NS', 'CUMMINSIND.NS', 'ESCORTS.NS', 'FEDERALBNK.NS', 'FORTIS.NS', 'GLAND.NS', 'GODREJCP.NS', 'GODREJPROP.NS', 'GUJGASLTD.NS', 'HINDCOPPER.NS', 'IDFCFIRSTB.NS', 'IPCALAB.NS', 'JKCEMENT.NS', 'JUBLFOOD.NS', 'LICHSGFIN.NS', 'LUPIN.NS', 'MRF.NS', 'MAHABANK.NS', 'MAXHEALTH.NS', 'MPHASIS.NS', 'MRPL.NS', 'NMDC.NS', 'OBEROIRLTY.NS', 'OIL.NS', 'PAGEIND.NS', 'PERSISTENT.NS', 'PETRONET.NS', 'POONAWALLA.NS', 'SYNGENE.NS', 'TATACOMM.NS', 'VOLTAS.NS'
+  'ZOMATO.NS', 'PAYTM.NS', 'NYKAA.NS', 'IDEA.NS', 'SUZLON.NS',
+  'IRFC.NS', 'RVNL.NS', 'MAZDOCK.NS', 'POLYCAB.NS', 'TRENT.NS',
+  'HAL.NS', 'BEL.NS', 'MCX.NS', 'IREDA.NS', 'JIOFIN.NS',
+  'BHEL.NS', 'NHPC.NS', 'YESBANK.NS', 'PFC.NS', 'RECLTD.NS',
+  'GMRINFRA.NS', 'KALYANKJIL.NS', 'HDFCAMC.NS', 'CDSL.NS', 'MAPMYINDIA.NS',
+  'AUsmall.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS',
+  'FEDERALBNK.NS', 'FORTIS.NS', 'IDFCFIRSTB.NS', 'JUBLFOOD.NS', 'LUPIN.NS'
 ];
 
 // -- Commodities --
@@ -238,39 +239,28 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
 // FETCH STOCK DATA
 // =============================================
 async function fetchYahoo(symbol) {
-  // Use Quote API for basic price data - much faster for single symbols too
-  const data = await fetchQuotesBatch([symbol]);
-  return data.length ? data[0] : null;
-}
-
-// Fetch multiple symbols in a single request (MUCH faster)
-async function fetchQuotesBatch(symbols) {
-  if (!symbols || !symbols.length) return [];
-  const url = YF_QUOTE + encodeURIComponent(symbols.join(','));
+  const url = YF_BASE + encodeURIComponent(symbol) + '?interval=1d&range=1d';
   try {
     const data = await proxyFetch(url);
-    const quotes = data && data.quoteResponse && data.quoteResponse.result;
-    if (!quotes) return [];
-    return quotes.map(function(q) {
-      return {
-        symbol: q.symbol,
-        name: q.longName || q.shortName || q.symbol,
-        price: q.regularMarketPrice,
-        prevClose: q.regularMarketPreviousClose,
-        open: q.regularMarketOpen,
-        high: q.regularMarketDayHigh,
-        low: q.regularMarketDayLow,
-        weekHigh52: q.fiftyTwoWeekHigh,
-        weekLow52: q.fiftyTwoWeekLow,
-        volume: q.regularMarketVolume,
-        marketCap: q.marketCap,
-        currency: q.currency,
-        exchange: q.fullExchangeName || q.exchange,
-      };
-    });
-  } catch (e) {
-    console.error("Batch fetch failed:", e);
-    return [];
+    const meta = data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
+    if (!meta) return null;
+    return {
+      symbol,
+      name: meta.longName || meta.shortName || symbol,
+      price: meta.regularMarketPrice,
+      prevClose: meta.chartPreviousClose || meta.previousClose,
+      open: meta.regularMarketOpen,
+      high: meta.regularMarketDayHigh,
+      low: meta.regularMarketDayLow,
+      weekHigh52: meta.fiftyTwoWeekHigh,
+      weekLow52: meta.fiftyTwoWeekLow,
+      volume: meta.regularMarketVolume,
+      marketCap: meta.marketCap,
+      currency: meta.currency,
+      exchange: meta.exchangeName,
+    };
+  } catch {
+    return null;
   }
 }
 
@@ -398,9 +388,9 @@ async function loadMovers() {
   var bgEl = document.getElementById('broadGainersList');
   var blEl = document.getElementById('broadLosersList');
 
-  // 1. Fetch Nifty 50 (In one go)
-  var results = await fetchQuotesBatch(NIFTY50_SYMBOLS);
-  var valid = results.map(function(d) {
+  // 1. Fetch Nifty 50
+  var results = await Promise.all(NIFTY50_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
+  var valid = results.filter(Boolean).map(function(d) {
     return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
   }).filter(function(d) { return d.pct != null; });
 
@@ -414,17 +404,11 @@ async function loadMovers() {
     if (lEl) lEl.innerHTML = msg;
   }
 
-  // 2. Fetch Broad Market (In 2 big batches to be safe)
-  var bValid = [];
-  var batchSize = 60; 
-  for (var i = 0; i < BROAD_MARKET_SYMBOLS.length; i += batchSize) {
-    var batch = BROAD_MARKET_SYMBOLS.slice(i, i + batchSize);
-    var bResults = await fetchQuotesBatch(batch);
-    var bProcessed = bResults.map(function(d) {
-      return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
-    }).filter(function(d) { return d.pct != null; });
-    bValid = bValid.concat(bProcessed);
-  }
+  // 2. Fetch Broad Market (Curated volatile set)
+  var bResults = await Promise.all(BROAD_MARKET_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
+  var bValid = bResults.filter(Boolean).map(function(d) {
+    return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
+  }).filter(function(d) { return d.pct != null; });
 
   if (bValid.length && bgEl) {
     bValid.sort(function(a, b) { return b.pct - a.pct; });
