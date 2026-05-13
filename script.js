@@ -56,6 +56,14 @@ const NIFTY50_SYMBOLS = [
   'TECHM.NS', 'TITAN.NS', 'ULTRACEMCO.NS', 'UPL.NS', 'WIPRO.NS'
 ];
 
+// -- Broad Market (Nifty Next 50 + Midcap 100) --
+const BROAD_MARKET_SYMBOLS = [
+  // Nifty Next 50
+  'ABB.NS', 'ADANIENSOL.NS', 'ADANIGREEN.NS', 'ADANIPOWER.NS', 'ATGL.NS', 'AMBUJACEM.NS', 'BEL.NS', 'BANKBARODA.NS', 'BERGEPAINT.NS', 'BHEL.NS', 'CHOLAFIN.NS', 'COLPAL.NS', 'DLF.NS', 'GAIL.NS', 'HAL.NS', 'HAVELLS.NS', 'HDFCAMC.NS', 'ICICIPRULI.NS', 'IOC.NS', 'IRCTC.NS', 'IRFC.NS', 'INDIGO.NS', 'JIOFIN.NS', 'JSL.NS', 'LICI.NS', 'MARICO.NS', 'MUTHOOTFIN.NS', 'PIIND.NS', 'PFC.NS', 'PNB.NS', 'RECLTD.NS', 'SBICARD.NS', 'SHREECEM.NS', 'SRF.NS', 'SIEMENS.NS', 'TATAELXSI.NS', 'TATAPOWER.NS', 'TRENT.NS', 'TVSMOTOR.NS', 'UNITDSPR.NS', 'VBL.NS', 'VEDL.NS', 'ZOMATO.NS', 'ZYDUSLIFE.NS',
+  // High Volatility Mid-caps
+  'PAYTM.NS', 'NYKAA.NS', 'IDEA.NS', 'SUZLON.NS', 'RVNL.NS', 'MAZDOCK.NS', 'POLYCAB.NS', 'MCX.NS', 'IREDA.NS', 'NHPC.NS', 'YESBANK.NS', 'GMRINFRA.NS', 'KALYANKJIL.NS', 'CDSL.NS', 'MAPMYINDIA.NS', 'AUsmall.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS', 'ASTRAL.NS', 'BALKRISIND.NS', 'BANDHANBNK.NS', 'BATAINDIA.NS', 'BHARATFORG.NS', 'CONCOR.NS', 'CUMMINSIND.NS', 'ESCORTS.NS', 'FEDERALBNK.NS', 'FORTIS.NS', 'GLAND.NS', 'GODREJCP.NS', 'GODREJPROP.NS', 'GUJGASLTD.NS', 'HINDCOPPER.NS', 'IDFCFIRSTB.NS', 'IPCALAB.NS', 'JKCEMENT.NS', 'JUBLFOOD.NS', 'LICHSGFIN.NS', 'LUPIN.NS', 'MRF.NS', 'MAHABANK.NS', 'MAXHEALTH.NS', 'MPHASIS.NS', 'MRPL.NS', 'NMDC.NS', 'OBEROIRLTY.NS', 'OIL.NS', 'PAGEIND.NS', 'PERSISTENT.NS', 'PETRONET.NS', 'POONAWALLA.NS', 'SYNGENE.NS', 'TATACOMM.NS', 'VOLTAS.NS'
+];
+
 // -- Commodities --
 // Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × 10 × India duties = INR per 10g
 // India duties: import duty 6% + GST 3% = ×1.0918 (as per July 2024 Budget)
@@ -372,24 +380,52 @@ async function loadPopular() {
 // GAINERS / LOSERS
 // =============================================
 async function loadMovers() {
-  document.getElementById('gainersList').innerHTML = '<div class="mover-empty">Loading…</div>';
-  document.getElementById('losersList').innerHTML  = '<div class="mover-empty">Loading…</div>';
+  var gEl = document.getElementById('gainersList');
+  var lEl = document.getElementById('losersList');
+  var bgEl = document.getElementById('broadGainersList');
+  var blEl = document.getElementById('broadLosersList');
 
+  if (gEl) gEl.innerHTML = '<div class="mover-empty">Loading…</div>';
+  if (lEl) lEl.innerHTML = '<div class="mover-empty">Loading…</div>';
+  if (bgEl) bgEl.innerHTML = '<div class="mover-empty">Loading…</div>';
+  if (blEl) blEl.innerHTML = '<div class="mover-empty">Loading…</div>';
+
+  // 1. Fetch Nifty 50
   var results = await Promise.all(NIFTY50_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
   var valid = results.filter(Boolean).map(function(d) {
     return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
   }).filter(function(d) { return d.pct != null; });
 
-  if (!valid.length) {
+  if (valid.length) {
+    valid.sort(function(a, b) { return b.pct - a.pct; });
+    renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
+    renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+  } else {
     var msg = '<div class="mover-empty">Market closed or data unavailable</div>';
-    document.getElementById('gainersList').innerHTML = msg;
-    document.getElementById('losersList').innerHTML  = msg;
-    return;
+    if (gEl) gEl.innerHTML = msg;
+    if (lEl) lEl.innerHTML = msg;
   }
 
-  valid.sort(function(a, b) { return b.pct - a.pct; });
-  renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
-  renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+  // 2. Fetch Broad Market (in batches of 25 to avoid rate limits)
+  var bValid = [];
+  for (var i = 0; i < BROAD_MARKET_SYMBOLS.length; i += 25) {
+    var batch = BROAD_MARKET_SYMBOLS.slice(i, i + 25);
+    var bResults = await Promise.all(batch.map(function(sym) { return fetchYahoo(sym); }));
+    var bProcessed = bResults.filter(Boolean).map(function(d) {
+      return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
+    }).filter(function(d) { return d.pct != null; });
+    bValid = bValid.concat(bProcessed);
+  }
+
+  if (bValid.length && bgEl) {
+    bValid.sort(function(a, b) { return b.pct - a.pct; });
+    renderMovers('broadGainersList', bValid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
+    renderMovers('broadLosersList',  bValid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+  } else if (bgEl) {
+    var bMsg = '<div class="mover-empty">Data unavailable</div>';
+    bgEl.innerHTML = bMsg;
+    blEl.innerHTML = bMsg;
+  }
 }
 
 function renderMovers(elId, items, cls) {
