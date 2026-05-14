@@ -83,6 +83,22 @@ const COMMODITIES = [
   { id: 'eur-inr',  symbol: 'EURINR=X', label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
 ];
 
+// -- Sectoral Indices --
+const SECTORS = [
+  { symbol: '^NSEBANK',    label: 'Banking' },
+  { symbol: '^CNXIT',      label: 'IT' },
+  { symbol: '^CNXAUTO',    label: 'Auto' },
+  { symbol: '^CNXPHARMA',  label: 'Pharma' },
+  { symbol: '^CNXFMCG',    label: 'FMCG' },
+  { symbol: '^CNXREALTY',  label: 'Realty' },
+  { symbol: '^CNXMETAL',   label: 'Metal' },
+  { symbol: '^CNXMEDIA',   label: 'Media' },
+  { symbol: '^CNXPSUBANK', label: 'PSU Bank' },
+  { symbol: '^CNXENERGY',  label: 'Energy' },
+  { symbol: '^CNXINFRA',   label: 'Infra' },
+  { symbol: '^CNXSERVICE', label: 'Services' },
+];
+
 // =============================================
 // SPARKLINE ENGINE
 // =============================================
@@ -970,6 +986,28 @@ function goSwp() {
   window.location.href = `swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
 }
 
+async function loadSectors() {
+  const grid = document.getElementById('sectorsGrid');
+  if (!grid) return;
+
+  const results = await Promise.all(SECTORS.map(s => fetchYahoo(s.symbol)));
+  
+  grid.innerHTML = SECTORS.map((s, i) => {
+    const data = results[i];
+    if (!data) return '';
+    const pct = changePct(data.price, data.prevClose);
+    const cls = pct >= 0 ? 'up' : 'down';
+    const sign = pct >= 0 ? '+' : '';
+    
+    return `
+      <div class="sector-card">
+        <span class="sector-name">${s.label}</span>
+        <span class="sector-pct ${cls}">${sign}${pct.toFixed(2)}%</span>
+      </div>
+    `;
+  }).join('');
+}
+
 (async function init() {
   document.addEventListener('scroll', hideSparkTip, true);
   renderCommodities();
@@ -979,4 +1017,5 @@ function goSwp() {
   loadMovers();
   loadCommodities();
   loadFIIDII();
+  loadSectors();
 })();
