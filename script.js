@@ -10,6 +10,13 @@
 // -----------------------------------------------------------
 const CF_WORKER = 'https://nifty-proxy.vinodjamesisaac.workers.dev';
 
+// Analytics Tracking Helper
+function trackEvent(eventName, params = {}) {
+  if (typeof gtag === 'function') {
+    gtag('event', eventName, params);
+  }
+}
+
 const YF_BASE   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF_SEARCH = 'https://query1.finance.yahoo.com/v1/finance/search?q=';
 
@@ -600,6 +607,7 @@ async function searchBySymbol(symbol, name) {
 async function doSearch() {
   var q = document.getElementById('searchInput').value.trim();
   if (!q) return;
+  trackEvent('search_symbol', { query: q });
   document.getElementById('suggestions').classList.add('hidden');
   // Always use Yahoo search — handles names (Airtel→BHARTIARTL), tickers (TCS→TCS.NS), and US stocks
   await searchAndShow(q);
@@ -964,6 +972,7 @@ async function loadFIIDII() {
 function toggleHistory() {
   const el = document.getElementById('fiidiiHistory');
   if (el) el.classList.toggle('hidden');
+  trackEvent('view_fii_dii');
 }
 
 function updateGauge(angle) {
@@ -975,6 +984,7 @@ function goSip() {
   const amt = document.getElementById('miniSipAmt').value;
   const rate = document.getElementById('miniSipRate').value;
   const time = document.getElementById('miniSipTime').value;
+  trackEvent('calculate_sip');
   window.location.href = `sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
 }
 
@@ -983,6 +993,7 @@ function goSwp() {
   const rate = document.getElementById('miniSwpRate').value;
   const time = document.getElementById('miniSwpTime').value;
   const wd = document.getElementById('miniSwpWd').value;
+  trackEvent('calculate_swp');
   window.location.href = `swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
 }
 
