@@ -955,7 +955,7 @@ async function loadFIIDII() {
           else grouped[item.date].fii = val;
         });
 
-        const rows = uniqueDates.slice(0, 5).map(date => {
+        const rows = uniqueDates.slice(0, 10).map(date => {
           const fii = grouped[date].fii, dii = grouped[date].dii;
           return `<tr><td>${date}</td><td class="${fii>=0?'up':'down'}">${fii>=0?'+':''}${fmt(fii)}</td><td class="${dii>=0?'up':'down'}">${dii>=0?'+':''}${fmt(dii)}</td></tr>`;
         }).join('');
