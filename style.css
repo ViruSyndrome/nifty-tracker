@@ -1098,3 +1098,8 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 640px) {
   .breadth-labels { font-size: 0.65rem !important; }
 }
+
+@media (max-width: 640px) {
+  .breadth-wrap { min-width: 100% !important; flex: 1 1 100%; }
+  .breadth-labels { font-size: 0.75rem !important; }
+}
