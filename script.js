@@ -48,6 +48,32 @@ const POPULAR = [
   { symbol: 'CDSL.NS',      name: 'CDSL' },
 ];
 
+const INFO_MESSAGES = [
+  'Nifty 50 breadth updates every 20 seconds during market hours.',
+  'Search any NSE/BSE symbol for live price, day range, and intraday chart.',
+  'Top watchlist: Reliance, TCS, HDFC Bank, Infosys — click any card for details.',
+  'FII/DII shows the latest available institutional flow snapshot, even after market close.',
+];
+let _infoIndex = 0;
+
+function rotateInfoTicker() {
+  var el = document.getElementById('infoTickerText');
+  if (!el) return;
+  var adv = document.getElementById('advancesCount')?.textContent || null;
+  var dec = document.getElementById('declinesCount')?.textContent || null;
+  if (adv && dec && adv !== '--' && dec !== '--') {
+    el.textContent = 'Market breadth: ' + adv + ' advancing, ' + dec + ' declining in Nifty 50.';
+  } else {
+    el.textContent = INFO_MESSAGES[_infoIndex];
+    _infoIndex = (_infoIndex + 1) % INFO_MESSAGES.length;
+  }
+}
+
+function startInfoTicker() {
+  rotateInfoTicker();
+  setInterval(rotateInfoTicker, 7000);
+}
+
 // -- Stocks for gainers/losers --
 // -- Full Nifty 50 symbols for accurate gainers/losers --
 const NIFTY50_SYMBOLS = [
@@ -922,50 +948,66 @@ function renderCommodities() {
 async function loadFIIDII() {
   const grid = document.getElementById('fiidiiGrid');
   const dateEl = document.getElementById('fiidiiDate');
-  const sentimentEl = document.getElementById('marketSentiment');
   const historyTable = document.getElementById('fiidiiHistory');
   if (!grid) return;
 
-  try {
-    const res = await fetch('data/fiidii.json?v=' + Date.now());
-    if (!res.ok) throw new Error('Network err');
-    const data = await res.json();
-    
-    if (data && data.length > 0) {
-      // 1. Render Latest
-      const latestDay = data.slice(0, 2);
-      if (dateEl) dateEl.innerHTML = 'Data for ' + latestDay[0].date;
-      
-      grid.innerHTML = latestDay.map(item => {
-        const net = parseFloat(item.netValue);
-        const isUp = net >= 0;
-        return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
+  function renderFIIDII(data, sourceLabel) {
+    if (!data || data.length === 0) return;
+    const latestDay = data.slice(0, 2);
+    if (dateEl) dateEl.innerHTML = 'Latest available FII/DII snapshot for ' + latestDay[0].date + ' · ' + sourceLabel;
+    grid.innerHTML = latestDay.map(item => {
+      const net = parseFloat(item.netValue);
+      const isUp = net >= 0;
+      return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
+    }).join('');
+
+    if (historyTable) {
+      const uniqueDates = [];
+      const grouped = {};
+      data.forEach(item => {
+        if (!item.date) return;
+        if (!uniqueDates.includes(item.date)) uniqueDates.push(item.date);
+        if (!grouped[item.date]) grouped[item.date] = { fii: 0, dii: 0 };
+        const val = parseFloat(item.netValue) || 0;
+        if (item.category === 'DII') grouped[item.date].dii = val;
+        else grouped[item.date].fii = val;
+      });
+      const rows = uniqueDates.slice(0, 10).map(date => {
+        const fii = grouped[date].fii, dii = grouped[date].dii;
+        return `<tr><td>${date}</td><td class="${fii>=0?'up':'down'}">${fii>=0?'+':''}${fmt(fii)}</td><td class="${dii>=0?'up':'down'}">${dii>=0?'+':''}${fmt(dii)}</td></tr>`;
       }).join('');
-
-      // 2. Render Trend Table
-      if (historyTable) {
-        const uniqueDates = [];
-        const grouped = {};
-        data.forEach(item => {
-          if (!item.date) return;
-          if (!uniqueDates.includes(item.date)) uniqueDates.push(item.date);
-          if (!grouped[item.date]) grouped[item.date] = { fii: 0, dii: 0 };
-          const val = parseFloat(item.netValue) || 0;
-          if (item.category === 'DII') grouped[item.date].dii = val;
-          else grouped[item.date].fii = val;
-        });
-
-        const rows = uniqueDates.slice(0, 10).map(date => {
-          const fii = grouped[date].fii, dii = grouped[date].dii;
-          return `<tr><td>${date}</td><td class="${fii>=0?'up':'down'}">${fii>=0?'+':''}${fmt(fii)}</td><td class="${dii>=0?'up':'down'}">${dii>=0?'+':''}${fmt(dii)}</td></tr>`;
-        }).join('');
-        historyTable.innerHTML = `<table class="trend-table"><thead><tr><th>Date</th><th>FII (Cr)</th><th>DII (Cr)</th></tr></thead><tbody>${rows}</tbody></table>`;
-      }
-      updateGauge(40);
+      historyTable.innerHTML = `<table class="trend-table"><thead><tr><th>Date</th><th>FII (Cr)</th><th>DII (Cr)</th></tr></thead><tbody>${rows}</tbody></table>`;
     }
-  } catch(e) {
-    console.error("FII/DII Data Unavailable:", e);
-    grid.innerHTML = `<div class="mover-empty">Live data temporarily unavailable</div>`;
+
+    const latestNet = latestDay.reduce((sum, item) => sum + (parseFloat(item.netValue) || 0), 0);
+    const gaugeRatio = Math.max(-1, Math.min(1, latestNet / 18000));
+    updateGauge(gaugeRatio * 80);
+  }
+
+  try {
+    // Load the latest published snapshot first from the local file.
+    const localRes = await fetch('data/fiidii.json?v=' + Date.now());
+    if (localRes.ok) {
+      const localData = await localRes.json();
+      if (Array.isArray(localData) && localData.length) {
+        renderFIIDII(localData, 'latest published');
+      }
+    }
+  } catch (localErr) {
+    console.warn('Could not load local FII/DII snapshot:', localErr);
+  }
+
+  try {
+    const remote = await proxyFetch('https://www.nseindia.com/api/fiidiiTradeReact', 9000);
+    if (Array.isArray(remote) && remote.length) {
+      renderFIIDII(remote, 'live NSE');
+    }
+  } catch (remoteErr) {
+    console.warn('Live FII/DII fetch failed:', remoteErr);
+    if (!grid.innerHTML.trim()) {
+      grid.innerHTML = `<div class="mover-empty">Live data temporarily unavailable</div>`;
+      if (dateEl) dateEl.innerHTML = 'Data unavailable';
+    }
   }
 }
 
@@ -982,17 +1024,17 @@ function updateGauge(angle) {
 
 function goSip() {
   const amt = document.getElementById('miniSipAmt').value;
-  const rate = document.getElementById('miniSipRate').value;
-  const time = document.getElementById('miniSipTime').value;
+  const time = document.getElementById('miniSipYrs') ? document.getElementById('miniSipYrs').value : 10;
+  const rate = document.getElementById('miniSipRate') ? document.getElementById('miniSipRate').value : 12;
   trackEvent('calculate_sip');
   window.location.href = `sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
 }
 
 function goSwp() {
   const amt = document.getElementById('miniSwpAmt').value;
-  const rate = document.getElementById('miniSwpRate').value;
-  const time = document.getElementById('miniSwpTime').value;
   const wd = document.getElementById('miniSwpWd').value;
+  const time = document.getElementById('miniSwpYrs') ? document.getElementById('miniSwpYrs').value : 10;
+  const rate = document.getElementById('miniSwpRate') ? document.getElementById('miniSwpRate').value : 8;
   trackEvent('calculate_swp');
   window.location.href = `swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
 }
@@ -1029,4 +1071,6 @@ async function loadSectors() {
   loadCommodities();
   loadFIIDII();
   loadSectors();
+  startInfoTicker();
+  setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();

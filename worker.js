@@ -37,7 +37,7 @@ export default {
       return new Response('Invalid url', { status: 400 });
     }
 
-    const allowed = ['query1.finance.yahoo.com', 'query2.finance.yahoo.com'];
+    const allowed = ['query1.finance.yahoo.com', 'query2.finance.yahoo.com', 'www.nseindia.com', 'nseindia.com'];
     if (!allowed.includes(targetUrl.hostname)) {
       return new Response('Forbidden', { status: 403 });
     }
