@@ -936,7 +936,8 @@ async function loadFIIDII() {
     grid.innerHTML = latestDay.map(item => {
       const net = parseFloat(item.netValue);
       const isUp = net >= 0;
-      return `<div class="fiidii-item"><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
+      const direction = item.category === 'DII' ? 'Domestic Institutional Investors' : 'Foreign Institutional Investors';
+      return `<div class="fiidii-item" data-tooltip="${direction}: ${isUp?'+':''}₹${fmt(Math.abs(net))} Cr net ${isUp?'buy':'sell'} today."><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
     }).join('');
 
     if (historyTable) {
@@ -1031,7 +1032,7 @@ async function loadSectors() {
     const sign = pct >= 0 ? '+' : '';
     
     return `
-      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}" data-tooltip="${s.label}: ${sign}${pct.toFixed(2)}% change over the day. Hover for a 5-day sector trend.">
+      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}">
         <span class="sector-name">${s.label}</span>
         <span class="sector-pct ${cls}">${sign}${pct.toFixed(2)}%</span>
       </div>
