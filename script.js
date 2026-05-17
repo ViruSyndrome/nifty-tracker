@@ -1032,7 +1032,7 @@ async function loadSectors() {
     const sign = pct >= 0 ? '+' : '';
     
     return `
-      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}">
+      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}" data-sector-price="${data.price}" data-sector-prev="${data.prevClose}">
         <span class="sector-name">${s.label}</span>
         <span class="sector-pct ${cls}">${sign}${pct.toFixed(2)}%</span>
       </div>
@@ -1042,16 +1042,23 @@ async function loadSectors() {
   grid.querySelectorAll('.sector-card').forEach(function(card) {
     var symbol = card.dataset.sectorSymbol;
     var label  = card.dataset.sectorLabel;
+    var price  = parseFloat(card.dataset.sectorPrice);
+    var prev   = parseFloat(card.dataset.sectorPrev);
+    var pct    = !isNaN(price) && !isNaN(prev) ? changePct(price, prev) : null;
     card.addEventListener('mouseenter', function(e) {
+      var sign = pct != null && pct >= 0 ? '+' : '';
+      var col  = pct != null && pct >= 0 ? '#22c55e' : '#ef4444';
       showSparkTip(e,
         '<div class="stip-name">' + label + '</div>' +
-        '<div class="stip-price">Loading chart…</div>'
+        '<div class="stip-price">' + (price ? '₹' + fmt(price) : 'Loading…') + (pct != null ? ' <span style="color:' + col + '">' + sign + pct.toFixed(2) + '%</span>' : '') + '</div>' +
+        '<div class="stip-loading">Loading 5-day sector trend…</div>'
       );
       getSparkline(symbol, '5d', '60m').then(function(prices) {
         showSparkTip(e,
           '<div class="stip-name">' + label + '</div>' +
-          drawSparklineSVG(prices, 190, 68) +
-          '<div class="stip-label">5-day sector trend</div>'
+          '<div class="stip-price">' + (price ? '₹' + fmt(price) : 'N/A') + (pct != null ? ' <span style="color:' + col + '">' + sign + pct.toFixed(2) + '%</span>' : '') + '</div>' +
+          drawSparklineSVG(prices, 230, 82) +
+          '<div class="stip-label">5-day sector trend · hover to compare</div>'
         );
       });
     });
