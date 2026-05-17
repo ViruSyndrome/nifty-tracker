@@ -1031,7 +1031,7 @@ async function loadSectors() {
     const sign = pct >= 0 ? '+' : '';
     
     return `
-      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}">
+      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}" data-tooltip="${s.label}: ${sign}${pct.toFixed(2)}% change over the day. Hover for a 5-day sector trend.">
         <span class="sector-name">${s.label}</span>
         <span class="sector-pct ${cls}">${sign}${pct.toFixed(2)}%</span>
       </div>
