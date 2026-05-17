@@ -48,32 +48,6 @@ const POPULAR = [
   { symbol: 'CDSL.NS',      name: 'CDSL' },
 ];
 
-const INFO_MESSAGES = [
-  'Nifty 50 breadth updates every 20 seconds during market hours.',
-  'Search any NSE/BSE symbol for live price, day range, and intraday chart.',
-  'Top watchlist: Reliance, TCS, HDFC Bank, Infosys — click any card for details.',
-  'FII/DII shows the latest available institutional flow snapshot, even after market close.',
-];
-let _infoIndex = 0;
-
-function rotateInfoTicker() {
-  var el = document.getElementById('infoTickerText');
-  if (!el) return;
-  var adv = document.getElementById('advancesCount')?.textContent || null;
-  var dec = document.getElementById('declinesCount')?.textContent || null;
-  if (adv && dec && adv !== '--' && dec !== '--') {
-    el.textContent = 'Market breadth: ' + adv + ' advancing, ' + dec + ' declining in Nifty 50.';
-  } else {
-    el.textContent = INFO_MESSAGES[_infoIndex];
-    _infoIndex = (_infoIndex + 1) % INFO_MESSAGES.length;
-  }
-}
-
-function startInfoTicker() {
-  rotateInfoTicker();
-  setInterval(rotateInfoTicker, 7000);
-}
-
 // -- Stocks for gainers/losers --
 // -- Full Nifty 50 symbols for accurate gainers/losers --
 const NIFTY50_SYMBOLS = [
@@ -799,23 +773,27 @@ function updateMarketStatus() {
   var cues = document.getElementById('globalCuesSection');
   if (!dot) return;
 
+  var note = document.getElementById('marketInfoNote');
   if (s.status === 'open') {
     dot.style.cssText = 'background:#22c55e';
     lbl.style.color   = '#22c55e';
     lbl.textContent   = 'Open';
     ctr.textContent   = 'Closes ' + formatMktCountdown(s.minsUntilClose) + ' · NSE · 15-min delayed';
+    if (note) note.textContent = 'Market is open — showing live market breadth and movers.';
     if (cues) cues.style.display = 'none';
   } else if (s.status === 'preopen') {
     dot.style.cssText = 'background:#f59e0b';
     lbl.style.color   = '#f59e0b';
     lbl.textContent   = 'Pre-Open';
     ctr.textContent   = 'Opens ' + formatMktCountdown(s.minsUntilOpen) + ' · Pre-market session active';
+    if (note) note.textContent = 'Pre-open session — showing the latest available market breadth.';
     if (cues) cues.style.display = 'none';
   } else {
     dot.style.cssText = 'background:#ef4444;animation:none';
     lbl.style.color   = '#ef4444';
     lbl.textContent   = 'Closed';
     ctr.textContent   = 'Opens ' + formatMktCountdown(s.minsUntilOpen) + ' · Showing last close';
+    if (note) note.textContent = 'Market closed — displaying latest published data for breadth and movers.';
     if (cues) {
       cues.style.display = '';
       if (!window._globalCuesLoaded) { window._globalCuesLoaded = true; loadGlobalCues(); }
@@ -1053,12 +1031,34 @@ async function loadSectors() {
     const sign = pct >= 0 ? '+' : '';
     
     return `
-      <div class="sector-card">
+      <div class="sector-card" data-sector-symbol="${s.symbol}" data-sector-label="${s.label}">
         <span class="sector-name">${s.label}</span>
         <span class="sector-pct ${cls}">${sign}${pct.toFixed(2)}%</span>
       </div>
     `;
   }).join('');
+
+  grid.querySelectorAll('.sector-card').forEach(function(card) {
+    var symbol = card.dataset.sectorSymbol;
+    var label  = card.dataset.sectorLabel;
+    card.addEventListener('mouseenter', function(e) {
+      showSparkTip(e,
+        '<div class="stip-name">' + label + '</div>' +
+        '<div class="stip-price">Loading chart…</div>'
+      );
+      getSparkline(symbol, '5d', '60m').then(function(prices) {
+        showSparkTip(e,
+          '<div class="stip-name">' + label + '</div>' +
+          drawSparklineSVG(prices, 190, 68) +
+          '<div class="stip-label">5-day sector trend</div>'
+        );
+      });
+    });
+    card.addEventListener('mousemove', function(e) {
+      var tip = _getTip(); if (tip && !tip.classList.contains('hidden')) _positionTip(e);
+    });
+    card.addEventListener('mouseleave', hideSparkTip);
+  });
 }
 
 (async function init() {
@@ -1071,6 +1071,5 @@ async function loadSectors() {
   loadCommodities();
   loadFIIDII();
   loadSectors();
-  startInfoTicker();
   setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();
