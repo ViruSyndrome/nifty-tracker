@@ -380,13 +380,13 @@
   <!-- NAV -->
   <nav class="navbar">
     <div class="nav-inner">
-      <a href="/" class="logo">
+      <a href="index.html" class="logo">
         <svg class="logo-svg" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2,12 C8,0 14,0 22,12 C30,24 36,24 42,12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
         <span class="logo-text">GetNifty<span class="logo-accent">Ready</span></span>
       </a>
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
-        <a href="/">Home</a>
+        <a href="index.html">Home</a>
         <a href="sip-calculator.html">SIP Calc</a>
         <a href="swp-calculator.html" class="active">SWP Calc</a>
         <a href="about.html">About</a>
@@ -424,7 +424,7 @@
         <div id="fieldsCorpusInput">
           <div class="sip-field">
             <div class="sip-label-row">
-              <span class="sip-label-text">Your Corpus</span>
+              <span class="sip-label-text" data-tooltip="Your current investment corpus or savings amount available for retirement withdrawals.">Your Corpus</span>
               <span class="sip-value-badge" id="displayCorpus">₹50 L</span>
             </div>
             <input type="range" id="sliderCorpus" min="100000" max="50000000" step="100000" value="5000000"
@@ -436,7 +436,7 @@
         <div id="fieldsWithdrawalInput">
           <div class="sip-field">
             <div class="sip-label-row">
-              <span class="sip-label-text" id="labelWithdrawal">Monthly Withdrawal</span>
+              <span class="sip-label-text" id="labelWithdrawal" data-tooltip="The monthly amount you plan to withdraw from your corpus.">Monthly Withdrawal</span>
               <span class="sip-value-badge" id="displayWithdrawal">₹30,000</span>
             </div>
             <input type="range" id="sliderWithdrawal" min="1000" max="500000" step="1000" value="30000"
@@ -447,7 +447,7 @@
 
         <div class="sip-field">
           <div class="sip-label-row">
-            <span class="sip-label-text">Expected Annual Return</span>
+            <span class="sip-label-text" data-tooltip="The assumed yearly return rate for the remaining corpus.">Expected Annual Return</span>
             <span class="sip-value-badge" id="displayRate">8%</span>
           </div>
           <input type="range" id="sliderRate" min="1" max="20" step="0.5" value="8"
@@ -457,7 +457,7 @@
 
         <div class="sip-field" id="fieldYears">
           <div class="sip-label-row">
-            <span class="sip-label-text" id="labelYears">Withdrawal Period</span>
+            <span class="sip-label-text" id="labelYears" data-tooltip="How many years your withdrawals should last under the current assumptions.">Withdrawal Period</span>
             <span class="sip-value-badge" id="displayYears">20 yrs</span>
           </div>
           <input type="range" id="sliderYears" min="1" max="40" step="1" value="20"
@@ -571,7 +571,7 @@
         <span class="logo-text">GetNifty<span class="logo-accent">Ready</span></span>
       </div>
       <div class="footer-links">
-        <a href="/">Home</a>
+        <a href="index.html">Home</a>
         <a href="sip-calculator.html">SIP Calc</a>
         <a href="swp-calculator.html">SWP Calc</a>
         <a href="about.html">About</a>
