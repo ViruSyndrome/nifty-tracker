@@ -199,26 +199,28 @@ function _positionTip(e) {
   var tip = _getTip(); if (!tip || tip.classList.contains('hidden')) return;
   tip.style.left = '0px';
   tip.style.top = '0px';
+  tip.style.maxWidth = Math.max(160, Math.min(300, window.innerWidth - 24)) + 'px';
 
   var rect = tip.getBoundingClientRect();
   var width = rect.width || tip.offsetWidth || 220;
   var height = rect.height || tip.offsetHeight || 180;
+  var margin = 12;
 
   var x = e.clientX + 14;
   var y = e.clientY - 20;
 
-  if (x + width + 12 > window.innerWidth) {
+  if (x + width + margin > window.innerWidth) {
     x = e.clientX - width - 14;
   }
-  if (x < 12) {
-    x = 12;
+  if (x < margin) {
+    x = margin;
   }
 
-  if (y < 12) {
+  if (y < margin) {
     y = e.clientY + 18;
   }
-  if (y + height + 12 > window.innerHeight) {
-    y = Math.max(12, window.innerHeight - height - 12);
+  if (y + height + margin > window.innerHeight) {
+    y = Math.max(margin, window.innerHeight - height - margin);
   }
 
   tip.style.left = x + 'px';
