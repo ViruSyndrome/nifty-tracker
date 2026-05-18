@@ -503,26 +503,45 @@ function hideEmptyAdSlots() {
       return;
     }
 
-    var observer = new MutationObserver(function() {
-      if (ins.querySelector('iframe')) {
+    slot.classList.add('hidden');
+
+    var hasVisibleAd = function() {
+      var iframe = ins.querySelector('iframe');
+      if (!iframe) return false;
+      var rect = iframe.getBoundingClientRect();
+      var src = iframe.getAttribute('src') || '';
+      if (!src.trim()) return false;
+      if (rect.width < 20 || rect.height < 20) return false;
+      if (iframe.style.display === 'none' || iframe.style.visibility === 'hidden') return false;
+      return true;
+    };
+
+    var showAdSlot = function() {
+      if (hasVisibleAd()) {
         slot.classList.remove('hidden');
+        return true;
+      }
+      return false;
+    };
+
+    var observer = new MutationObserver(function() {
+      if (showAdSlot()) {
         observer.disconnect();
       }
     });
-    observer.observe(ins, { childList: true, subtree: true });
+    observer.observe(ins, { childList: true, subtree: true, attributes: true, attributeFilter: ['style', 'src', 'srcdoc'] });
 
-    if (ins.querySelector('iframe')) {
-      slot.classList.remove('hidden');
+    if (showAdSlot()) {
       observer.disconnect();
       return;
     }
 
     setTimeout(function() {
-      if (!ins.querySelector('iframe')) {
+      if (!showAdSlot()) {
         slot.classList.add('hidden');
       }
       observer.disconnect();
-    }, 5000);
+    }, 7000);
   });
 }
 
@@ -1111,5 +1130,7 @@ async function loadSectors() {
   loadFIIDII();
   loadSectors();
   hideEmptyAdSlots();
+  window.addEventListener('load', hideEmptyAdSlots);
+  setTimeout(hideEmptyAdSlots, 9000);
   setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();
