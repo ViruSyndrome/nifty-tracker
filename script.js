@@ -197,10 +197,32 @@ function showSparkTip(e, html) {
 }
 function _positionTip(e) {
   var tip = _getTip(); if (!tip || tip.classList.contains('hidden')) return;
-  var x = e.clientX + 14, y = e.clientY - 20;
-  if (x + 220 > window.innerWidth) x = e.clientX - 220;
-  if (y + 180 > window.innerHeight) y = e.clientY - 180;
-  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  tip.style.left = '0px';
+  tip.style.top = '0px';
+
+  var rect = tip.getBoundingClientRect();
+  var width = rect.width || tip.offsetWidth || 220;
+  var height = rect.height || tip.offsetHeight || 180;
+
+  var x = e.clientX + 14;
+  var y = e.clientY - 20;
+
+  if (x + width + 12 > window.innerWidth) {
+    x = e.clientX - width - 14;
+  }
+  if (x < 12) {
+    x = 12;
+  }
+
+  if (y < 12) {
+    y = e.clientY + 18;
+  }
+  if (y + height + 12 > window.innerHeight) {
+    y = Math.max(12, window.innerHeight - height - 12);
+  }
+
+  tip.style.left = x + 'px';
+  tip.style.top = y + 'px';
 }
 function hideSparkTip() {
   var tip = _getTip(); if (tip) { tip.classList.remove('visible'); tip.classList.add('hidden'); }
