@@ -428,6 +428,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: center;
 }
+.ad-slot.hidden {
+  display: none !important;
+}
 .ad-slot ins.adsbygoogle {
   display: block;
   width: 100%;

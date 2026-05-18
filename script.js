@@ -495,6 +495,37 @@ function renderMovers(elId, items, cls) {
   });
 }
 
+function hideEmptyAdSlots() {
+  document.querySelectorAll('.ad-slot').forEach(function(slot) {
+    const ins = slot.querySelector('ins.adsbygoogle');
+    if (!ins) {
+      slot.classList.add('hidden');
+      return;
+    }
+
+    var observer = new MutationObserver(function() {
+      if (ins.querySelector('iframe')) {
+        slot.classList.remove('hidden');
+        observer.disconnect();
+      }
+    });
+    observer.observe(ins, { childList: true, subtree: true });
+
+    if (ins.querySelector('iframe')) {
+      slot.classList.remove('hidden');
+      observer.disconnect();
+      return;
+    }
+
+    setTimeout(function() {
+      if (!ins.querySelector('iframe')) {
+        slot.classList.add('hidden');
+      }
+      observer.disconnect();
+    }, 5000);
+  });
+}
+
 function updateMarketSummary(niftyStocks) {
   const adv = niftyStocks.filter(s => s.pct > 0.05).length;
   const dec = niftyStocks.filter(s => s.pct < -0.05).length;
@@ -1079,5 +1110,6 @@ async function loadSectors() {
   loadCommodities();
   loadFIIDII();
   loadSectors();
+  hideEmptyAdSlots();
   setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();
