@@ -35,6 +35,16 @@
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
         <a href="contribute.html" class="active">Contribute</a>
+        <div class="lang-selector-wrap">
+          <select id="langSelect" onchange="changeLanguage(this.value)" aria-label="Select Language">
+            <option value="">Translate</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="hi">हिन्दी</option>
+            <option value="zh-CN">中文</option>
+          </select>
+        </div>
       </div>
     </div>
   </nav>
@@ -84,5 +94,52 @@
       <p class="footer-copy">© 2026 GetNiftyReady. Built for the modern investor.</p>
     </div>
   </footer>
+
+  <script>
+    // ── Google Translate Helper ──
+    function changeLanguage(langCode) {
+      const select = document.querySelector('.goog-te-combo');
+      if (select) {
+        select.value = langCode;
+        select.dispatchEvent(new Event('change'));
+      }
+    }
+    window.changeLanguage = changeLanguage;
+
+    // ── Native High-Performance Scroll-Reveal ──
+    window.addEventListener('load', () => {
+      const targets = document.querySelectorAll('.legal-card, .footer');
+      const observer = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            entry.target.addEventListener('transitionend', function handler() {
+              entry.target.classList.remove('reveal-scroll', 'visible');
+              entry.target.removeEventListener('transitionend', handler);
+            });
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.05,
+        rootMargin: '0px 0px -20px 0px'
+      });
+      targets.forEach(target => {
+        target.classList.add('reveal-scroll');
+        observer.observe(target);
+      });
+    });
+  </script>
+  <div id="google_translate_element" style="display:none;"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

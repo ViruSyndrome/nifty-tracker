@@ -117,6 +117,16 @@
         <a href="swp-calculator.html">SWP Calc</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
+        <div class="lang-selector-wrap">
+          <select id="langSelect" onchange="changeLanguage(this.value)" aria-label="Select Language">
+            <option value="">Translate</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="hi">हिन्दी</option>
+            <option value="zh-CN">中文</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="nav-sub">
@@ -608,6 +618,17 @@
   </footer>
 
   <script src="script.js?v=11"></script>
+  <div id="google_translate_element" style="display:none;"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false
+      }, 'google_translate_element');
+    }
+  </script>
+  <script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <div id="sparkTip" class="spark-tooltip hidden"></div>
 </body>
 </html>
