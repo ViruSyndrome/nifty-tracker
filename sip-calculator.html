@@ -594,8 +594,51 @@
       }
     }
 
+    function injectFaqSchema() {
+      var sipInfo = document.querySelector('.sip-info');
+      if (!sipInfo) return;
+      var h2s = sipInfo.querySelectorAll('h2');
+      var schema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": []
+      };
+      
+      h2s.forEach(function(h2) {
+        var questionText = h2.textContent.trim();
+        var answerParts = [];
+        var sibling = h2.nextElementSibling;
+        while (sibling && sibling.tagName.toLowerCase() === 'p') {
+          if (sibling.textContent.includes('©') || sibling.textContent.includes('Disclaimer:')) {
+            break;
+          }
+          answerParts.push(sibling.textContent.trim());
+          sibling = sibling.nextElementSibling;
+        }
+        
+        if (questionText && answerParts.length > 0) {
+          schema.mainEntity.push({
+            "@type": "Question",
+            "name": questionText,
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": answerParts.join(' ')
+            }
+          });
+        }
+      });
+      
+      if (schema.mainEntity.length > 0) {
+        var script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(schema);
+        document.head.appendChild(script);
+      }
+    }
+
     initFromUrl();
     update(); // initial render on load
+    injectFaqSchema();
   </script>
 
 </body>
