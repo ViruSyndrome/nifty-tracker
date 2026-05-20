@@ -1159,37 +1159,23 @@ async function loadSectors() {
   setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();
 
-// ── Google Translate Helper ──
-function changeLanguage(langCode) {
-  const select = document.querySelector('.goog-te-combo');
-  if (select) {
-    select.value = langCode;
-    select.dispatchEvent(new Event('change'));
-  }
-}
-window.changeLanguage = changeLanguage;
+
 
 // ── Native High-Performance Scroll-Reveal ──
 window.addEventListener('load', () => {
   const targets = document.querySelectorAll('.index-card, .market-summary-card, .sector-card, .popular-card, .movers-card, .info-card, .about-section, .faq-item, .legal-card, .result-card');
-  
-  const observer = new IntersectionObserver((entries, observer) => {
+  const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        // Clean up classes after transition to preserve hover mechanics
-        entry.target.addEventListener('transitionend', function handler() {
-          entry.target.classList.remove('reveal-scroll', 'visible');
-          entry.target.removeEventListener('transitionend', handler);
-        });
-        observer.unobserve(entry.target);
+      } else {
+        entry.target.classList.remove('visible');
       }
     });
   }, {
     threshold: 0.05,
-    rootMargin: '0px 0px -20px 0px'
+    rootMargin: '0px 0px -10px 0px'
   });
-
   targets.forEach(target => {
     target.classList.add('reveal-scroll');
     observer.observe(target);

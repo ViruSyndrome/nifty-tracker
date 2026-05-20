@@ -38,16 +38,6 @@
         <a href="swp-calculator.html">SWP Calc</a>
         <a href="about.html">About</a>
         <a href="contact.html">Contact</a>
-        <div class="lang-selector-wrap">
-          <select id="langSelect" onchange="changeLanguage(this.value)" aria-label="Select Language">
-            <option value="">Translate</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="hi">हिन्दी</option>
-            <option value="zh-CN">中文</option>
-          </select>
-        </div>
       </div>
     </div>
     <div class="nav-sub">
@@ -101,33 +91,21 @@
   </footer>
 
   <script>
-    // ── Google Translate Helper ──
-    function changeLanguage(langCode) {
-      const select = document.querySelector('.goog-te-combo');
-      if (select) {
-        select.value = langCode;
-        select.dispatchEvent(new Event('change'));
-      }
-    }
-    window.changeLanguage = changeLanguage;
 
     // ── Native High-Performance Scroll-Reveal ──
     window.addEventListener('load', () => {
       const targets = document.querySelectorAll('.legal-card, .footer');
-      const observer = new IntersectionObserver((entries, observer) => {
+      const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             entry.target.classList.add('visible');
-            entry.target.addEventListener('transitionend', function handler() {
-              entry.target.classList.remove('reveal-scroll', 'visible');
-              entry.target.removeEventListener('transitionend', handler);
-            });
-            observer.unobserve(entry.target);
+          } else {
+            entry.target.classList.remove('visible');
           }
         });
       }, {
         threshold: 0.05,
-        rootMargin: '0px 0px -20px 0px'
+        rootMargin: '0px 0px -10px 0px'
       });
       targets.forEach(target => {
         target.classList.add('reveal-scroll');
@@ -135,16 +113,5 @@
       });
     });
   </script>
-  <div id="google_translate_element" style="display:none;"></div>
-  <script>
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({
-        pageLanguage: 'en',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false
-      }, 'google_translate_element');
-    }
-  </script>
-  <script async src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
