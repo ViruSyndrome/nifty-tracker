@@ -636,9 +636,25 @@
       }
     }
 
+    function trackEvent(eventName, params = {}) {
+      if (typeof gtag === 'function') {
+        gtag('event', eventName, params);
+      }
+    }
+
     initFromUrl();
     update(); // initial render on load
     injectFaqSchema();
+
+    document.getElementById('sliderAmount').addEventListener('change', function() {
+      trackEvent('adjust_sip_amount', { value: _amount });
+    });
+    document.getElementById('sliderRate').addEventListener('change', function() {
+      trackEvent('adjust_sip_rate', { value: _rate });
+    });
+    document.getElementById('sliderYears').addEventListener('change', function() {
+      trackEvent('adjust_sip_years', { value: _years });
+    });
 
     // ── Native High-Performance Scroll-Reveal ──
     window.addEventListener('load', () => {

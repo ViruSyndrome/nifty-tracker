@@ -584,6 +584,12 @@
   </footer>
 
   <script>
+    function trackEvent(eventName, params = {}) {
+      if (typeof gtag === 'function') {
+        gtag('event', eventName, params);
+      }
+    }
+
     // ── State ──────────────────────────────────────────────
     var _mode       = 'duration';   // duration | withdrawal | corpus
     var _corpus     = 5000000;      // ₹50L
@@ -832,6 +838,7 @@
     // ── Mode switch ───────────────────────────────────────
     function switchMode(mode) {
       _mode = mode;
+      trackEvent('switch_swp_mode', { mode: mode });
 
       document.getElementById('tabDuration').classList.toggle('active',   mode === 'duration');
       document.getElementById('tabWithdrawal').classList.toggle('active', mode === 'withdrawal');
@@ -887,6 +894,19 @@
 
       switchMode('duration');
       injectFaqSchema();
+
+      document.getElementById('sliderCorpus').addEventListener('change', function() {
+        trackEvent('adjust_swp_corpus', { value: _corpus });
+      });
+      document.getElementById('sliderWithdrawal').addEventListener('change', function() {
+        trackEvent('adjust_swp_withdrawal', { value: _withdrawal });
+      });
+      document.getElementById('sliderRate').addEventListener('change', function() {
+        trackEvent('adjust_swp_rate', { value: _rate });
+      });
+      document.getElementById('sliderYears').addEventListener('change', function() {
+        trackEvent('adjust_swp_years', { value: _years });
+      });
     });
 
     function injectFaqSchema() {
