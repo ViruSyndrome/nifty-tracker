@@ -43,6 +43,12 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://www.getniftyready.com/market-insights.html</loc>
+    <lastmod>2026-05-25</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.getniftyready.com/terms.html</loc>
     <lastmod>2026-05-14</lastmod>
     <changefreq>monthly</changefreq>
