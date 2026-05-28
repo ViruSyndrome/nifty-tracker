@@ -8,7 +8,7 @@
 // Example: 'https://nifty-proxy.yourname.workers.dev'
 // Until then, free proxies are used as fallback.
 // -----------------------------------------------------------
-const CF_WORKER = 'https://nifty-proxy.vinodjamesisaac.workers.dev';
+const CF_WORKER = 'https://ancient-limit-cf75.workers.dev';
 
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
@@ -283,6 +283,38 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
   }
 
   return null;
+}
+
+async function fetchMCXData() {
+  const mcxUrl = 'https://priceapi.moneycontrol.com/pricefeed/mcx/commoditysummary';
+
+  if (CF_WORKER) {
+    try {
+      const workerRes = await fetch(CF_WORKER + '?action=mcx');
+      if (workerRes.ok) {
+        const workerJson = await workerRes.json();
+        if (workerJson && workerJson.data && Array.isArray(workerJson.data)) {
+          return workerJson.data;
+        }
+      } else {
+        console.warn('MCX worker proxy responded with', workerRes.status);
+      }
+    } catch (e) {
+      console.warn('MCX worker proxy failed:', e);
+    }
+  }
+
+  try {
+    const fallbackJson = await proxyFetch(mcxUrl, 7000);
+    if (fallbackJson && fallbackJson.data && Array.isArray(fallbackJson.data)) {
+      return fallbackJson.data;
+    }
+    console.warn('MCX fallback did not return expected data', fallbackJson);
+  } catch (e) {
+    console.warn('MCX fallback fetch failed:', e);
+  }
+
+  return [];
 }
 
 // =============================================
@@ -931,20 +963,16 @@ async function loadCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
 
-  // 1. Fetch MCX Data from worker
+  // 1. Fetch MCX data for commodities
   var mcxData = {};
   try {
-    var mcxUrl = CF_WORKER + '?action=mcx';
-    var res = await fetch(mcxUrl);
-    var json = await res.json();
-    if (json && json.data && Array.isArray(json.data)) {
-      json.data.forEach(function(item) {
-        if (item.symbol) mcxData[item.symbol] = {
-          price: parseFloat((item.price || '').replace(/,/g, '')),
-          pct: parseFloat(item.percentChange || 0)
-        };
-      });
-    }
+    var mcxItems = await fetchMCXData();
+    mcxItems.forEach(function(item) {
+      if (item.symbol) mcxData[item.symbol] = {
+        price: parseFloat((item.price || '').replace(/,/g, '')),
+        pct: parseFloat(item.percentChange || 0)
+      };
+    });
   } catch (e) {
     console.warn('MCX fetch failed', e);
   }
