@@ -23,6 +23,30 @@ export default {
     }
 
     const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+    
+    if (action === 'mcx') {
+      try {
+        const response = await fetch('https://priceapi.moneycontrol.com/pricefeed/mcx/commoditysummary', {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+            'Accept': 'application/json'
+          }
+        });
+        const data = await response.text();
+        return new Response(data, {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'max-age=60',
+          },
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: 'MCX fetch failed' }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+      }
+    }
+
     const target = url.searchParams.get('url');
 
     if (!target) {

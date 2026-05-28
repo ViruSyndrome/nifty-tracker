@@ -78,16 +78,16 @@ const BROAD_MARKET_SYMBOLS = [
 ];
 
 // -- Commodities --
-// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × 10 × India duties = INR per 10g
-// India duties: import duty 15% + GST 3% = ×1.1845 (as per May 13, 2026 hike)
-const INDIA_METAL_DUTY = 1.15 * 1.03; // import duty 15% + GST 3%
+// Live domestic prices fetched directly from MCX (via worker proxy)
 const COMMODITIES = [
-  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true, purity: 1,      tooltip: 'Gold 24K per 10g in INR — international spot (GC=F) × USD/INR ÷ 31.1035 g/oz × India import duty (15%) × GST (3%). Matches Google/IBJA India price.' },
-  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true, purity: 22/24,  tooltip: 'Gold 22K per 10g in INR — 91.67% of 24K with India import duty (15%) + GST (3%). Standard jewellery karat in India.' },
-  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true, purity: 1,      tooltip: 'Silver per 10g in INR — international spot (SI=F) × USD/INR ÷ 31.1035 g/oz × India import duty (15%) × GST (3%).' },
-  { id: 'usd-inr',  symbol: 'USDINR=X', label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
-  { id: 'gbp-inr',  symbol: 'GBPINR=X', label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
-  { id: 'eur-inr',  symbol: 'EURINR=X', label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
+  { id: 'gold',     symbol: 'GOLD',       label: 'Gold (10g)', isMCX: true, tooltip: 'Live MCX India price for Gold per 10g (duty-inclusive)' },
+  { id: 'silver',   symbol: 'SILVER',     label: 'Silver (1kg)', isMCX: true, tooltip: 'Live MCX India price for Silver per 1kg (duty-inclusive)' },
+  { id: 'crude',    symbol: 'CRUDEOIL',   label: 'Crude Oil', isMCX: true, tooltip: 'Live MCX India price for Crude Oil (1 barrel)' },
+  { id: 'natgas',   symbol: 'NATURALGAS', label: 'Natural Gas', isMCX: true, tooltip: 'Live MCX India price for Natural Gas' },
+  { id: 'copper',   symbol: 'COPPER',     label: 'Copper (1kg)', isMCX: true, tooltip: 'Live MCX India price for Copper per 1kg' },
+  { id: 'usd-inr',  symbol: 'USDINR=X',   label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
+  { id: 'gbp-inr',  symbol: 'GBPINR=X',   label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
+  { id: 'eur-inr',  symbol: 'EURINR=X',   label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
 ];
 
 // -- Sectoral Indices --
@@ -931,54 +931,68 @@ async function loadCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
 
-  // Fetch each unique symbol once
-  var uniqueSymbols = COMMODITIES.map(function(c) { return c.symbol; })
-    .filter(function(s, i, arr) { return arr.indexOf(s) === i; });
+  // 1. Fetch MCX Data from worker
+  var mcxData = {};
+  try {
+    var mcxUrl = CF_WORKER + '?action=mcx';
+    var res = await fetch(mcxUrl);
+    var json = await res.json();
+    if (json && json.data && Array.isArray(json.data)) {
+      json.data.forEach(function(item) {
+        if (item.symbol) mcxData[item.symbol] = {
+          price: parseFloat((item.price || '').replace(/,/g, '')),
+          pct: parseFloat(item.percentChange || 0)
+        };
+      });
+    }
+  } catch (e) {
+    console.warn('MCX fetch failed', e);
+  }
+
+  // 2. Fetch standard FX data from Yahoo
+  var yahooSymbols = COMMODITIES.filter(c => !c.isMCX).map(c => c.symbol);
   var fetched = {};
-  await Promise.all(uniqueSymbols.map(async function(sym) {
+  await Promise.all(yahooSymbols.map(async function(sym) {
     fetched[sym] = await fetchYahoo(sym);
   }));
-
-  // USD→INR rate needed for spot metal conversion
-  var usdInr = fetched['USDINR=X'] ? fetched['USDINR=X'].price : null;
 
   COMMODITIES.forEach(function(c) {
     var el = document.getElementById('cmd-' + c.id);
     if (!el) return;
-    var data = fetched[c.symbol];
+    
     el.classList.remove('skeleton');
-    if (!data || data.price == null) {
-      el.querySelector('.idx-price').textContent = '—';
-      el.querySelector('.idx-change').textContent = '—';
-      return;
-    }
-    var pct  = changePct(data.price, data.prevClose);
-    var cls  = changeClass(pct);
-    var sign = pct != null && pct >= 0 ? '+' : '';
+    var priceStr, pctVal, sign, cls;
 
-    var displayPrice;
-    if (c.isSpot) {
-      // USD/troy oz → INR/10g at given purity, including India import duty + GST
-      displayPrice = usdInr
-        ? Math.round((data.price * usdInr / 31.1035) * 10 * (c.purity || 1) * INDIA_METAL_DUTY)
-        : null;
+    if (c.isMCX) {
+      var d = mcxData[c.symbol];
+      if (d && !isNaN(d.price)) {
+        priceStr = '₹' + fmt(d.price);
+        pctVal = d.pct;
+        sign = pctVal >= 0 ? '+' : '';
+        cls = changeClass(pctVal);
+      } else {
+        priceStr = 'Rate unavailable';
+        pctVal = null;
+        cls = 'neutral';
+      }
     } else {
-      displayPrice = data.price * (c.priceMultiplier || 1);
-    }
-
-    var priceStr;
-    if (displayPrice == null) {
-      priceStr = 'Rate unavailable';
-    } else if (c.symbol.endsWith('=X')) {
-      priceStr = '₹' + displayPrice.toFixed(2);
-    } else {
-      priceStr = '₹' + fmt(displayPrice);
+      var d2 = fetched[c.symbol];
+      if (d2 && d2.price != null) {
+        priceStr = '₹' + d2.price.toFixed(2);
+        pctVal = changePct(d2.price, d2.prevClose);
+        sign = pctVal >= 0 ? '+' : '';
+        cls = changeClass(pctVal);
+      } else {
+        priceStr = 'Rate unavailable';
+        pctVal = null;
+        cls = 'neutral';
+      }
     }
 
     el.classList.remove('positive', 'negative', 'neutral');
     el.classList.add(cls);
     el.querySelector('.idx-price').textContent = priceStr;
-    el.querySelector('.idx-change').textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
+    el.querySelector('.idx-change').textContent = pctVal != null ? sign + pctVal.toFixed(2) + '%' : '—';
   });
 }
 
