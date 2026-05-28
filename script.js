@@ -10,6 +10,14 @@
 // -----------------------------------------------------------
 const CF_WORKER = 'https://ancient-limit-cf75.vinodjamesisaac.workers.dev';
 
+// ── Personalised Dashboard — localStorage ──
+const LS_RECENT    = 'gnr_recent';
+const LS_WATCHLIST = 'gnr_watchlist';
+const MAX_RECENT   = 8;
+const MAX_WATCHLIST = 20;
+function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
+function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
   if (typeof gtag === 'function') {
@@ -394,13 +402,21 @@ async function loadPopular() {
     var pct  = data ? changePct(data.price, data.prevClose) : null;
     var cls  = changeClass(pct);
     var sign = pct != null && pct >= 0 ? '+' : '';
-    card.innerHTML = '<div class="pc-name">' + stock.name + '</div>'
+    var wlName = data && data.name ? data.name : stock.name;
+    var starCls = isWatchlisted(stock.symbol) ? 'star-btn starred' : 'star-btn';
+    card.innerHTML = '<div class="pc-header">'
+      + '<div class="pc-name">' + stock.name + '</div>'
+      + '<button class="' + starCls + '" data-sym="' + stock.symbol + '" title="Toggle watchlist" aria-label="Toggle watchlist">★</button>'
+      + '</div>'
       + '<div class="pc-price">' + (data ? '₹' + fmt(data.price) : 'N/A') + '</div>'
       + '<div class="pc-change ' + cls + '">' + (pct != null ? sign + pct.toFixed(2) + '%' : '—') + '</div>';
     card.style.cursor = 'pointer';
+    card.querySelector('.star-btn').addEventListener('click', (function(sym, nm) {
+      return function(e) { e.stopPropagation(); toggleWatchlist(sym, nm); };
+    })(stock.symbol, wlName));
     card.addEventListener('click', (function(sym, nm) {
       return function() { searchBySymbol(sym, nm); };
-    })(stock.symbol, data && data.name ? data.name : stock.name));
+    })(stock.symbol, wlName));
     // Hover sparkline tooltip
     var _tipData = data;
     var _tipSym  = stock.symbol;
@@ -639,9 +655,20 @@ async function searchBySymbol(symbol, name) {
   var sign = diff >= 0 ? '+' : '';
   var cur  = data.currency === 'INR' ? '₹' : (data.currency || '') + ' ';
 
+  // Save to recently searched
+  addRecent(symbol, data.name || name);
+
+  var safeName = (data.name || name).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  var wlStarCls = isWatchlisted(symbol) ? 'star-btn starred result-star' : 'star-btn result-star';
+  var wlStarLbl = isWatchlisted(symbol) ? '★ Watchlisted' : '☆ Watchlist';
+
   card.innerHTML = '<div class="result-header">'
     + '<div class="result-name-wrap">'
+    + '<div class="result-name-row">'
     + '<h2 class="result-name">' + data.name + '</h2>'
+    + '<button class="' + wlStarCls + '" data-sym="' + symbol + '" onclick="toggleWatchlist(\'' + symbol + '\', \'' + safeName + '\')">'
+    + wlStarLbl + '</button>'
+    + '</div>'
     + '<span class="result-symbol">' + symbol.replace(/\.(NS|BO)$/, '') + ' · ' + (data.exchange || 'NSE') + '</span>'
     + '</div>'
     + '<div class="result-price-wrap">'
@@ -798,6 +825,7 @@ setInterval(function() {
   lastRefreshTime = Date.now();
   loadIndices();
   loadCommodities();
+  loadWatchlist();
 }, 20000);
 
 setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
@@ -1162,9 +1190,129 @@ async function loadSectors() {
   });
 }
 
+// =============================================
+// PERSONALISED DASHBOARD — localStorage
+// =============================================
+
+// ── Recently Searched ──
+function addRecent(symbol, name) {
+  var list = lsGet(LS_RECENT) || [];
+  list = list.filter(function(s) { return s.symbol !== symbol; });
+  list.unshift({ symbol: symbol, name: name });
+  if (list.length > MAX_RECENT) list = list.slice(0, MAX_RECENT);
+  lsSet(LS_RECENT, list);
+  renderRecentlySearched();
+}
+
+function clearRecent() {
+  lsSet(LS_RECENT, []);
+  renderRecentlySearched();
+}
+
+function renderRecentlySearched() {
+  var list = lsGet(LS_RECENT) || [];
+  var sec  = document.getElementById('recentSection');
+  var grid = document.getElementById('recentGrid');
+  if (!sec || !grid) return;
+  if (!list.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+  grid.innerHTML = list.map(function(s) {
+    var safeSymArg = s.symbol.replace(/'/g, "\\'");
+    var safeNmArg  = s.name.replace(/'/g, "\\'");
+    return '<div class="recent-chip" onclick="searchBySymbol(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" role="button" tabindex="0">'
+      + '<span class="recent-chip-name">' + s.name + '</span>'
+      + '<span class="recent-chip-sym">' + s.symbol.replace(/\.(NS|BO)$/, '') + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Watchlist ──
+function getWatchlist() { return lsGet(LS_WATCHLIST) || []; }
+function isWatchlisted(symbol) { return getWatchlist().some(function(s) { return s.symbol === symbol; }); }
+
+function toggleWatchlist(symbol, name) {
+  var list = getWatchlist();
+  if (isWatchlisted(symbol)) {
+    list = list.filter(function(s) { return s.symbol !== symbol; });
+  } else {
+    if (list.length >= MAX_WATCHLIST) { alert('Watchlist full — remove a stock first (max ' + MAX_WATCHLIST + ').'); return; }
+    list.push({ symbol: symbol, name: name });
+  }
+  lsSet(LS_WATCHLIST, list);
+  updateAllStarButtons(symbol);
+  loadWatchlist();
+}
+
+function clearWatchlist() {
+  lsSet(LS_WATCHLIST, []);
+  loadWatchlist();
+  document.querySelectorAll('.star-btn').forEach(function(b) {
+    b.classList.remove('starred');
+    b.textContent = b.classList.contains('result-star') ? '☆ Watchlist' : '★';
+  });
+}
+
+function updateAllStarButtons(symbol) {
+  var starred = isWatchlisted(symbol);
+  document.querySelectorAll('.star-btn[data-sym="' + symbol + '"]').forEach(function(b) {
+    b.classList.toggle('starred', starred);
+    if (b.classList.contains('result-star')) {
+      b.textContent = starred ? '★ Watchlisted' : '☆ Watchlist';
+    }
+  });
+}
+
+async function loadWatchlist() {
+  var list = getWatchlist();
+  var sec  = document.getElementById('watchlistSection');
+  var grid = document.getElementById('watchlistGrid');
+  if (!sec || !grid) return;
+  if (!list.length) { sec.classList.add('hidden'); return; }
+  sec.classList.remove('hidden');
+
+  // Skeleton placeholders
+  grid.innerHTML = list.map(function(s) {
+    var safeId = 'wl-' + s.symbol.replace(/[^a-z0-9]/gi, '_');
+    var safeSymArg = s.symbol.replace(/'/g, "\\'");
+    var safeNmArg  = s.name.replace(/'/g, "\\'");
+    return '<div class="watchlist-card skeleton" id="' + safeId + '" onclick="searchBySymbol(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" role="button" tabindex="0">'
+      + '<div class="wl-header">'
+      + '<span class="wl-name">' + s.name + '</span>'
+      + '<button class="star-btn starred" data-sym="' + s.symbol + '" onclick="event.stopPropagation();toggleWatchlist(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" title="Remove from watchlist" aria-label="Remove from watchlist">★</button>'
+      + '</div>'
+      + '<div class="wl-price">—</div>'
+      + '<div class="wl-change">Loading…</div>'
+      + '</div>';
+  }).join('');
+
+  // Fetch prices in parallel
+  await Promise.all(list.map(async function(s) {
+    var safeId = 'wl-' + s.symbol.replace(/[^a-z0-9]/gi, '_');
+    var card = document.getElementById(safeId);
+    if (!card) return;
+    var data = await fetchYahoo(s.symbol);
+    card.classList.remove('skeleton');
+    if (!data) {
+      card.querySelector('.wl-price').textContent = '—';
+      card.querySelector('.wl-change').textContent = 'Unavailable';
+      return;
+    }
+    var pct  = changePct(data.price, data.prevClose);
+    var cls  = changeClass(pct);
+    var sign = pct != null && pct >= 0 ? '+' : '';
+    card.classList.add(cls);
+    card.querySelector('.wl-price').textContent = '₹' + fmt(data.price);
+    var chEl = card.querySelector('.wl-change');
+    chEl.textContent = pct != null ? sign + pct.toFixed(2) + '%' : '—';
+    chEl.className = 'wl-change ' + cls;
+  }));
+}
+
 (async function init() {
   document.addEventListener('scroll', hideSparkTip, true);
   renderCommodities();
+  renderRecentlySearched();
+  loadWatchlist();
   await loadIndices();
   updateLastUpdated();
   loadPopular();

@@ -201,7 +201,17 @@
     </div>
   </section>
 
-  <!-- COMMODITY / FX TILES -->
+  <!-- MY WATCHLIST -->
+  <section class="watchlist-section container hidden" id="watchlistSection">
+    <div class="section-header-row">
+      <div>
+        <h2 class="section-title">⭐ My Watchlist</h2>
+        <p class="section-sub">Your pinned stocks — updates every 20s. Click any card for full details.</p>
+      </div>
+      <button class="btn-clear-list" id="clearWatchlistBtn" onclick="clearWatchlist()">Clear all</button>
+    </div>
+    <div class="watchlist-grid" id="watchlistGrid"></div>
+  </section>
   <section class="commodities-section container">
     <div class="section-header" style="margin-bottom: 20px;">
       <h2 class="section-title">Commodities &amp; FX <span class="movers-badge">Live</span></h2>
@@ -323,6 +333,15 @@
     <div class="sectors-grid" id="sectorsGrid">
       <!-- Dynamically populated -->
     </div>
+  </section>
+
+  <!-- RECENTLY SEARCHED -->
+  <section class="recent-section container hidden" id="recentSection">
+    <div class="section-header-row">
+      <h2 class="section-title">🕐 Recently Searched</h2>
+      <button class="btn-clear-list" id="clearRecentBtn" onclick="clearRecent()">Clear</button>
+    </div>
+    <div class="recent-grid" id="recentGrid"></div>
   </section>
 
   <!-- POPULAR STOCKS -->
