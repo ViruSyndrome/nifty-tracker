@@ -14,8 +14,8 @@
     });
   </script>
   <title>GetNiftyReady — Live NSE/BSE Share Prices, Nifty 50 & Sensex</title>
-  <meta name="description" content="Live Indian Share Prices. Real-time NSE & BSE data — Nifty 50, Sensex, and any stock in seconds. No signup. 100% free. The fastest, privacy-first market tracker for India." />
-  <meta name="keywords" content="nse india, share price, nifty 50, sensex, bse share price, live stock price india, nifty live, indian stock market" />
+  <meta name="description" content="Live Indian share prices, Nifty 50, Sensex, FII/DII data, Gold & Silver rates, Crude Oil & FX. Personal Watchlist. No signup. 100% free." />
+  <meta name="keywords" content="nse india, share price, nifty 50, sensex, bse share price, live stock price india, nifty live, indian stock market, gold price india, watchlist" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.getniftyready.com/" />
   <meta name="msvalidate.01" content="FA7405A0B7623E8A404F74AE4952777C" />
@@ -60,7 +60,23 @@
         "name": "How often is the market data updated?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "During market hours (9:15 AM – 3:30 PM IST), market data refreshes automatically every 20 seconds."
+          "text": "During market hours (9:15 AM – 3:30 PM IST), indices, stock prices, and the Watchlist refresh automatically every 20 seconds. Commodities, Gold, Silver, and FX rates also update on the same cycle."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I save stocks to a personal watchlist?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Click the star (★) button on any stock card or search result to add it to My Watchlist. It appears at the top of the page with live prices and persists across sessions using your browser’s local storage — no account needed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is the Gold and Silver price calculated?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We show Gold 24K and Gold 22K per 10g, plus Silver per 10g — all in INR. Prices are derived from COMEX spot futures (GC=F / SI=F), converted at the live USD/INR rate and adjusted for India’s 15% import duty and 3% GST. They closely match IBJA rates."
         }
       },
       {
@@ -68,7 +84,7 @@
         "name": "Can I search for any NSE or BSE company?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Search by company name or NSE/BSE ticker to view live price, day range, 52-week data, and intraday charts."
+          "text": "Yes. Search by company name or NSE/BSE ticker to view live price, day range, 52-week data, intraday chart, and market cap. Your searches are saved as chips for quick re-access."
         }
       },
       {
@@ -76,7 +92,7 @@
         "name": "Is this site private and free to use?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. GetNiftyReady is free, no signup is required, and the tool does not collect personal financial information."
+          "text": "Yes. GetNiftyReady is 100% free with no signup. Watchlist and search history are stored only in your own browser (localStorage) and never sent to any server."
         }
       }
     ]
@@ -96,7 +112,7 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2" />
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -132,7 +148,7 @@
   <section class="hero">
     <div class="hero-inner">
       <h1>Live Indian Share Prices</h1>
-      <p class="hero-sub">Real-time NSE &amp; BSE data — Nifty 50, Sensex, and any stock in seconds. No signup. 100% free.</p>
+      <p class="hero-sub">Nifty 50, Sensex, FII/DII flow, Gold &amp; Commodities, and any stock — live. No signup. 100% free. Your personal Watchlist saves across visits.</p>
 
       <!-- SEARCH -->
       <div class="search-wrap">
@@ -393,7 +409,7 @@
         </article>
         <article class="content-block">
           <h3>Designed for fast decision-making</h3>
-          <p>Search any stock, compare top gainers or losers, and use built-in SIP/SWP tools without signing in. This is a tracking dashboard made for active investors who need instant market clarity.</p>
+          <p>Search any stock, compare top gainers or losers, and use built-in SIP/SWP tools without signing in. Star any stock to pin it to your personal <strong>Watchlist</strong> — it persists across visits and updates every 20 seconds. Your last 8 searches are saved as quick-access chips.</p>
         </article>
         <article class="content-block">
           <h3>Buy, sell, and save with context</h3>
@@ -402,7 +418,7 @@
       </div>
       <div class="how-to-use">
         <h3>How to use this page</h3>
-        <p>Start with the search bar to look up any company by name or NSE/BSE symbol. The top index cards show the market direction, while the FII/DII section reveals institutional sentiment. Use the calculator tools to plan savings and withdrawal strategies, and read the FAQ for practical market definitions.</p>
+        <p>Start with the <strong>search bar</strong> to look up any company by name or NSE/BSE symbol. The <strong>index cards</strong> show market direction at a glance. Tap the <strong>★ star</strong> on any stock to add it to your personal <strong>Watchlist</strong> — it appears at the top and refreshes live. Your recent searches appear above Popular Stocks for instant re-access. The <strong>FII/DII section</strong> reveals institutional sentiment, and the <strong>Commodities &amp; FX</strong> section tracks Gold (24K &amp; 22K), Silver, Crude Oil, Natural Gas, Copper and live exchange rates. Use the calculator tools to plan SIP savings and SWP withdrawals.</p>
       </div>
     </div>
   </section>
@@ -445,6 +461,24 @@
         </div>
         <div class="faq-a">
           Yes. You can <strong>search for any ticker or company</strong> listed on the NSE or BSE using the search bar at the top. For the "Top Gainers" and "Movers" lists, we focus on the <strong>Nifty 200</strong> (the 200 largest, most liquid companies) to ensure the data is accurate, fast, and represents stocks that are actually tradable for retail investors.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>Can I save stocks to a personal Watchlist?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          Yes. Click the <strong>★ star button</strong> on any Popular Stocks card or on the search result card to pin it to <strong>My Watchlist</strong>. The watchlist appears at the top of the page and shows live prices that refresh every 20 seconds. It is saved in your browser's local storage — no account needed, and it persists when you close and reopen the page. You can also quickly re-search any recent stock from the <strong>Recently Searched</strong> chips above the Popular Stocks section.
+        </div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">
+          <span>What does the Commodities &amp; FX section show?</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        </div>
+        <div class="faq-a">
+          The Commodities &amp; FX section shows live prices for <strong>Gold 24K &amp; 22K (per 10g)</strong>, <strong>Silver (per 10g)</strong>, <strong>Crude Oil (WTI barrel)</strong>, <strong>Natural Gas</strong>, <strong>Copper (per kg)</strong>, and live FX rates for <strong>USD, GBP, and EUR vs INR</strong>. Metal prices are calculated from COMEX futures converted to INR with Indian import duties (15%) and GST (3%) applied.
         </div>
       </div>
       <div class="faq-item">
@@ -689,7 +723,7 @@
     </div>
   </footer>
 
-  <script src="script.js?v=11"></script>
+  <script src="script.js?v=12"></script>
   <div id="sparkTip" class="spark-tooltip hidden"></div>
 </body>
 </html>
