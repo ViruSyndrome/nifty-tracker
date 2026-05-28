@@ -8,7 +8,7 @@
 // Example: 'https://nifty-proxy.yourname.workers.dev'
 // Until then, free proxies are used as fallback.
 // -----------------------------------------------------------
-const CF_WORKER = 'https://ancient-limit-cf75.workers.dev';
+const CF_WORKER = 'https://ancient-limit-cf75.vinodjamesisaac.workers.dev';
 
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
