@@ -78,16 +78,18 @@ const BROAD_MARKET_SYMBOLS = [
 ];
 
 // -- Commodities --
-// Live domestic prices fetched directly from MCX (via worker proxy)
+// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × India duties = INR
+// India duties: import duty 15% + GST 3% = × 1.1845
+const INDIA_METAL_DUTY = 1.15 * 1.03; // 15% import duty + 3% GST
 const COMMODITIES = [
-  { id: 'gold',     symbol: 'GOLD',       label: 'Gold (10g)', isMCX: true, tooltip: 'Live MCX India price for Gold per 10g (duty-inclusive)' },
-  { id: 'silver',   symbol: 'SILVER',     label: 'Silver (1kg)', isMCX: true, tooltip: 'Live MCX India price for Silver per 1kg (duty-inclusive)' },
-  { id: 'crude',    symbol: 'CRUDEOIL',   label: 'Crude Oil', isMCX: true, tooltip: 'Live MCX India price for Crude Oil (1 barrel)' },
-  { id: 'natgas',   symbol: 'NATURALGAS', label: 'Natural Gas', isMCX: true, tooltip: 'Live MCX India price for Natural Gas' },
-  { id: 'copper',   symbol: 'COPPER',     label: 'Copper (1kg)', isMCX: true, tooltip: 'Live MCX India price for Copper per 1kg' },
-  { id: 'usd-inr',  symbol: 'USDINR=X',   label: 'USD / INR', tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
-  { id: 'gbp-inr',  symbol: 'GBPINR=X',   label: 'GBP / INR', tooltip: '1 British Pound in Indian Rupees — live FX rate' },
-  { id: 'eur-inr',  symbol: 'EURINR=X',   label: 'EUR / INR', tooltip: '1 Euro in Indian Rupees — live FX rate' },
+  { id: 'gold',     symbol: 'GC=F',     label: 'Gold (10g)',      isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,   tooltip: 'Gold 24K per 10g in INR — COMEX spot × USD/INR ÷ troy-oz × India import duty (15%) + GST (3%)' },
+  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (1kg)',    isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 1000, tooltip: 'Silver per 1kg in INR — COMEX spot × USD/INR ÷ troy-oz × India import duty (15%) + GST (3%)' },
+  { id: 'crude',    symbol: 'CL=F',     label: 'Crude Oil (bbl)', isFX: true,    tooltip: 'WTI Crude Oil futures (1 barrel) converted to INR at live USD/INR rate' },
+  { id: 'natgas',   symbol: 'NG=F',     label: 'Natural Gas',     isFX: true,    tooltip: 'Henry Hub Natural Gas futures (per MMBtu) converted to INR at live USD/INR rate' },
+  { id: 'copper',   symbol: 'HG=F',     label: 'Copper (1kg)',    isFX: true,    kgPerUnit: 1/2.20462, tooltip: 'COMEX Copper futures (per lb) × 2.20462 → per kg, converted to INR at live USD/INR rate' },
+  { id: 'usd-inr',  symbol: 'USDINR=X', label: 'USD / INR',       tooltip: '1 US Dollar in Indian Rupees — live FX rate' },
+  { id: 'gbp-inr',  symbol: 'GBPINR=X', label: 'GBP / INR',       tooltip: '1 British Pound in Indian Rupees — live FX rate' },
+  { id: 'eur-inr',  symbol: 'EURINR=X', label: 'EUR / INR',       tooltip: '1 Euro in Indian Rupees — live FX rate' },
 ];
 
 // -- Sectoral Indices --
@@ -285,37 +287,8 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
   return null;
 }
 
-async function fetchMCXData() {
-  const mcxUrl = 'https://priceapi.moneycontrol.com/pricefeed/mcx/commoditysummary';
-
-  if (CF_WORKER) {
-    try {
-      const workerRes = await fetch(CF_WORKER + '?action=mcx');
-      if (workerRes.ok) {
-        const workerJson = await workerRes.json();
-        if (workerJson && workerJson.data && Array.isArray(workerJson.data)) {
-          return workerJson.data;
-        }
-      } else {
-        console.warn('MCX worker proxy responded with', workerRes.status);
-      }
-    } catch (e) {
-      console.warn('MCX worker proxy failed:', e);
-    }
-  }
-
-  try {
-    const fallbackJson = await proxyFetch(mcxUrl, 7000);
-    if (fallbackJson && fallbackJson.data && Array.isArray(fallbackJson.data)) {
-      return fallbackJson.data;
-    }
-    console.warn('MCX fallback did not return expected data', fallbackJson);
-  } catch (e) {
-    console.warn('MCX fallback fetch failed:', e);
-  }
-
-  return [];
-}
+// fetchMCXData removed — Moneycontrol MCX API is blocked by Akamai bot-protection
+// at the server level, returning empty 0-byte responses from Cloudflare Workers.
 
 // =============================================
 // FETCH STOCK DATA
@@ -963,63 +936,66 @@ async function loadCommodities() {
   var row = document.getElementById('commodityRow');
   if (!row) return;
 
-  // 1. Fetch MCX data for commodities
-  var mcxData = {};
-  try {
-    var mcxItems = await fetchMCXData();
-    mcxItems.forEach(function(item) {
-      if (item.symbol) mcxData[item.symbol] = {
-        price: parseFloat((item.price || '').replace(/,/g, '')),
-        pct: parseFloat(item.percentChange || 0)
-      };
-    });
-  } catch (e) {
-    console.warn('MCX fetch failed', e);
-  }
-
-  // 2. Fetch standard FX data from Yahoo
-  var yahooSymbols = COMMODITIES.filter(c => !c.isMCX).map(c => c.symbol);
+  // Fetch all unique Yahoo symbols in parallel (includes USD/INR needed for conversions)
+  var uniqueSymbols = COMMODITIES.map(function(c) { return c.symbol; })
+    .filter(function(s, i, arr) { return arr.indexOf(s) === i; });
   var fetched = {};
-  await Promise.all(yahooSymbols.map(async function(sym) {
+  await Promise.all(uniqueSymbols.map(async function(sym) {
     fetched[sym] = await fetchYahoo(sym);
   }));
+
+  // Live USD→INR rate (needed for spot metal & USD-denominated commodities)
+  var usdInrData = fetched['USDINR=X'];
+  var usdInr     = usdInrData ? usdInrData.price : null;
 
   COMMODITIES.forEach(function(c) {
     var el = document.getElementById('cmd-' + c.id);
     if (!el) return;
-    
     el.classList.remove('skeleton');
+
+    var data = fetched[c.symbol];
     var priceStr, pctVal, sign, cls;
 
-    if (c.isMCX) {
-      var d = mcxData[c.symbol];
-      if (d && !isNaN(d.price)) {
-        priceStr = '₹' + fmt(d.price);
-        pctVal = d.pct;
-        sign = pctVal >= 0 ? '+' : '';
-        cls = changeClass(pctVal);
-      } else {
-        priceStr = 'Rate unavailable';
-        pctVal = null;
-        cls = 'neutral';
-      }
-    } else {
-      var d2 = fetched[c.symbol];
-      if (d2 && d2.price != null) {
-        priceStr = '₹' + d2.price.toFixed(2);
-        pctVal = changePct(d2.price, d2.prevClose);
-        sign = pctVal >= 0 ? '+' : '';
-        cls = changeClass(pctVal);
-      } else {
-        priceStr = 'Rate unavailable';
-        pctVal = null;
-        cls = 'neutral';
-      }
+    if (!data || data.price == null) {
+      el.querySelector('.idx-price').textContent  = '—';
+      el.querySelector('.idx-change').textContent = '—';
+      el.classList.remove('positive', 'negative', 'neutral');
+      el.classList.add('neutral');
+      return;
     }
 
+    var rawPrice  = data.price;
+    var rawPrev   = data.prevClose || rawPrice;
+    var displayPrice;
+
+    if (c.isSpot && usdInr) {
+      // COMEX USD/troy-oz → INR per displayGrams, with India import duty + GST
+      displayPrice     = (rawPrice  * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
+      var prevDisplay  = (rawPrev   * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
+      pctVal           = changePct(displayPrice, prevDisplay);
+      priceStr         = '₹' + fmt(Math.round(displayPrice));
+    } else if (c.isFX && usdInr) {
+      // USD-denominated futures → INR, with optional per-kg conversion for copper
+      var mult         = c.kgPerUnit ? (1 / c.kgPerUnit) : 1; // HG=F: per lb → per kg
+      displayPrice     = rawPrice * usdInr * (c.kgPerUnit ? (1 / c.kgPerUnit) : 1);
+      // copper: HG=F is USD/lb, kgPerUnit = 1/2.20462 → multiply by 2.20462 for per-kg price
+      if (c.kgPerUnit) displayPrice = rawPrice * usdInr / c.kgPerUnit;
+      var prevFX       = rawPrev * usdInr * (c.kgPerUnit ? 1 / c.kgPerUnit : 1);
+      if (c.kgPerUnit) prevFX = rawPrev * usdInr / c.kgPerUnit;
+      pctVal           = changePct(displayPrice, prevFX);
+      priceStr         = '₹' + fmt(displayPrice, c.symbol === 'NG=F' ? 2 : 0);
+    } else {
+      // Plain FX pairs (USD/INR, GBP/INR, EUR/INR) — price already in INR
+      displayPrice     = rawPrice;
+      pctVal           = changePct(displayPrice, rawPrev);
+      priceStr         = '₹' + displayPrice.toFixed(2);
+    }
+
+    sign = (pctVal != null && pctVal >= 0) ? '+' : '';
+    cls  = changeClass(pctVal);
     el.classList.remove('positive', 'negative', 'neutral');
     el.classList.add(cls);
-    el.querySelector('.idx-price').textContent = priceStr;
+    el.querySelector('.idx-price').textContent  = priceStr;
     el.querySelector('.idx-change').textContent = pctVal != null ? sign + pctVal.toFixed(2) + '%' : '—';
   });
 }
