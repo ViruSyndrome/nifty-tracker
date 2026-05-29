@@ -1,0 +1,4 @@
+# Cloudflare Pages _redirects
+# Eliminates the /index.html duplicate URL seen in Google Search Console
+
+/index.html     /     301
