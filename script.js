@@ -1084,23 +1084,87 @@ async function loadFIIDII() {
     updateGauge(gaugeRatio * 80);
   }
 
+  // Merge new data rows with existing history, deduplicating by date+category, keeping latest 10 days.
+  // Merge new data rows with existing history, deduplicating by date+category, keeping latest 10 days.
+  function mergeHistory(existingData, newData) {
+    const keyOf = item => item.date + '|' + item.category;
+    const map = {};
+    // Start with existing data as the base
+    existingData.forEach(item => { if (item && item.date) map[keyOf(item)] = item; });
+    // Overlay new data (it wins for any date it has)
+    newData.forEach(item => { if (item && item.date) map[keyOf(item)] = item; });
+    // Convert back to array, sort by date descending (newest first)
+    const merged = Object.values(map);
+    merged.sort((a, b) => {
+      const parseDate = d => {
+        if (!d) return 0;
+        // Handles '27-May-2026' format manually to avoid browser-specific Date parser discrepancies
+        const parts = d.split('-');
+        if (parts.length === 3) {
+          const day = parseInt(parts[0], 10);
+          const monthStr = parts[1].toLowerCase();
+          const year = parseInt(parts[2], 10);
+          const months = {
+            jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+            jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11
+          };
+          const month = months[monthStr.substring(0, 3)] || 0;
+          return new Date(year, month, day).getTime();
+        }
+        const parsed = new Date(d).getTime();
+        return isNaN(parsed) ? 0 : parsed;
+      };
+      return parseDate(b.date) - parseDate(a.date);
+    });
+    // Keep only 10 unique dates (20 rows = 2 per day)
+    const uniqueDates = [];
+    const kept = merged.filter(item => {
+      if (!uniqueDates.includes(item.date)) {
+        if (uniqueDates.length >= 10) return false;
+        uniqueDates.push(item.date);
+      }
+      return true;
+    });
+    return kept;
+  }
+
+  const LS_FIIDII = 'fiidii_history_v1';
+
+  // Step 1: Render from localStorage cache first (instant render on revisit)
+  const cached = lsGet(LS_FIIDII);
+  if (cached && Array.isArray(cached) && cached.length) {
+    renderFIIDII(cached, 'cached history');
+  }
+
+  // Step 2: Load local fiidii.json fallback
+  let localData = [];
   try {
-    // Load the latest published snapshot first from the local file.
     const localRes = await fetch('data/fiidii.json?v=' + Date.now());
     if (localRes.ok) {
-      const localData = await localRes.json();
-      if (Array.isArray(localData) && localData.length) {
-        renderFIIDII(localData, 'latest published');
+      const parsed = await localRes.json();
+      if (Array.isArray(parsed) && parsed.length) {
+        localData = parsed;
+        // Merge with cache
+        const base = cached && Array.isArray(cached) ? cached : [];
+        const merged = mergeHistory(base, localData);
+        lsSet(LS_FIIDII, merged);
+        renderFIIDII(merged, 'latest published');
       }
     }
   } catch (localErr) {
     console.warn('Could not load local FII/DII snapshot:', localErr);
   }
 
+  // Step 3: Fetch live data from NSE, merge with existing history
   try {
     const remote = await proxyFetch('https://www.nseindia.com/api/fiidiiTradeReact', 9000);
     if (Array.isArray(remote) && remote.length) {
-      renderFIIDII(remote, 'live NSE');
+      // Merge live (today's rows) with BOTH cache and local fallback history to avoid losing the 10-day history trend.
+      const cachedData = lsGet(LS_FIIDII) || [];
+      const base = mergeHistory(cachedData, localData);
+      const merged = mergeHistory(base, remote);
+      lsSet(LS_FIIDII, merged);
+      renderFIIDII(merged, 'live NSE');
     }
   } catch (remoteErr) {
     console.warn('Live FII/DII fetch failed:', remoteErr);
