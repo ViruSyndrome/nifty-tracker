@@ -1058,7 +1058,7 @@ async function loadFIIDII() {
       const net = parseFloat(item.netValue);
       const isUp = net >= 0;
       const direction = item.category === 'DII' ? 'Domestic Institutional Investors' : 'Foreign Institutional Investors';
-      return `<div class="fiidii-item" data-tooltip="${direction}: ${isUp?'+':''}₹${fmt(Math.abs(net))} Cr net ${isUp?'buy':'sell'} today."><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--error)'}">${isUp?'+':''}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
+      return `<div class="fiidii-item" data-tooltip="${direction}: ${isUp?'+':'-'}₹${fmt(Math.abs(net))} Cr net ${isUp?'buy':'sell'} today."><div class="fiidii-cat">${item.category}</div><div class="fiidii-net" style="color: ${isUp?'var(--success)':'var(--danger)'}">${isUp?'+':'-'}₹${fmt(Math.abs(net))} <small>Cr</small></div></div>`;
     }).join('');
 
     if (historyTable) {
