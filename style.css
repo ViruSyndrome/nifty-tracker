@@ -1126,7 +1126,7 @@ a[data-tooltip] {
 }
 .trend-table th { color: var(--text-muted); font-weight: 500; }
 .trend-table .up { color: var(--success); font-weight: 600; }
-.trend-table .down { color: var(--error); font-weight: 600; }
+.trend-table .down { color: var(--danger); font-weight: 600; }
 
 .btn-toggle-history {
   background: none;
