@@ -817,6 +817,11 @@ var lastRefreshTime = Date.now();
 function updateLastUpdated() {
   var el = document.getElementById('lastUpdated');
   if (!el) return;
+  var status = getMarketStatus();
+  if (status.status === 'closed') {
+    el.textContent = 'Market Closed — Data from last session';
+    return;
+  }
   var secs = Math.floor((Date.now() - lastRefreshTime) / 1000);
   el.textContent = secs < 5 ? 'Updated just now' : 'Updated ' + secs + 's ago';
 }
