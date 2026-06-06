@@ -177,8 +177,7 @@
         </div>
         <div id="suggestions" class="suggestions hidden"></div>
         <div class="ad-slot hero-ad">
-          <ins class="adsbygoogle"
-               style="display:block"
+          <ins class="adsbygoogle inline-style-fa9aec"
                data-ad-client="ca-pub-2959862133855422"
                data-ad-slot="4580203982"
                data-ad-format="auto"
@@ -247,7 +246,7 @@
     <div class="watchlist-grid" id="watchlistGrid"></div>
   </section>
   <section class="commodities-section container">
-    <div class="section-header" style="margin-bottom: 20px;">
+    <div class="section-header inline-style-7002f9">
       <h2 class="section-title">Commodities &amp; FX <span class="movers-badge">Live</span></h2>
       <p class="section-sub">Real-time commodity and currency movement alongside the stock market.</p>
     </div>
@@ -262,7 +261,7 @@
 
   <!-- SMART TOOLS & CALCULATORS -->
   <section class="tools-section container">
-    <div class="section-header" style="margin-bottom: 20px;">
+    <div class="section-header inline-style-7002f9">
       <h2 class="section-title">⚡ Smart Tools</h2>
       <p class="section-sub">Quick SIP and SWP calculators to support your investment planning.</p>
     </div>
@@ -274,13 +273,13 @@
         <div class="mini-calc-form" onclick="event.stopPropagation()">
           <div class="mini-calc-row">
             <label data-tooltip="Your planned monthly investment amount">Monthly (₹)</label>
-            <input type="number" id="miniSipAmt" class="mini-calc-input" value="5000" step="500">
+            <input type="number" id="miniSipAmt" aria-label="Monthly Investment Amount" class="mini-calc-input" value="5000" step="500">
           </div>
           <div class="mini-calc-row">
             <label data-tooltip="The number of years you plan to continue investing">Years</label>
-            <input type="number" id="miniSipYrs" class="mini-calc-input" value="10">
+            <input type="number" id="miniSipYrs" aria-label="Investment Years" class="mini-calc-input" value="10">
           </div>
-          <button class="btn-primary" style="width:100%; margin-top:10px; font-size:0.8rem; padding:8px;" onclick="goSip()">Full Report →</button>
+          <button class="btn-primary inline-style-489269" onclick="goSip()">Full Report →</button>
         </div>
       </div>
       <!-- SWP -->
@@ -290,13 +289,13 @@
         <div class="mini-calc-form" onclick="event.stopPropagation()">
           <div class="mini-calc-row">
             <label data-tooltip="Your initial lump sum retirement corpus">Lump Sum (₹)</label>
-            <input type="number" id="miniSwpAmt" class="mini-calc-input" value="1000000" step="50000">
+            <input type="number" id="miniSwpAmt" aria-label="Lump Sum Amount" class="mini-calc-input" value="1000000" step="50000">
           </div>
           <div class="mini-calc-row">
             <label data-tooltip="Your desired monthly pension payout">Withdrawal (₹)</label>
-            <input type="number" id="miniSwpWd" class="mini-calc-input" value="10000">
+            <input type="number" id="miniSwpWd" aria-label="Monthly Withdrawal Amount" class="mini-calc-input" value="10000">
           </div>
-          <button class="btn-primary" style="width:100%; margin-top:10px; font-size:0.8rem; padding:8px;" onclick="goSwp()">Plan Withdrawal →</button>
+          <button class="btn-primary inline-style-489269" onclick="goSwp()">Plan Withdrawal →</button>
         </div>
       </div>
     </div>
@@ -304,8 +303,7 @@
 
   <section class="ad-section container">
     <div class="ad-slot native-ad">
-      <ins class="adsbygoogle"
-           style="display:block"
+      <ins class="adsbygoogle inline-style-fa9aec"
            data-ad-client="ca-pub-2959862133855422"
            data-ad-slot="4580203982"
            data-ad-format="auto"
@@ -317,11 +315,11 @@
   <!-- MARKET SENTIMENT & FII / DII -->
   <section class="movers-section container" id="fiidiiSection">
     <div class="movers-grid">
-      <div class="movers-card" style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; align-items: start;">
+      <div class="movers-card inline-style-6ca087">
         
         <!-- Gauge Column -->
-        <div class="sentiment-container" style="background: none; border: none; padding: 0; margin-top: 0;" data-tooltip="This gauge shows whether the market is tilted bearish, neutral, or bullish.">
-          <h2 class="section-title" style="margin-bottom:12px; width:100%">Market Sentiment</h2>
+        <div class="sentiment-container inline-style-1d4bd4" data-tooltip="This gauge shows whether the market is tilted bearish, neutral, or bullish.">
+          <h2 class="section-title inline-style-13fb0c">Market Sentiment</h2>
           <div class="gauge-wrap">
             <div class="gauge-bg"></div>
             <div class="gauge-needle" id="sentimentNeedle"></div>
@@ -332,23 +330,23 @@
             <span data-tooltip="Balanced market momentum with no strong bias">NEUTRAL</span>
             <span data-tooltip="Strong buying pressure across broad sectors">BULLISH</span>
           </div>
-          <div id="marketSentiment" style="margin-top:12px; width:100%;"></div>
+          <div id="marketSentiment" class="inline-style-ac8a6f"></div>
         </div>
 
         <!-- Activity Table Column -->
         <div class="fiidii-column" data-tooltip="FII/DII shows whether foreign and domestic institutions were net buyers or sellers in the latest available session.">
-          <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
-            <h2 class="section-title" style="margin-bottom:0;">FII / DII <span class="movers-badge" style="background:var(--primary-dark)">Activity</span></h2>
+          <div class="inline-style-17ff0b">
+            <h2 class="section-title inline-style-a2d48c">FII / DII <span class="movers-badge inline-style-55bef7">Activity</span></h2>
             <span id="fiidiiDate" class="fiidii-status" data-tooltip="Shows the latest available FII/DII snapshot source and date.">Loading…</span>
           </div>
           <div class="fiidii-grid" id="fiidiiGrid">
-            <div class="mover-empty" style="text-align:left; padding: 20px 0;">Fetching institutional activity…</div>
+            <div class="mover-empty inline-style-eb4540">Fetching institutional activity…</div>
           </div>
           
-          <div class="fiidii-history-wrap" style="margin-top: 24px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h3 style="font-size: 0.95rem; color: var(--text);">📅 10-Day Trend History</h3>
-              <button class="btn-toggle-history" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" onclick="toggleHistory()">Show/Hide</button>
+          <div class="fiidii-history-wrap inline-style-5c2918">
+            <div class="inline-style-41e611">
+              <h3 class="inline-style-24ac47">📅 10-Day Trend History</h3>
+              <button class="btn-toggle-history inline-style-de367c" onclick="toggleHistory()">Show/Hide</button>
             </div>
             <div id="fiidiiHistory" class="hidden"></div>
           </div>
@@ -360,7 +358,7 @@
 
   <!-- SECTORAL PULSE -->
   <section class="sectors-section container">
-    <div class="section-header" style="margin-bottom: 1.5rem;" data-tooltip="Sector performance helps identify which industries are leading or lagging in the market.">
+    <div class="section-header inline-style-d3297f" data-tooltip="Sector performance helps identify which industries are leading or lagging in the market.">
       <h2 class="section-title">Sectoral Pulse</h2>
       <p class="section-sub">Live performance across major industry indices</p>
     </div>
@@ -403,11 +401,11 @@
   <section class="movers-section container">
     <div class="movers-grid">
       <div class="movers-card">
-        <h2 class="section-title gainers-title">🚀 Broad Market Gainers <span class="movers-badge" style="background:#8b5cf6">Mid-cap+</span></h2>
+        <h2 class="section-title gainers-title">🚀 Broad Market Gainers <span class="movers-badge inline-style-f18651">Mid-cap+</span></h2>
         <div id="broadGainersList" class="movers-list"><div class="mover-empty skeleton">Loading data...</div></div>
       </div>
       <div class="movers-card">
-        <h2 class="section-title losers-title">📉 Broad Market Losers <span class="movers-badge" style="background:#8b5cf6">Mid-cap+</span></h2>
+        <h2 class="section-title losers-title">📉 Broad Market Losers <span class="movers-badge inline-style-f18651">Mid-cap+</span></h2>
         <div id="broadLosersList" class="movers-list"><div class="mover-empty skeleton">Loading data...</div></div>
       </div>
     </div>
@@ -467,7 +465,7 @@
 
   <!-- FAQ SECTION -->
   <section class="faq-section container" id="faq">
-    <div class="section-header" style="text-align:center; margin-bottom:32px;">
+    <div class="section-header inline-style-710df8">
       <h2 class="section-title">Frequently Asked Questions</h2>
       <p class="section-sub">Answers to common questions about the market data, tools, and how to use this tracker.</p>
     </div>
