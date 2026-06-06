@@ -373,6 +373,16 @@
     }
     .compare-table td:first-child { color: var(--text); font-weight: 600; }
     .compare-table tr:last-child td { border-bottom: none; }
+    
+    /* Accessibility and specific element styles */
+    #donutChart { overflow: visible; }
+    .dot-corpus { background: #475569; }
+    .dot-withdrawn { background: var(--primary); }
+    .dot-interest { background: #f97316; }
+    .val-withdrawn { color: var(--primary); }
+    .val-interest { color: #f97316; }
+    .sip-disclaimer { margin-top: 16px; font-size: 0.82rem; color: #475569; }
+    .val-monthly-breakdown { font-size:0.75rem; color:var(--text-muted); display:block; }
   </style>
 </head>
 <body>
@@ -429,7 +439,7 @@
               <span class="sip-value-badge" id="displayCorpus">₹50 L</span>
             </div>
             <input type="range" id="sliderCorpus" min="100000" max="50000000" step="100000" value="5000000"
-                   oninput="onSlide('corpus', this.value)" />
+                   aria-label="Your Corpus" oninput="onSlide('corpus', this.value)" />
             <div class="sip-range-ends"><span>₹1 L</span><span>₹5 Cr</span></div>
           </div>
         </div>
@@ -441,7 +451,7 @@
               <span class="sip-value-badge" id="displayWithdrawal">₹30,000</span>
             </div>
             <input type="range" id="sliderWithdrawal" min="1000" max="500000" step="1000" value="30000"
-                   oninput="onSlide('withdrawal', this.value)" />
+                   aria-label="Monthly Withdrawal" oninput="onSlide('withdrawal', this.value)" />
             <div class="sip-range-ends"><span>₹1,000</span><span>₹5 L</span></div>
           </div>
         </div>
@@ -452,7 +462,7 @@
             <span class="sip-value-badge" id="displayRate">8%</span>
           </div>
           <input type="range" id="sliderRate" min="1" max="20" step="0.5" value="8"
-                 oninput="onSlide('rate', this.value)" />
+                 aria-label="Expected Annual Return" oninput="onSlide('rate', this.value)" />
           <div class="sip-range-ends"><span>1%</span><span>20%</span></div>
         </div>
 
@@ -462,7 +472,7 @@
             <span class="sip-value-badge" id="displayYears">20 yrs</span>
           </div>
           <input type="range" id="sliderYears" min="1" max="40" step="1" value="20"
-                 oninput="onSlide('years', this.value)" />
+                 aria-label="Withdrawal Period" oninput="onSlide('years', this.value)" />
           <div class="sip-range-ends"><span>1 yr</span><span>40 yrs</span></div>
         </div>
 
@@ -473,30 +483,30 @@
         <div class="sip-results-heading">Result</div>
 
         <div class="sip-donut-center">
-          <svg id="donutChart" width="150" height="150" viewBox="0 0 150 150" style="overflow:visible;"></svg>
+          <svg id="donutChart" width="150" height="150" viewBox="0 0 150 150"></svg>
         </div>
 
         <div class="sip-row-list">
           <div class="sip-row">
             <span class="sip-row-label">
-              <span class="sip-dot" style="background:#475569;"></span>
+              <span class="sip-dot dot-corpus"></span>
               <span id="labelInvested">Initial Corpus</span>
             </span>
             <span class="sip-row-val" id="resCorpus">₹50 L</span>
           </div>
           <div class="sip-row">
             <span class="sip-row-label">
-              <span class="sip-dot" style="background:var(--primary);"></span>
+              <span class="sip-dot dot-withdrawn"></span>
               Total Withdrawn
             </span>
-            <span class="sip-row-val" style="color: var(--primary);" id="resWithdrawn">₹72 L</span>
+            <span class="sip-row-val val-withdrawn" id="resWithdrawn">₹72 L</span>
           </div>
           <div class="sip-row">
             <span class="sip-row-label">
-              <span class="sip-dot" style="background:#f97316;"></span>
+              <span class="sip-dot dot-interest"></span>
               Interest Earned
             </span>
-            <span class="sip-row-val" style="color:#f97316;" id="resInterest">₹22 L</span>
+            <span class="sip-row-val val-interest" id="resInterest">₹22 L</span>
           </div>
         </div>
 
@@ -557,7 +567,7 @@
       <h2>What is a safe withdrawal rate?</h2>
       <p>The globally recognised <strong>"4% rule"</strong> suggests withdrawing no more than 4% of your corpus annually for a 30-year retirement. For India, where returns are higher but inflation is also higher, a safe withdrawal rate of <strong>5–6% per year</strong> is commonly cited. If you withdraw more than the return rate, your corpus will eventually deplete — this calculator shows you exactly when.</p>
 
-      <p style="margin-top: 16px; font-size: 0.82rem; color: #475569;">Disclaimer: This calculator is for informational purposes only and does not account for taxes, expense ratios, inflation, or individual circumstances. This is not financial advice. Please consult a SEBI-registered financial advisor before making investment decisions.</p>
+      <p class="sip-disclaimer">Disclaimer: This calculator is for informational purposes only and does not account for taxes, expense ratios, inflation, or individual circumstances. This is not financial advice. Please consult a SEBI-registered financial advisor before making investment decisions.</p>
     </div>
 
   </div><!-- /sip-wrap -->
@@ -812,7 +822,7 @@
         var rowClass = row.depleted && row.balance <= 0 ? ' class="depleted-row"' : '';
         html += '<tr' + rowClass + '>'
           + '<td>Year ' + row.year + '</td>'
-          + '<td>' + fmtINR(row.withdrawn) + ' <span style="font-size:0.75rem; color:var(--text-muted); display:block;">(' + fmtINR(_withdrawal) + '/mo)</span></td>'
+          + '<td>' + fmtINR(row.withdrawn) + ' <span class="val-monthly-breakdown">(' + fmtINR(_withdrawal) + '/mo)</span></td>'
           + '<td class="pos-cell">' + fmtINR(row.interest) + '</td>'
           + '<td class="' + balClass + '">' + (row.balance <= 0 ? 'Depleted' : fmtINR(row.balance)) + '</td>'
           + '</tr>';
