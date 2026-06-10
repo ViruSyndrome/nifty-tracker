@@ -354,7 +354,7 @@
             <span class="sip-label-text" data-tooltip="Your monthly SIP amount. Higher contributions grow your corpus faster.">Monthly Investment</span>
             <span class="sip-value-badge" id="displayAmount">₹5,000</span>
           </div>
-          <input type="range" id="sliderAmount" min="500" max="100000" step="500" value="5000"
+          <input type="range" id="sliderAmount" aria-label="Monthly Investment amount" min="500" max="100000" step="500" value="5000"
                  oninput="onSlide('amount', this.value)" />
           <div class="sip-range-ends"><span>₹500</span><span>₹1,00,000</span></div>
         </div>
@@ -364,7 +364,7 @@
             <span class="sip-label-text" data-tooltip="Expected yearly return percentage used to calculate the future SIP value.">Expected Annual Return</span>
             <span class="sip-value-badge" id="displayRate">12%</span>
           </div>
-          <input type="range" id="sliderRate" min="1" max="30" step="0.5" value="12"
+          <input type="range" id="sliderRate" aria-label="Expected Annual Return percentage" min="1" max="30" step="0.5" value="12"
                  oninput="onSlide('rate', this.value)" />
           <div class="sip-range-ends"><span>1%</span><span>30%</span></div>
         </div>
@@ -374,7 +374,7 @@
             <span class="sip-label-text" data-tooltip="How many years you plan to keep investing through SIP.">Investment Duration</span>
             <span class="sip-value-badge" id="displayYears">10 yrs</span>
           </div>
-          <input type="range" id="sliderYears" min="1" max="40" step="1" value="10"
+          <input type="range" id="sliderYears" aria-label="Investment Duration in years" min="1" max="40" step="1" value="10"
                  oninput="onSlide('years', this.value)" />
           <div class="sip-range-ends"><span>1 yr</span><span>40 yrs</span></div>
         </div>
@@ -386,23 +386,23 @@
         <div class="sip-results-heading">Projected Returns</div>
 
         <div class="sip-donut-center">
-          <svg id="donutChart" width="150" height="150" viewBox="0 0 150 150" style="overflow:visible;"></svg>
+          <svg id="donutChart" width="150" height="150" viewBox="0 0 150 150"></svg>
         </div>
 
         <div class="sip-row-list">
           <div class="sip-row">
             <span class="sip-row-label" data-tooltip="Total amount contributed through SIP over the selected duration.">
-              <span class="sip-dot" style="background:#475569;"></span>
+              <span class="sip-dot sip-dot-invested"></span>
               Amount Invested
             </span>
             <span class="sip-row-val" id="resInvested">₹6,00,000</span>
           </div>
           <div class="sip-row">
             <span class="sip-row-label" data-tooltip="Projected gains earned from compounding above your invested amount.">
-              <span class="sip-dot" style="background:var(--primary);"></span>
+              <span class="sip-dot sip-dot-returns"></span>
               Estimated Returns
             </span>
-            <span class="sip-row-val" style="color: var(--primary);" id="resReturns">₹5,33,330</span>
+            <span class="sip-row-val sip-row-val-primary" id="resReturns">₹5,33,330</span>
           </div>
         </div>
 
@@ -449,8 +449,8 @@
       <h2>SIP vs Lump Sum</h2>
       <p>SIP invests a fixed amount every month regardless of the market level, reducing timing risk. Lump sum investing puts all capital in at once, which can outperform in rising markets but carries more short-term risk. For most salaried investors, SIP is the recommended approach.</p>
 
-      <p style="margin-bottom: 12px;">© 2026 GetNiftyReady. All tools are for educational purposes only.</p>
-    <p style="max-width: 800px; margin: 0 auto; line-height: 1.6;">Disclaimer: Investment in securities market are subject to market risks. Read all the related documents carefully before investing. Registration granted by SEBI and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.</p>
+      <p class="sip-footer-p">© 2026 GetNiftyReady. All tools are for educational purposes only.</p>
+    <p class="sip-disclaimer">Disclaimer: Investment in securities market are subject to market risks. Read all the related documents carefully before investing. Registration granted by SEBI and certification from NISM in no way guarantee performance of the intermediary or provide any assurance of returns to investors.</p>
     </div>
 
   </div><!-- /sip-wrap -->
