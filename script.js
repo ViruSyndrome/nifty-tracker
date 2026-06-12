@@ -1,3 +1,50 @@
+// ── Safe localStorage Wrapper ──────────────────────────────────────────────
+// Catches QuotaExceededError and private-browsing SecurityError silently.
+// Usage: lsSet('key', value)  lsGet('key', fallback)  lsDel('key')
+// ──────────────────────────────────────────────────────────────────────────
+const _ls = (() => {
+  const _ok = (() => { try { _ls.setRaw('__ls_test__', '1'); _ls.del('__ls_test__'); return true; } catch { return false; } })();
+  return {
+    get(key, fallback = null) {
+      if (!_ok) return fallback;
+      try { const v = _ls.getRaw(key); return v !== null ? JSON.parse(v) : fallback; } catch { return fallback; }
+    },
+    set(key, val) {
+      if (!_ok) return false;
+      try { _ls.setRaw(key, JSON.stringify(val)); return true; }
+      catch (e) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          console.warn('[Storage] Quota exceeded — clearing old data to make room.');
+          try { _ls.clear(); _ls.setRaw(key, JSON.stringify(val)); } catch { return false; }
+        }
+        return false;
+      }
+    },
+    setRaw(key, val) {
+      if (!_ok) return false;
+      try { _ls.setRaw(key, val); return true; }
+      catch (e) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          console.warn('[Storage] Quota exceeded — clearing old data to make room.');
+          try { _ls.clear(); _ls.setRaw(key, val); } catch { return false; }
+        }
+        return false;
+      }
+    },
+    getRaw(key, fallback = null) {
+      if (!_ok) return fallback;
+      try { const v = _ls.getRaw(key); return v !== null ? v : fallback; } catch { return fallback; }
+    },
+    del(key)   { if (!_ok) return; try { _ls.del(key); } catch {} },
+    clear()    { if (!_ok) return; try { _ls.clear(); } catch {} },
+  };
+})();
+// Convenience aliases
+function lsGet(key, fallback = null) { return _ls.get(key, fallback); }
+function lsSet(key, val)             { return _ls.set(key, val); }
+function lsDel(key)                  { return _ls.del(key); }
+// ──────────────────────────────────────────────────────────────────────────
+
 // =============================================
 // GetNiftyReady — script.js
 // =============================================
@@ -15,8 +62,7 @@ const LS_RECENT    = 'gnr_recent';
 const LS_WATCHLIST = 'gnr_watchlist';
 const MAX_RECENT   = 8;
 const MAX_WATCHLIST = 20;
-function lsGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } }
-function lsSet(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
+catch {} }
 
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
