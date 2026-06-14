@@ -3,6 +3,49 @@
 // Usage: lsSet('key', value)  lsGet('key', fallback)  lsDel('key')
 // ──────────────────────────────────────────────────────────────────────────
 const _ls = (() => {
+  const _ok = (() => { try { window.localStorage.setItem('__ls_test__', '1'); window.localStorage.removeItem('__ls_test__'); return true; } catch (e) { return false; } })();
+  return {
+    get(key, fallback = null) {
+      if (!_ok) return fallback;
+      try { const v = window.localStorage.getItem(key); return v !== null ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+    },
+    set(key, val) {
+      if (!_ok) return false;
+      try { window.localStorage.setItem(key, JSON.stringify(val)); return true; }
+      catch (e) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          console.warn('[Storage] Quota exceeded — clearing old data to make room.');
+          try { window.localStorage.clear(); window.localStorage.setItem(key, JSON.stringify(val)); } catch (err) { return false; }
+        }
+        return false;
+      }
+    },
+    setRaw(key, val) {
+      if (!_ok) return false;
+      try { window.localStorage.setItem(key, val); return true; }
+      catch (e) {
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          console.warn('[Storage] Quota exceeded — clearing old data to make room.');
+          try { window.localStorage.clear(); window.localStorage.setItem(key, val); } catch (err) { return false; }
+        }
+        return false;
+      }
+    },
+    getRaw(key, fallback = null) {
+      if (!_ok) return fallback;
+      try { const v = window.localStorage.getItem(key); return v !== null ? v : fallback; } catch (e) { return fallback; }
+    },
+    del(key)   { if (!_ok) return; try { window.localStorage.removeItem(key); } catch (e) {} },
+    clear()    { if (!_ok) return; try { window.localStorage.clear(); } catch (e) {} },
+  };
+})();
+// Convenience aliases
+function lsGet(key, fallback = null) { return _ls.get(key, fallback); }
+function lsSet(key, val)             { return _ls.set(key, val); }
+function lsDel(key)                  { return _ls.del(key); }
+// ──────────────────────────────────────────────────────────────────────────
+
+const _ls = (() => {
   const _ok = (() => { try { _ls.setRaw('__ls_test__', '1'); _ls.del('__ls_test__'); return true; } catch { return false; } })();
   return {
     get(key, fallback = null) {
