@@ -1835,3 +1835,50 @@ h1, h2, h3, .logo-text, .logo-accent, .ticker-val, .ticker-change, .nav-links a,
     text-align:center;
      margin-bottom:32px;
 }
+
+/* ── Network Footer ── */
+.network-footer {
+  max-width: 800px;
+  margin: 40px auto 20px;
+  padding: 24px;
+  background: var(--bg-card, #ffffff);
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 12px;
+  text-align: center;
+}
+.network-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+  margin-bottom: 16px;
+  margin-top: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.network-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+.network-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--bg-secondary, #f8fafc);
+  color: var(--text-primary, #1e293b);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color, #e2e8f0);
+  transition: all 0.2s ease;
+}
+.network-link:hover {
+  border-color: var(--primary, #3b82f6);
+  color: var(--primary, #3b82f6);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.network-icon { font-size: 1.1rem; }
