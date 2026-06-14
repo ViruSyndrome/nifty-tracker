@@ -63,7 +63,7 @@ const LS_RECENT    = 'gnr_recent';
 const LS_WATCHLIST = 'gnr_watchlist';
 const MAX_RECENT   = 8;
 const MAX_WATCHLIST = 20;
-catch {} }
+catch (e) {} }
 
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
@@ -337,7 +337,7 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
     try {
       const result = await proxy();
       if (result) return result;
-    } catch { continue; }
+    } catch (e) { continue; }
   }
 
   return null;
@@ -370,7 +370,7 @@ async function fetchYahoo(symbol) {
       currency: meta.currency,
       exchange: meta.exchangeName,
     };
-  } catch {
+  } catch (e) {
     return null;
   }
 }
@@ -791,7 +791,7 @@ async function searchAndShow(q) {
       return;
     }
     await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);
-  } catch {
+  } catch (e) {
     card.innerHTML = '<div class="result-error">Search failed. Try the NSE ticker directly (e.g. RELIANCE, TCS).</div>';
   }
 }
@@ -833,7 +833,7 @@ async function fetchSuggestions(q) {
       });
     });
     sugEl.classList.remove('hidden');
-  } catch {
+  } catch (e) {
     sugEl.classList.add('hidden');
   }
 }
