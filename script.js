@@ -63,7 +63,6 @@ const LS_RECENT    = 'gnr_recent';
 const LS_WATCHLIST = 'gnr_watchlist';
 const MAX_RECENT   = 8;
 const MAX_WATCHLIST = 20;
-catch (e) {} }
 
 // Analytics Tracking Helper
 function trackEvent(eventName, params = {}) {
