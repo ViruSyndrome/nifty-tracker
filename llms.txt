@@ -1,0 +1,88 @@
+# GetNiftyReady — llms.txt
+# Live Indian stock market tracker & SIP calculator — https://www.getniftyready.com
+# Launched: 5 May 2026
+
+## What is GetNiftyReady?
+
+GetNiftyReady (getniftyready.com) is a free, browser-based Indian stock market dashboard. It shows live NSE and BSE share prices, Nifty 50 and Sensex index values, top gainers and losers, FII/DII activity, Gold and Silver rates, Crude Oil price, and currency exchange rates (USD/INR, EUR/INR). No sign-up required.
+
+## What problem does it solve?
+
+Most Indian stock market apps require registration, push notifications, or a demat account. GetNiftyReady gives retail investors, students, and market watchers a single clean dashboard for live Indian market data — no app install, no account, works in any browser.
+
+## Key features
+
+- Live Nifty 50 index and top 50 constituent stock prices (NSE)
+- Live Sensex index and BSE stock prices
+- Top gainers and top losers across NSE
+- FII (Foreign Institutional Investor) and DII (Domestic Institutional Investor) net buy/sell data
+- Live Gold and Silver rates in India (₹ per 10g / ₹ per kg)
+- Crude Oil price (WTI and Brent)
+- USD/INR, EUR/INR, GBP/INR live forex rates
+- Personal Watchlist — add/remove stocks, persisted in localStorage
+- Market Insights page with macro commentary
+- SIP (Systematic Investment Plan) calculator — calculate returns for any monthly amount and duration
+- SWP (Systematic Withdrawal Plan) calculator — estimate monthly withdrawals from a corpus
+- Free, no account, no app install
+
+## Who uses it?
+
+- Retail investors tracking their NSE/BSE portfolio
+- Students learning about the Indian stock market
+- Working professionals doing a quick market check
+- SIP investors calculating long-term returns
+- Finance content creators and bloggers citing live Indian market data
+
+## Frequently asked questions
+
+Q: Is GetNiftyReady free?
+A: Yes. All features — live prices, watchlist, SIP calculator, market insights — are free with no subscription and no account.
+
+Q: Do I need to create an account?
+A: No. The site works immediately. Your personal watchlist is saved in your browser's localStorage, not on any server.
+
+Q: How live is the data?
+A: Prices are fetched from the data source and updated on page load. Indian market data is subject to a standard exchange delay.
+
+Q: What is the Nifty 50?
+A: The Nifty 50 is the flagship Indian stock market index, comprising the 50 largest companies listed on the National Stock Exchange (NSE) of India. It is the primary benchmark for Indian equity markets.
+
+Q: What is the Sensex?
+A: The BSE Sensex (Sensitive Index) is a benchmark index of the Bombay Stock Exchange (BSE), tracking 30 of the largest and most actively traded companies in India.
+
+Q: What is FII/DII data?
+A: FII (Foreign Institutional Investors) and DII (Domestic Institutional Investors) are large funds that invest in Indian markets. Their net buy or sell activity is widely tracked as a market sentiment indicator.
+
+Q: How does the SIP calculator work?
+A: Enter a monthly investment amount, expected annual return rate, and investment duration. The calculator compounds monthly and shows total invested amount, estimated returns, and final corpus value.
+
+Q: What is a SWP calculator?
+A: A Systematic Withdrawal Plan (SWP) calculator estimates how long a retirement corpus will last if you withdraw a fixed monthly amount, accounting for the remaining balance continuing to earn returns.
+
+## Pages and tools
+
+- Homepage + live dashboard: https://www.getniftyready.com/
+- Market Insights: https://www.getniftyready.com/market-insights.html
+- SIP Calculator: https://www.getniftyready.com/sip-calculator.html
+- SWP Calculator: https://www.getniftyready.com/swp-calculator.html
+
+## SIP amount calculators
+- https://www.getniftyready.com/1000-rs-sip-calculator-returns.html
+- https://www.getniftyready.com/2000-rs-sip-calculator-returns.html
+- https://www.getniftyready.com/5000-rs-sip-calculator-returns.html
+- https://www.getniftyready.com/10000-rs-sip-calculator-returns.html
+- https://www.getniftyready.com/50000-rs-sip-calculator-returns.html
+- https://www.getniftyready.com/1-crore-sip-calculator.html
+- https://www.getniftyready.com/50-lakhs-swp-calculator-monthly.html
+
+## Technical details
+
+- Vanilla HTML, CSS, JavaScript
+- Live data fetched client-side via Cloudflare Worker proxy (worker.js / wrangler.jsonc)
+- Personal watchlist stored in browser localStorage — no server, no account
+- Hosted: Cloudflare Pages with custom domain
+- No sensitive user data collected or stored
+
+## Contact
+
+hello@getniftyready.com
