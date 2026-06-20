@@ -1238,9 +1238,15 @@ function updateGauge(angle) {
 }
 
 function goSip() {
-  const amt = document.getElementById('miniSipAmt').value;
-  const time = document.getElementById('miniSipYrs') ? document.getElementById('miniSipYrs').value : 10;
-  const rate = document.getElementById('miniSipRate') ? document.getElementById('miniSipRate').value : 12;
+  const amt = parseFloat(document.getElementById('miniSipAmt').value);
+  const time = document.getElementById('miniSipYrs') ? parseFloat(document.getElementById('miniSipYrs').value) : 10;
+  const rate = document.getElementById('miniSipRate') ? parseFloat(document.getElementById('miniSipRate').value) : 12;
+  if (!amt || amt <= 0) {
+    document.getElementById('miniSipAmt').focus();
+    document.getElementById('miniSipAmt').style.borderColor = 'var(--danger)';
+    setTimeout(() => document.getElementById('miniSipAmt').style.borderColor = '', 2000);
+    return;
+  }
   trackEvent('calculate_sip');
   window.location.href = `sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
 }
@@ -1463,4 +1469,5 @@ window.addEventListener('load', () => {
     observer.observe(target);
   });
 });
+
 

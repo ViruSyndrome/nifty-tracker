@@ -50,54 +50,8 @@
     }
   }
   </script>
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "How often is the market data updated?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "During market hours (9:15 AM – 3:30 PM IST), indices, stock prices, and the Watchlist refresh automatically every 20 seconds. Commodities, Gold, Silver, and FX rates also update on the same cycle."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I save stocks to a personal watchlist?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. Click the star (★) button on any stock card or search result to add it to My Watchlist. It appears at the top of the page with live prices and persists across sessions using your browser’s local storage — no account needed."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How is the Gold and Silver price calculated?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "We show Gold 24K and Gold 22K per 10g, plus Silver per 10g — all in INR. Prices are derived from COMEX spot futures (GC=F / SI=F), converted at the live USD/INR rate and adjusted for India’s 15% import duty and 3% GST. They closely match IBJA rates."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I search for any NSE or BSE company?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. Search by company name or NSE/BSE ticker to view live price, day range, 52-week data, intraday chart, and market cap. Your searches are saved as chips for quick re-access."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is this site private and free to use?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. GetNiftyReady is 100% free with no signup. Watchlist and search history are stored only in your own browser (localStorage) and never sent to any server."
-        }
-      }
-    ]
-  }
-  </script>
+  <!-- FAQPage schema is injected dynamically from the live FAQ section via script.js -->
+
 
   <!-- AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2959862133855422" crossorigin="anonymous"></script>
@@ -135,15 +89,7 @@
     }
     </script>
 
-  <style>
-  /* Cross-Linking Footer Network CSS */
-  .network-footer { max-width: 800px; margin: 40px auto 20px; padding: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-  .network-title { font-size: 0.95rem; font-weight: 600; color: #64748b; margin-bottom: 16px; margin-top: 0; text-transform: uppercase; letter-spacing: 0.5px; font-family: sans-serif; }
-  .network-links { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
-  .network-link { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; background: #f8fafc; color: #1e293b !important; text-decoration: none !important; border-radius: 8px; font-size: 0.95rem; font-weight: 500; transition: all 0.2s ease; border: 1px solid #e2e8f0; font-family: sans-serif; }
-  .network-link:hover { background: #f1f5f9; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-  .network-icon-img { width: 18px; height: 18px; object-fit: contain; }
-  </style>
+  <!-- Network footer styles are in style.css -->
 
 </head>
 <body>
@@ -187,14 +133,6 @@
           <button id="searchBtn" class="btn-primary">Search</button>
         </div>
         <div id="suggestions" class="suggestions hidden"></div>
-        <div class="ad-slot hero-ad">
-          <ins class="adsbygoogle inline-style-fa9aec"
-               data-ad-client="ca-pub-2959862133855422"
-               data-ad-slot="4580203982"
-               data-ad-format="auto"
-               data-full-width-responsive="true"></ins>
-          <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        </div>
       </div>
     </div>
   </section>
@@ -244,6 +182,18 @@
       </div>
     </div>
   </section>
+
+  <!-- AD SLOT: After indices bar (less disruptive position) -->
+  <div class="container" style="padding-top:0.5rem;padding-bottom:0.5rem;">
+    <div class="ad-slot">
+      <ins class="adsbygoogle"
+           data-ad-client="ca-pub-2959862133855422"
+           data-ad-slot="4580203982"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+  </div>
 
   <!-- MY WATCHLIST -->
   <section class="watchlist-section container hidden" id="watchlistSection">
