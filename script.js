@@ -132,13 +132,12 @@ const BROAD_MARKET_SYMBOLS = [
 ];
 
 // -- Commodities --
-// Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × India duties = INR
-// India duties: import duty 15% + GST 3% = × 1.1845
-const INDIA_METAL_DUTY = 1.15 * 1.03; // 15% import duty + 3% GST
+// Gold/Silver: Indian ETF proxies (GOLDBEES.NS, SILVERBEES.NS) — price is natively in INR,
+// already includes import duty, GST, and local market premium/discount.
 const COMMODITIES = [
-  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 24K per 10g in INR — COMEX spot × USD/INR ÷ troy-oz × India import duty (15%) + GST (3%). Matches IBJA/Google India price.' },
-  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true,  purity: 22/24,  gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 22K per 10g in INR — 91.67% of 24K with India import duty (15%) + GST (3%). Standard jewellery karat in India.' },
-  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Silver per 10g in INR — COMEX spot × USD/INR ÷ troy-oz × India import duty (15%) + GST (3%).' },
+  { id: 'gold-24k', symbol: 'GOLDBEES.NS', label: 'Gold 24K (10g)', isETF: true,  etfMultiplier: 1000, purity: 1,     tooltip: 'Gold 24K per 10g in INR — tracks Nippon India Gold ETF (GOLDBEES), which mirrors the domestic physical gold price including import duties and GST.' },
+  { id: 'gold-22k', symbol: 'GOLDBEES.NS', label: 'Gold 22K (10g)', isETF: true,  etfMultiplier: 1000, purity: 22/24, tooltip: 'Gold 22K per 10g in INR — 91.67% of the 24K domestic price. Standard jewellery karat in India.' },
+  { id: 'silver',   symbol: 'SILVERBEES.NS', label: 'Silver (10g)', isETF: true,  etfMultiplier: 10,   purity: 1,     tooltip: 'Silver per 10g in INR — tracks Nippon India Silver ETF (SILVERBEES), which mirrors the domestic physical silver price including import duties and GST.' },
   { id: 'crude',    symbol: 'CL=F',     label: 'Crude Oil (bbl)', isFX: true,    tooltip: 'WTI Crude Oil futures (1 barrel) converted to INR at live USD/INR rate' },
   { id: 'natgas',   symbol: 'NG=F',     label: 'Natural Gas',     isFX: true,    tooltip: 'Henry Hub Natural Gas futures (per MMBtu) converted to INR at live USD/INR rate' },
   { id: 'copper',   symbol: 'HG=F',     label: 'Copper (1kg)',    isFX: true,    kgPerUnit: 1/2.20462, tooltip: 'COMEX Copper futures (per lb) × 2.20462 → per kg, converted to INR at live USD/INR rate' },
@@ -691,7 +690,7 @@ async function searchBySymbol(symbol, name) {
 
   var data = await fetchYahoo(symbol);
   if (!data) {
-    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + name + '</strong>. Market may be closed or ticker invalid. Try again shortly.</div>';
+    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + name + '</strong>. The company may be privately held, the market may be closed, or the ticker may be invalid. Try again shortly.</div>';
     return;
   }
 
@@ -786,7 +785,7 @@ async function searchAndShow(q) {
         await searchBySymbol(trimmed, trimmed);
         return;
       }
-      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". Try typing the NSE ticker (e.g. RELIANCE, BHARTIARTL) or company name.</div>';
+      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". The company may be privately held (not listed on any exchange). Otherwise, try typing the NSE/BSE ticker (e.g. RELIANCE, BHARTIARTL) or exact company name.</div>';
       return;
     }
     await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);
@@ -1048,10 +1047,10 @@ async function loadCommodities() {
     var rawPrev   = data.prevClose || rawPrice;
     var displayPrice;
 
-    if (c.isSpot && usdInr) {
-      // COMEX USD/troy-oz → INR per displayGrams, with India import duty + GST
-      displayPrice     = (rawPrice  * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
-      var prevDisplay  = (rawPrev   * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
+    if (c.isETF) {
+      // Indian ETF proxy — price is natively in INR; multiply by etfMultiplier for per-10g rate
+      displayPrice     = rawPrice * c.etfMultiplier * (c.purity || 1);
+      var prevDisplay  = rawPrev  * c.etfMultiplier * (c.purity || 1);
       pctVal           = changePct(displayPrice, prevDisplay);
       priceStr         = '₹' + fmt(Math.round(displayPrice));
     } else if (c.isFX && usdInr) {
