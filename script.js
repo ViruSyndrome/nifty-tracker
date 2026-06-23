@@ -773,24 +773,60 @@ async function searchAndShow(q) {
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
-    var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=5&newsCount=0';
+    var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=10&newsCount=0';
     var data = await proxyFetch(url);
     var quotes = (data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [];
-    var indian = quotes.filter(function(item) { return item.symbol && (item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO')); });
-    var best   = indian.length ? indian[0] : quotes[0];
-    if (!best) {
-      // Last resort: try the query as a raw ticker symbol (handles SNPS, AAPL etc.)
-      var trimmed = q.trim().toUpperCase().replace(/\s+stock$/i, '').trim();
-      if (/^[A-Z0-9.^]+$/.test(trimmed)) {
-        await searchBySymbol(trimmed, trimmed);
-        return;
-      }
-      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". Try the exact ticker symbol (e.g. SPCX for SpaceX, RELIANCE for Reliance) or search by company name.</div>';
+    // Only keep equities (stocks), not ETFs/mutual funds/futures
+    var equities = quotes.filter(function(item) { return item.symbol && item.quoteType === 'EQUITY'; });
+    var indian = equities.filter(function(item) { return item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO'); });
+    var best   = indian.length ? indian[0] : equities[0];
+
+    if (best) {
+      await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);
       return;
     }
-    await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);
+
+    // No equity match — try the query as a raw ticker (handles AAPL, SPCX etc.)
+    var trimmed = q.trim().toUpperCase().replace(/\s+stock$/i, '').trim();
+    if (/^[A-Z0-9.^]+$/.test(trimmed)) {
+      var rawData = await fetchYahoo(trimmed);
+      if (rawData) {
+        // Raw ticker worked — show the result directly
+        await searchBySymbol(trimmed, rawData.name || trimmed);
+        return;
+      }
+    }
+
+    // Raw ticker also failed — show "Did you mean?" suggestions if Yahoo returned ANY quotes (non-equity)
+    // Also try a broader search as a last attempt
+    var allQuotes = quotes.length ? quotes : equities;
+    if (!allQuotes.length) {
+      // Try once more with a broader search (maybe the user typed a partial name)
+      var retryUrl = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=US&quotesCount=10&newsCount=0';
+      var retryData = await proxyFetch(retryUrl);
+      allQuotes = (retryData && retryData.finance && retryData.finance.result && retryData.finance.result[0] && retryData.finance.result[0].quotes) || [];
+    }
+
+    if (allQuotes.length) {
+      // Show suggestions the user can click
+      var sugHtml = '<div class="result-error" style="margin-bottom:12px;">No exact match for "<strong>' + q + '</strong>". Did you mean:</div>';
+      sugHtml += '<div class="search-suggestions">';
+      allQuotes.slice(0, 5).forEach(function(item) {
+        var displayExch = (item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO'))
+          ? item.symbol.replace(/\.(NS|BO)$/, '') + ' · NSE'
+          : item.symbol + ' · ' + (item.exchDisp || item.exchange || 'US');
+        sugHtml += '<div class="suggestion-card" onclick="searchBySymbol(\'' + item.symbol + '\', \'' + (item.longname || item.shortname || item.symbol).replace(/'/g, "\\'").replace(/"/g, '&quot;') + '\')">'
+          + '<span class="sug-card-name">' + (item.longname || item.shortname || item.symbol) + '</span>'
+          + '<span class="sug-card-ticker">' + displayExch + '</span>'
+          + '</div>';
+      });
+      sugHtml += '</div>';
+      card.innerHTML = sugHtml;
+    } else {
+      card.innerHTML = '<div class="result-error">No results found for "<strong>' + q + '</strong>". Try a different spelling or browse the suggestions as you type.</div>';
+    }
   } catch (e) {
-    card.innerHTML = '<div class="result-error">Search failed. Try the NSE ticker directly (e.g. RELIANCE, TCS).</div>';
+    card.innerHTML = '<div class="result-error">Search failed. Please try again, or type a ticker symbol directly (e.g. RELIANCE, TCS, SPCX).</div>';
   }
 }
 
