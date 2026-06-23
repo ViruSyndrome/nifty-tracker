@@ -776,7 +776,7 @@ async function searchAndShow(q) {
   try {
     var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=10&newsCount=0';
     var data = await proxyFetch(url);
-    var quotes = (data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [];
+    var quotes = (data && data.quotes) || (data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [];
     // Only keep equities (stocks), not ETFs/mutual funds/futures
     var equities = quotes.filter(function(item) { return item.symbol && item.quoteType === 'EQUITY'; });
     var indian = equities.filter(function(item) { return item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO'); });
@@ -805,7 +805,7 @@ async function searchAndShow(q) {
       // Try once more with a broader search (maybe the user typed a partial name)
       var retryUrl = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=US&quotesCount=10&newsCount=0';
       var retryData = await proxyFetch(retryUrl);
-      allQuotes = (retryData && retryData.finance && retryData.finance.result && retryData.finance.result[0] && retryData.finance.result[0].quotes) || [];
+      allQuotes = (retryData && retryData.quotes) || (retryData && retryData.finance && retryData.finance.result && retryData.finance.result[0] && retryData.finance.result[0].quotes) || [];
     }
 
     if (allQuotes.length) {
@@ -848,7 +848,7 @@ async function fetchSuggestions(q) {
   try {
     var url  = YF_SEARCH + encodeURIComponent(q) + '&lang=en-US&region=IN&quotesCount=8&newsCount=0';
     var data = await proxyFetch(url, 4000);
-    var allQuotes = ((data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [])
+    var allQuotes = ((data && data.quotes) || (data && data.finance && data.finance.result && data.finance.result[0] && data.finance.result[0].quotes) || [])
       .filter(function(item) { return item.symbol && item.quoteType === 'EQUITY'; })
       .slice(0, 7);
     if (!allQuotes.length) { sugEl.classList.add('hidden'); return; }
