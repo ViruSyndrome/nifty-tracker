@@ -690,7 +690,7 @@ async function searchBySymbol(symbol, name) {
 
   var data = await fetchYahoo(symbol);
   if (!data) {
-    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + name + '</strong>. The company may be privately held, the market may be closed, or the ticker may be invalid. Try again shortly.</div>';
+    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + name + '</strong>. The ticker may be incorrect, or the market may be closed. Try searching by company name instead.</div>';
     return;
   }
 
@@ -785,7 +785,7 @@ async function searchAndShow(q) {
         await searchBySymbol(trimmed, trimmed);
         return;
       }
-      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". The company may be privately held (not listed on any exchange). Otherwise, try typing the NSE/BSE ticker (e.g. RELIANCE, BHARTIARTL) or exact company name.</div>';
+      card.innerHTML = '<div class="result-error">No results for "<strong>' + q + '</strong>". Try the exact ticker symbol (e.g. SPCX for SpaceX, RELIANCE for Reliance) or search by company name.</div>';
       return;
     }
     await searchBySymbol(best.symbol, best.longname || best.shortname || best.symbol);
