@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const diff = latest.close - latest.wma12;
     const diffPct = (diff / latest.wma12) * 100;
-    diffValueEl.innerHTML = `<span style="color: ${diff > 0 ? 'var(--success-color)' : 'var(--danger-color)'}">${diff > 0 ? '+' : ''}${diffPct.toFixed(2)}%</span>`;
+    diffValueEl.innerHTML = `<span style="color: ${diff > 0 ? 'var(--success)' : 'var(--danger)'}">${diff > 0 ? '+' : ''}${diffPct.toFixed(2)}%</span>`;
     
     currentSignalEl.classList.remove('loading');
     metricsBox.style.display = 'flex';
@@ -89,11 +89,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dateStr = row.date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
       const signal = row.close > row.wma12 ? 'BUY' : 'CASH';
       const badgeCls = signal === 'BUY' ? 'buy' : 'cash';
+      const colorStyle = signal === 'BUY' ? 'color: var(--success); font-weight: 600;' : 'color: var(--danger); font-weight: 600;';
       
       rowsHtml += `
         <tr>
           <td>${dateStr}</td>
-          <td>${row.close.toFixed(2)}</td>
+          <td style="${colorStyle}">${row.close.toFixed(2)}</td>
           <td>${row.wma12 ? row.wma12.toFixed(2) : '--'}</td>
           <td><span class="badge ${badgeCls}">${signal}</span></td>
         </tr>
@@ -116,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           {
             label: 'Nifty 50 Close',
             data: niftyData,
-            borderColor: '#0f172a',
+            borderColor: '#f1f5f9',
             borderWidth: 2,
             pointRadius: 0,
             pointHoverRadius: 5,
@@ -181,6 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   } catch (err) {
     console.error("Error loading 12WMA data:", err);
     currentSignalEl.textContent = "Error loading data";
-    historyBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger-color);">Could not fetch live market data. Try again later.</td></tr>`;
+    historyBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger);">Could not fetch live market data. Try again later.</td></tr>`;
   }
 });
+
