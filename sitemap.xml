@@ -1,187 +1,77 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://www.getniftyready.com/</loc>
-    <lastmod>2026-05-29</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/sip-calculator.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/swp-calculator.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/about.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/contact.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/privacy.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/market-insights.html</loc>
-    <lastmod>2026-05-29</lastmod>
-    <changefreq>monthly</changefreq>
+    <loc>https://www.getniftyready.com/1-crore-sip-calculator.html</loc>
+    <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://www.getniftyready.com/terms.html</loc>
-    <lastmod>2026-05-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
-  </url>
-
-
   <url>
     <loc>https://www.getniftyready.com/1000-rs-sip-calculator-returns.html</loc>
-    <lastmod>2026-05-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/2000-rs-sip-calculator-returns.html</loc>
-    <lastmod>2026-05-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/5000-rs-sip-calculator-returns.html</loc>
-    <lastmod>2026-05-31</lastmod>
+    <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.getniftyready.com/10000-rs-sip-calculator-returns.html</loc>
-    <lastmod>2026-05-31</lastmod>
+    <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/50000-rs-sip-calculator-returns.html</loc>
-    <lastmod>2026-05-31</lastmod>
+    <loc>https://www.getniftyready.com/2000-rs-sip-calculator-returns.html</loc>
+    <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.getniftyready.com/50-lakhs-swp-calculator-monthly.html</loc>
-    <lastmod>2026-05-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/1-crore-sip-calculator.html</loc>
-    <lastmod>2026-05-31</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/reliance-share-price.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/tcs-share-price.html</loc>
+    <loc>https://www.getniftyready.com/5000-rs-sip-calculator-returns.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/hdfc-bank-share-price.html</loc>
+    <loc>https://www.getniftyready.com/50000-rs-sip-calculator-returns.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/icici-bank-share-price.html</loc>
+    <loc>https://www.getniftyready.com/about.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/bharti-airtel-share-price.html</loc>
+    <loc>https://www.getniftyready.com/contact.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/sbi-share-price.html</loc>
+    <loc>https://www.getniftyready.com/</loc>
+    <lastmod>2026-06-24</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://www.getniftyready.com/market-insights.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/infosys-share-price.html</loc>
+    <loc>https://www.getniftyready.com/privacy.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/lic-share-price.html</loc>
+    <loc>https://www.getniftyready.com/sip-calculator.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/itc-share-price.html</loc>
+    <loc>https://www.getniftyready.com/swp-calculator.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.getniftyready.com/stock/hul-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/larsen-and-toubro-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/bajaj-finance-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/hcl-tech-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/maruti-suzuki-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/sun-pharma-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/adani-enterprises-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/kotak-mahindra-bank-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/titan-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/ongc-share-price.html</loc>
-    <lastmod>2026-06-24</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.getniftyready.com/stock/tata-motors-share-price.html</loc>
+    <loc>https://www.getniftyready.com/terms.html</loc>
     <lastmod>2026-06-24</lastmod>
     <priority>0.8</priority>
   </url>
