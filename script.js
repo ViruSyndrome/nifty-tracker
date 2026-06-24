@@ -1465,7 +1465,95 @@ async function loadWatchlist() {
   }));
 }
 
+// --- MARKET STATUS BANNER ---
+function checkMarketStatus() {
+  var now = new Date();
+  var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+  var istTime = new Date(utc + (3600000 * 5.5));
+  
+  var day = istTime.getDay();
+  var hours = istTime.getHours();
+  var mins = istTime.getMinutes();
+  
+  var dot = document.getElementById('marketDot');
+  var label = document.getElementById('marketLabel');
+  
+  if (!dot || !label) return;
+  
+  if (day === 0 || day === 6) {
+    setMarketClosed(dot, label);
+    return;
+  }
+  
+  var totalMins = (hours * 60) + mins;
+  var openMins = (9 * 60) + 15;
+  var closeMins = (15 * 60) + 30;
+  
+  if (totalMins >= openMins && totalMins <= closeMins) {
+    dot.style.backgroundColor = '#22c55e';
+    dot.style.animation = 'pulse 2s infinite';
+    label.innerText = 'LIVE';
+    label.style.color = '#22c55e';
+  } else {
+    setMarketClosed(dot, label);
+  }
+}
+
+function setMarketClosed(dot, label) {
+  dot.style.backgroundColor = '#64748b';
+  dot.style.animation = 'none';
+  label.innerText = 'CLOSED';
+  label.style.color = '#64748b';
+}
+
+// --- SHAREABLE WATCHLIST ---
+function processUrlWatchlist() {
+  var params = new URLSearchParams(window.location.search);
+  var wlParam = params.get('watchlist');
+  if (wlParam) {
+    var symbols = wlParam.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean);
+    var current = getWatchlist();
+    var changed = false;
+    
+    symbols.forEach(function(sym) {
+      if (!isWatchlisted(sym) && current.length < MAX_WATCHLIST) {
+        current.push({ symbol: sym, name: sym.replace('.NS', '').replace('.BO', '') });
+        changed = true;
+      }
+    });
+    
+    if (changed) {
+      lsSet(LS_WATCHLIST, current);
+    }
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+}
+
+function shareWatchlist() {
+  var list = getWatchlist();
+  if (!list.length) {
+    alert("Your watchlist is empty.");
+    return;
+  }
+  var symbols = list.map(function(s) { return s.symbol; }).join(',');
+  var url = window.location.origin + window.location.pathname + '?watchlist=' + encodeURIComponent(symbols);
+  
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(function() {
+      alert("Watchlist link copied to clipboard!");
+    }).catch(function() {
+      prompt("Copy this link to share your watchlist:", url);
+    });
+  } else {
+    prompt("Copy this link to share your watchlist:", url);
+  }
+}
+
 (async function init() {
+  processUrlWatchlist();
+  checkMarketStatus();
+  setInterval(checkMarketStatus, 60000);
+  
   document.addEventListener('scroll', hideSparkTip, true);
   renderCommodities();
   renderRecentlySearched();
