@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           {
             label: '12-Week MA',
             data: wmaData,
-            borderColor: '#3b82f6',
+            borderColor: '#14b8a6',
             borderWidth: 2,
             borderDash: [5, 5],
             pointRadius: 0,
@@ -185,4 +185,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     historyBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger);">Could not fetch live market data. Try again later.</td></tr>`;
   }
 });
+
 
