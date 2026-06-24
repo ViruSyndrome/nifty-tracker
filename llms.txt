@@ -21,6 +21,7 @@ Most Indian stock market apps require registration, push notifications, or a dem
 - USD/INR, EUR/INR, GBP/INR live forex rates
 - Personal Watchlist — add/remove stocks, persisted in localStorage
 - Market Insights page with macro commentary
+- 12-Week Moving Average Strategy Simulator — live Nifty 50 trend signals
 - SIP (Systematic Investment Plan) calculator — calculate returns for any monthly amount and duration
 - SWP (Systematic Withdrawal Plan) calculator — estimate monthly withdrawals from a corpus
 - Free, no account, no app install
@@ -62,6 +63,7 @@ A: A Systematic Withdrawal Plan (SWP) calculator estimates how long a retirement
 ## Pages and tools
 
 - Homepage + live dashboard: https://www.getniftyready.com/
+- 12-Week Trend Tracker: https://www.getniftyready.com/12-week-moving-average.html
 - Market Insights: https://www.getniftyready.com/market-insights.html
 - SIP Calculator: https://www.getniftyready.com/sip-calculator.html
 - SWP Calculator: https://www.getniftyready.com/swp-calculator.html
