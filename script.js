@@ -835,13 +835,16 @@ async function searchAndShow(q) {
 // AUTOCOMPLETE
 // =============================================
 var suggestTimer;
-document.getElementById('searchInput').addEventListener('input', function(e) {
-  clearTimeout(suggestTimer);
-  var q = e.target.value.trim();
-  var sugEl = document.getElementById('suggestions');
-  if (q.length < 2) { sugEl.classList.add('hidden'); return; }
-  suggestTimer = setTimeout(function() { fetchSuggestions(q); }, 350);
-});
+var searchInput = document.getElementById('searchInput');
+if (searchInput) {
+  searchInput.addEventListener('input', function(e) {
+    clearTimeout(suggestTimer);
+    var q = e.target.value.trim();
+    var sugEl = document.getElementById('suggestions');
+    if (q.length < 2) { sugEl.classList.add('hidden'); return; }
+    suggestTimer = setTimeout(function() { fetchSuggestions(q); }, 350);
+  });
+}
 
 async function fetchSuggestions(q) {
   var sugEl = document.getElementById('suggestions');
