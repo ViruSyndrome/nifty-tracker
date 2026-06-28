@@ -1905,3 +1905,42 @@ h1, h2, h3, .logo-text, .logo-accent, .ticker-val, .ticker-change, .nav-links a,
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 .network-icon { font-size: 1.1rem; }
+
+/* Back to Top Button */
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(10,132,255,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 100;
+  transition: opacity 0.3s, transform 0.2s, background 0.2s;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.back-to-top:hover {
+  background: var(--primary-dark);
+  transform: translateY(-2px) scale(1.05);
+}
+.back-to-top.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.95);
+}
+@media (max-width: 768px) {
+  .back-to-top {
+    bottom: 16px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+  }
+}

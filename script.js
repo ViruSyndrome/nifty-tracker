@@ -1598,3 +1598,17 @@ window.addEventListener('load', () => {
 });
 
 
+
+// Back to Top Button Logic
+document.addEventListener('DOMContentLoaded', () => {
+  const bttBtn = document.getElementById('backToTopBtn');
+  if (bttBtn) {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 400) {
+        bttBtn.classList.remove('hidden');
+      } else {
+        bttBtn.classList.add('hidden');
+      }
+    }, { passive: true });
+  }
+});
