@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>50 Lakhs SWP Calculator Monthly | GetNiftyReady India</title>
-  <meta name="description" content="Free SWP calculator for India. Find out how long your retirement corpus will last with monthly withdrawals, or how much you can safely withdraw every month." />
+  <meta name="description" content="Planning retirement with ₹50 lakhs? Use our free SWP calculator to see how much you can withdraw monthly and how long your ₹50 lakh corpus lasts at different return rates." />
   <meta name="keywords" content="swp calculator, systematic withdrawal plan calculator, retirement corpus calculator, how long will my money last, swp mutual fund calculator india, monthly income from corpus" />
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://www.getniftyready.com/50-lakhs-swp-calculator-monthly.html" />
@@ -443,7 +443,7 @@
               <span class="sip-value-badge" id="displayCorpus">₹50 L</span>
             </div>
             <input type="range" id="sliderCorpus" min="100000" max="50000000" step="100000" value="5000000"
-                   oninput="onSlide('corpus', this.value)" />
+                   aria-label="Your Corpus" oninput="onSlide('corpus', this.value)" />
             <div class="sip-range-ends"><span>₹1 L</span><span>₹5 Cr</span></div>
           </div>
         </div>
@@ -455,7 +455,7 @@
               <span class="sip-value-badge" id="displayWithdrawal">₹30,000</span>
             </div>
             <input type="range" id="sliderWithdrawal" min="1000" max="500000" step="1000" value="30000"
-                   oninput="onSlide('withdrawal', this.value)" />
+                   aria-label="Monthly Withdrawal" oninput="onSlide('withdrawal', this.value)" />
             <div class="sip-range-ends"><span>₹1,000</span><span>₹5 L</span></div>
           </div>
         </div>
@@ -466,7 +466,7 @@
             <span class="sip-value-badge" id="displayRate">8%</span>
           </div>
           <input type="range" id="sliderRate" min="1" max="20" step="0.5" value="8"
-                 oninput="onSlide('rate', this.value)" />
+                 aria-label="Expected Annual Return" oninput="onSlide('rate', this.value)" />
           <div class="sip-range-ends"><span>1%</span><span>20%</span></div>
         </div>
 
@@ -476,7 +476,7 @@
             <span class="sip-value-badge" id="displayYears">20 yrs</span>
           </div>
           <input type="range" id="sliderYears" min="1" max="40" step="1" value="20"
-                 oninput="onSlide('years', this.value)" />
+                 aria-label="Withdrawal Period" oninput="onSlide('years', this.value)" />
           <div class="sip-range-ends"><span>1 yr</span><span>40 yrs</span></div>
         </div>
 

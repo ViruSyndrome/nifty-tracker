@@ -883,14 +883,16 @@ document.addEventListener('click', function(e) {
 // =============================================
 // EVENT LISTENERS
 // =============================================
-document.getElementById('searchBtn').addEventListener('click', doSearch);
-document.getElementById('searchInput').addEventListener('keydown', function(e) {
+var searchBtn = document.getElementById('searchBtn');
+var searchInput = document.getElementById('searchInput');
+if (searchBtn) searchBtn.addEventListener('click', doSearch);
+if (searchInput) searchInput.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doSearch();
 });
 
 var urlQ = new URLSearchParams(window.location.search).get('q');
-if (urlQ) {
-  document.getElementById('searchInput').value = urlQ;
+if (urlQ && searchInput) {
+  searchInput.value = urlQ;
   searchAndShow(urlQ);
 }
 
