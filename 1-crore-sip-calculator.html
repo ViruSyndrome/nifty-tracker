@@ -368,6 +368,7 @@
             <span class="sip-value-badge" id="displayAmount">₹5,000</span>
           </div>
           <input type="range" id="sliderAmount" min="500" max="100000" step="500" value="21500"
+                 aria-label="Monthly Investment"
                  oninput="onSlide('amount', this.value)" />
           <div class="sip-range-ends"><span>₹500</span><span>₹1,00,000</span></div>
         </div>
@@ -378,6 +379,7 @@
             <span class="sip-value-badge" id="displayRate">12%</span>
           </div>
           <input type="range" id="sliderRate" min="1" max="30" step="0.5" value="12"
+                 aria-label="Expected Annual Return"
                  oninput="onSlide('rate', this.value)" />
           <div class="sip-range-ends"><span>1%</span><span>30%</span></div>
         </div>
@@ -388,6 +390,7 @@
             <span class="sip-value-badge" id="displayYears">10 yrs</span>
           </div>
           <input type="range" id="sliderYears" min="1" max="40" step="1" value="15"
+                 aria-label="Investment Duration"
                  oninput="onSlide('years', this.value)" />
           <div class="sip-range-ends"><span>1 yr</span><span>40 yrs</span></div>
         </div>
