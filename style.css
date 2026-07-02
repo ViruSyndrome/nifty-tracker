@@ -1944,3 +1944,5 @@ h1, h2, h3, .logo-text, .logo-accent, .ticker-val, .ticker-change, .nav-links a,
     height: 44px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
