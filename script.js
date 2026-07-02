@@ -913,14 +913,38 @@ function updateLastUpdated() {
   el.textContent = secs < 5 ? 'Updated just now' : 'Updated ' + secs + 's ago';
 }
 
-setInterval(function() {
+var _dataPollingInterval = setInterval(function() {
   lastRefreshTime = Date.now();
   loadIndices();
   loadCommodities();
   loadWatchlist();
 }, 20000);
 
-setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+var _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+
+// ── Pause polling when tab is hidden (Page Visibility API) ──
+document.addEventListener('visibilitychange', function() {
+  if (document.hidden) {
+    clearInterval(_dataPollingInterval);
+    clearInterval(_uiTickInterval);
+  } else {
+    // Resume polling and trigger immediate refresh
+    _dataPollingInterval = setInterval(function() {
+      lastRefreshTime = Date.now();
+      loadIndices();
+      loadCommodities();
+      loadWatchlist();
+    }, 20000);
+    _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+    // Immediate refresh on tab return
+    lastRefreshTime = Date.now();
+    loadIndices();
+    loadCommodities();
+    loadWatchlist();
+    updateLastUpdated();
+    updateMarketStatus();
+  }
+});
 
 // =============================================
 // MARKET STATUS & GLOBAL CUES
