@@ -733,7 +733,7 @@ a[data-tooltip] {
   font-size: 1.15rem;
 }
 .article-block p {
-  color: var(--text-muted);
+  color: #cbd5e1;
   line-height: 1.8;
 }
 @media (max-width: 960px) {
