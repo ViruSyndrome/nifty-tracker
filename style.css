@@ -508,10 +508,15 @@ a[data-tooltip] {
 .index-card.neutral  .idx-change { color: var(--neutral); }
 
 /* ---- SKELETON ---- */
-.skeleton { animation: pulse 1.5s ease-in-out infinite; }
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
+.skeleton {
+  background: linear-gradient(90deg, var(--bg-card) 25%, rgba(255,255,255,0.05) 50%, var(--bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-color: transparent !important;
+}
+@keyframes shimmer { 
+  0% { background-position: 200% 0; } 
+  100% { background-position: -200% 0; } 
 }
 
 /* ---- AD SLOT ---- */
@@ -999,7 +1004,19 @@ a[data-tooltip] {
   .result-header { flex-direction: column; }
   .result-price-wrap { text-align: left; }
   .result-price { font-size: 1.6rem; }
-  .indices-grid { grid-template-columns: repeat(2, 1fr); }
+  .indices-grid { 
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 8px; /* Room for scrollbar */
+  }
+  .indices-grid > * {
+    scroll-snap-align: start;
+    flex: 0 0 auto;
+    min-width: 140px;
+  }
   .popular-grid { grid-template-columns: repeat(2, 1fr); }
   .result-card { padding: 16px; }
   .movers-card { padding: 14px 12px; }
@@ -1128,7 +1145,7 @@ a[data-tooltip] {
 .faq-section { padding: 48px 0; border-top: 1px solid var(--border); }
 .faq-grid { display: grid; gap: 16px; max-width: 800px; margin: 0 auto; }
 .faq-item { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
-.faq-q { padding: 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-user-select: none; user-select: none; transition: background 0.2s; }
+.faq-q { min-height: 44px; padding: 16px 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; -webkit-user-select: none; user-select: none; transition: background 0.2s; }
 .faq-q:hover { background: rgba(255,255,255,0.03); }
 .faq-q svg { transition: transform 0.2s; color: var(--primary); }
 .faq-q.open svg { transform: rotate(45deg); }
