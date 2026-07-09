@@ -1255,7 +1255,8 @@ async function loadFIIDII() {
   // Step 2: Load local fiidii.json fallback
   let localData = [];
   try {
-    const localRes = await fetch('data/fiidii.json?v=' + Date.now());
+    // Fetch without cache-buster - GitHub Pages caches files by default
+    const localRes = await fetch('data/fiidii.json');
     if (localRes.ok) {
       const parsed = await localRes.json();
       if (Array.isArray(parsed) && parsed.length) {
@@ -1266,6 +1267,8 @@ async function loadFIIDII() {
         lsSet(LS_FIIDII, merged);
         renderFIIDII(merged, 'latest published');
       }
+    } else {
+      console.warn('Local fiidii.json fetch failed with status:', localRes.status);
     }
   } catch (localErr) {
     console.warn('Could not load local FII/DII snapshot:', localErr);

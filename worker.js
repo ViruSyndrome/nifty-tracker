@@ -48,10 +48,11 @@ export default {
     try {
       const response = await fetch(target, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36',
           'Accept': 'application/json, text/plain, */*',
           'Accept-Language': 'en-US,en;q=0.9',
-          'Referer': 'https://finance.yahoo.com/',
+          'Referer': 'https://www.nseindia.com/',
+          'Origin': 'https://www.nseindia.com',
         },
       });
 
@@ -62,12 +63,12 @@ export default {
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
-          'Cache-Control': 'max-age=30',
+          'Cache-Control': 'public, max-age=60',
         },
       });
     } catch (e) {
-      return new Response(JSON.stringify({ error: e.message }), {
-        status: 500,
+      return new Response(JSON.stringify({ error: e.message, status: 'timeout' }), {
+        status: 504,
         headers: {
           'Content-Type': 'application/json',
           'Access-Control-Allow-Origin': '*',
