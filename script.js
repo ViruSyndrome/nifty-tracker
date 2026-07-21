@@ -415,6 +415,7 @@ function changePct(price, prev) {
 async function loadIndices() {
   await Promise.all(INDICES.map(async function(idx) {
     var el = document.getElementById(idx.id);
+    if (!el) return;
     var data = await fetchYahoo(idx.symbol);
     el.classList.remove('skeleton');
     if (!data) {
@@ -877,7 +878,8 @@ async function fetchSuggestions(q) {
 }
 
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('.search-wrap')) document.getElementById('suggestions').classList.add('hidden');
+  var sugEl = document.getElementById('suggestions');
+  if (sugEl && !e.target.closest('.search-wrap')) sugEl.classList.add('hidden');
 });
 
 // =============================================
