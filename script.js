@@ -438,6 +438,7 @@ async function loadIndices() {
 // =============================================
 async function loadPopular() {
   var grid = document.getElementById('popularGrid');
+  if (!grid) return;
   grid.innerHTML = POPULAR.map(function(s) {
     return '<div class="popular-card skeleton"><div class="pc-name">' + s.name + '</div><div class="pc-price">Loading…</div><div class="pc-change">—</div></div>';
   }).join('');
@@ -543,6 +544,7 @@ async function loadMovers() {
 
 function renderMovers(elId, items, cls) {
   var el = document.getElementById(elId);
+  if (!el) return;
   if (!items.length) {
     el.innerHTML = '<div class="mover-empty">No data for current session</div>';
     return;
