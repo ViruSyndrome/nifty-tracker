@@ -90,15 +90,19 @@
         <p style="margin-top:16px;">Scanning Nifty 50 stocks... (This may take a few seconds)</p>
       </div>
 
+      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 24px; font-size: 0.9rem; color: var(--text-muted); line-height: 1.5;">
+        <strong>How to read this:</strong> Our algorithm assigns a composite Score from <strong>-5.5</strong> to <strong>+5.5</strong>. A score above +1.0 is a <strong>Buy</strong>, and above +3.0 is a <strong>Strong Buy</strong>. Stocks are sorted by their momentum strength.
+      </div>
+
       <div class="signals-dashboard hidden" id="signalsDashboard">
         <div class="signal-box">
-          <h3 style="color:#10b981;">🚀 Strong Buy Setups</h3>
-          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Oversold stocks with bullish momentum alignment.</p>
+          <h3 style="color:#10b981;">📈 Bullish Setups</h3>
+          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Stocks showing strong upward momentum.</p>
           <ul class="signal-list" id="strongBuyList"></ul>
         </div>
         <div class="signal-box">
-          <h3 style="color:#e11d48;">🔻 Strong Sell Setups</h3>
-          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Overbought stocks with bearish momentum alignment.</p>
+          <h3 style="color:#e11d48;">📉 Bearish Setups</h3>
+          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Stocks showing strong downward momentum.</p>
           <ul class="signal-list" id="strongSellList"></ul>
         </div>
       </div>
@@ -199,14 +203,20 @@
             
             const tipHtml = `<div class='stip-name'>${shortName}</div><div class='stip-price'>₹${d.price.toLocaleString()} <span style='color:${c2}'>${s3}${pct.toFixed(2)}%</span></div>`;
             
+            let sigBadge = '';
+            if (d.signalData.signal === 'STRONG_BUY') sigBadge = '<span class="signal-badge sm signal-strong-buy" style="margin-left:8px;">🚀 S.BUY</span>';
+            else if (d.signalData.signal === 'BUY') sigBadge = '<span class="signal-badge sm signal-buy" style="margin-left:8px;">🟢 BUY</span>';
+            else if (d.signalData.signal === 'STRONG_SELL') sigBadge = '<span class="signal-badge sm signal-strong-sell" style="margin-left:8px;">🔻 S.SELL</span>';
+            else if (d.signalData.signal === 'SELL') sigBadge = '<span class="signal-badge sm signal-sell" style="margin-left:8px;">🔴 SELL</span>';
+
             return `
               <li class="signal-item" onclick="searchBySymbol('${d.symbol}', '${safeName}')"
                   onmouseenter="showSparkTip(event, '${tipHtml}'); getSparkline('${d.symbol}', '1d', '5m').then(prices => { if(prices.length > 2) showSparkTip(event, '${tipHtml}' + drawSparklineSVG(prices, 150, 40)); })"
                   onmouseleave="hideSparkTip()">
                 <div>
-                  <div class="sig-name">${shortName}</div>
+                  <div class="sig-name">${shortName}${sigBadge}</div>
                   <div class="sig-sym" style="margin-top:4px;">
-                    Score: <strong>${d.signalData.score.toFixed(1)}</strong> &nbsp;|&nbsp; RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
+                    Score: <strong>${d.signalData.score.toFixed(1)} / 5.5</strong> &nbsp;|&nbsp; RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
                   </div>
                 </div>
                 <div class="sig-price">₹${d.price.toLocaleString()}</div>
