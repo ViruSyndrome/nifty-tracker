@@ -349,11 +349,20 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
 // FETCH STOCK DATA
 // =============================================
 async function fetchYahoo(symbol) {
-  const url = YF_BASE + encodeURIComponent(symbol) + '?interval=1d&range=1d';
+  const url = YF_BASE + encodeURIComponent(symbol) + '?interval=1d&range=90d';
   try {
     const data = await proxyFetch(url);
-    const meta = data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
-    if (!meta) return null;
+    const result = data && data.chart && data.chart.result && data.chart.result[0];
+    if (!result || !result.meta) return null;
+    const meta = result.meta;
+    
+    let signalData = null;
+    if (typeof Signals !== 'undefined') {
+      const quote = result.indicators && result.indicators.quote && result.indicators.quote[0];
+      const closes = quote && quote.close ? quote.close : [];
+      signalData = Signals.generate(closes);
+    }
+
     return {
       symbol,
       name: meta.longName || meta.shortName || symbol,
@@ -368,6 +377,7 @@ async function fetchYahoo(symbol) {
       marketCap: meta.marketCap,
       currency: meta.currency,
       exchange: meta.exchangeName,
+      signalData: signalData
     };
   } catch (e) {
     return null;
@@ -452,11 +462,21 @@ async function loadPopular() {
     var sign = pct != null && pct >= 0 ? '+' : '';
     var wlName = data && data.name ? data.name : stock.name;
     var starCls = isWatchlisted(stock.symbol) ? 'star-btn starred' : 'star-btn';
+    
+    var sigHtml = '';
+    if (data && data.signalData && data.signalData.signal !== 'NEUTRAL' && typeof Signals !== 'undefined') {
+      var lvl = Signals.level(data.signalData.signal);
+      sigHtml = '<div class="signal-badge ' + lvl.cls + '" title="' + data.signalData.recommendation + '">' + lvl.icon + ' ' + lvl.short + '</div>';
+    }
+
     card.innerHTML = '<div class="pc-header">'
       + '<div class="pc-name">' + stock.name + '</div>'
       + '<button class="' + starCls + '" data-sym="' + stock.symbol + '" title="Toggle watchlist" aria-label="Toggle watchlist">★</button>'
       + '</div>'
+      + '<div class="pc-price-row">'
       + '<div class="pc-price">' + (data ? '₹' + fmt(data.price) : 'N/A') + '</div>'
+      + sigHtml
+      + '</div>'
       + '<div class="pc-change ' + cls + '">' + (pct != null ? sign + pct.toFixed(2) + '%' : '—') + '</div>';
     card.style.cursor = 'pointer';
     card.querySelector('.star-btn').addEventListener('click', (function(sym, nm) {
@@ -552,8 +572,13 @@ function renderMovers(elId, items, cls) {
   el.innerHTML = items.map(function(d) {
     var sign = d.pct >= 0 ? '+' : '';
     var shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
+    var sigHtml = '';
+    if (d.signalData && d.signalData.signal !== 'NEUTRAL' && typeof Signals !== 'undefined') {
+      var lvl = Signals.level(d.signalData.signal);
+      sigHtml = '<span class="signal-badge ' + lvl.cls + '" style="font-size:0.65rem; padding:2px 4px; margin-left: 6px; display:inline-flex; align-items:center;">' + lvl.icon + ' ' + lvl.short + '</span>';
+    }
     return '<div class="mover-row" data-sym="' + d.symbol + '" data-name="' + shortName.replace(/"/g, '&quot;') + '" data-price="' + d.price + '" data-pct="' + d.pct.toFixed(2) + '" data-cls="' + cls + '" onclick="searchBySymbol(\'' + d.symbol + '\', \'' + shortName.replace(/'/g, "\\'") + '\')">'
-      + '<div class="mover-name">' + shortName + '</div>'
+      + '<div class="mover-name" style="display:flex; align-items:center;">' + shortName + sigHtml + '</div>'
       + '<div class="mover-price">₹' + fmt(d.price) + '</div>'
       + '<div class="mover-pct ' + cls + '">' + sign + d.pct.toFixed(2) + '%</div>'
       + '</div>';
@@ -711,35 +736,55 @@ async function searchBySymbol(symbol, name) {
   var wlStarCls = isWatchlisted(symbol) ? 'star-btn starred result-star' : 'star-btn result-star';
   var wlStarLbl = isWatchlisted(symbol) ? '★ Watchlisted' : '☆ Watchlist';
 
-  card.innerHTML = '<div class="result-header">'
-    + '<div class="result-name-wrap">'
-    + '<div class="result-name-row">'
-    + '<h2 class="result-name">' + data.name + '</h2>'
-    + '<button class="' + wlStarCls + '" data-sym="' + symbol + '" onclick="toggleWatchlist(\'' + symbol + '\', \'' + safeName + '\')">'
-    + wlStarLbl + '</button>'
-    + '</div>'
-    + '<span class="result-symbol">' + symbol.replace(/\.(NS|BO)$/, '') + ' · ' + (data.exchange || 'NSE') + '</span>'
-    + '</div>'
-    + '<div class="result-price-wrap">'
-    + '<div class="result-price">' + cur + fmt(data.price) + '</div>'
-    + '<div class="result-change ' + cls + '">' + sign + fmt(diff) + ' (' + sign + (pct != null ? pct.toFixed(2) : '—') + '%)</div>'
-    + '</div>'
-    + '</div>'
-    + '<div class="result-stats">'
-    + '<div class="stat-item"><div class="stat-label">Open</div><div class="stat-value">' + cur + fmt(data.open) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">Prev Close</div><div class="stat-value">' + cur + fmt(data.prevClose) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">Day High</div><div class="stat-value positive">' + cur + fmt(data.high) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">Day Low</div><div class="stat-value negative">' + cur + fmt(data.low) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">52W High</div><div class="stat-value">' + cur + fmt(data.weekHigh52) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">52W Low</div><div class="stat-value">' + cur + fmt(data.weekLow52) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">Volume</div><div class="stat-value">' + fmtVol(data.volume) + '</div></div>'
-    + '<div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">' + fmtCap(data.marketCap) + '</div></div>'
-    + '</div>'
-    + '<div id="resultChart" class="result-chart"><div style="font-size:0.78rem;color:#475569;text-align:center;padding:12px 0;">Loading chart…</div></div>'
-    + '<div class="result-footer">'
-    + '<span>Data may be delayed up to 15 minutes · Not financial advice</span>'
-    + '<button class="btn-close" onclick="document.getElementById(\'resultSection\').classList.add(\'hidden\')">✕ Close</button>'
-    + '</div>';
+    var techHtml = '';
+    if (data.signalData && data.signalData.signal !== 'NEUTRAL' && typeof Signals !== 'undefined') {
+      var sig = data.signalData;
+      var lvl = Signals.level(sig.signal);
+      techHtml = '<div class="result-tech" style="margin:20px 0; padding:16px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">'
+        + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
+        + '<h3 style="margin:0; font-size:1rem; color:#0f172a;">⚡ Technical Analysis Engine</h3>'
+        + '<span class="signal-badge ' + lvl.cls + '" style="font-size:0.8rem; padding:4px 8px;">' + lvl.icon + ' ' + lvl.short + '</span>'
+        + '</div>'
+        + '<p style="margin:0 0 12px 0; font-size:0.9rem; color:#334155; line-height:1.4;">' + sig.recommendation + '</p>'
+        + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem; color:#475569;">'
+        + (sig.indicators.rsi ? '<div><strong>RSI (14):</strong> ' + sig.indicators.rsi.value + '</div>' : '')
+        + (sig.indicators.macd ? '<div><strong>MACD:</strong> ' + sig.indicators.macd.value + '</div>' : '')
+        + (sig.indicators.movingAvg ? '<div><strong>vs 20-Day SMA:</strong> ' + (sig.indicators.movingAvg.aboveSma20 ? 'Above ✅' : 'Below ❌') + '</div>' : '')
+        + (sig.indicators.movingAvg && sig.indicators.movingAvg.sma50 ? '<div><strong>vs 50-Day SMA:</strong> ' + (sig.indicators.movingAvg.aboveSma50 ? 'Above ✅' : 'Below ❌') + '</div>' : '')
+        + '</div>'
+        + '</div>';
+    }
+
+    card.innerHTML = '<div class="result-header">'
+      + '<div class="result-name-wrap">'
+      + '<div class="result-name-row">'
+      + '<h2 class="result-name">' + data.name + '</h2>'
+      + '<button class="' + wlStarCls + '" data-sym="' + symbol + '" onclick="toggleWatchlist(\'' + symbol + '\', \'' + safeName + '\')">'
+      + wlStarLbl + '</button>'
+      + '</div>'
+      + '<span class="result-symbol">' + symbol.replace(/\.(NS|BO)$/, '') + ' · ' + (data.exchange || 'NSE') + '</span>'
+      + '</div>'
+      + '<div class="result-price-wrap">'
+      + '<div class="result-price">' + cur + fmt(data.price) + '</div>'
+      + '<div class="result-change ' + cls + '">' + sign + fmt(diff) + ' (' + sign + (pct != null ? pct.toFixed(2) : '—') + '%)</div>'
+      + '</div>'
+      + '</div>'
+      + '<div class="result-stats">'
+      + '<div class="stat-item"><div class="stat-label">Open</div><div class="stat-value">' + cur + fmt(data.open) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">Prev Close</div><div class="stat-value">' + cur + fmt(data.prevClose) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">Day High</div><div class="stat-value positive">' + cur + fmt(data.high) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">Day Low</div><div class="stat-value negative">' + cur + fmt(data.low) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">52W High</div><div class="stat-value">' + cur + fmt(data.weekHigh52) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">52W Low</div><div class="stat-value">' + cur + fmt(data.weekLow52) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">Volume</div><div class="stat-value">' + fmtVol(data.volume) + '</div></div>'
+      + '<div class="stat-item"><div class="stat-label">Market Cap</div><div class="stat-value">' + fmtCap(data.marketCap) + '</div></div>'
+      + '</div>'
+      + techHtml
+      + '<div id="resultChart" class="result-chart"><div style="font-size:0.78rem;color:#475569;text-align:center;padding:12px 0;">Loading chart…</div></div>'
+      + '<div class="result-footer">'
+      + '<span>Data may be delayed up to 15 minutes · Not financial advice</span>'
+      + '<button class="btn-close" onclick="document.getElementById(\'resultSection\').classList.add(\'hidden\')">✕ Close</button>'
+      + '</div>';
 
   // Async-load intraday chart
   (function(sym, cu) {
