@@ -166,11 +166,11 @@
         const results = await Promise.all(NIFTY50_SYMBOLS.map(sym => fetchYahoo(sym)));
         const valid = results.filter(Boolean).filter(d => d.signalData);
 
-        const strongBuys = valid.filter(d => d.signalData.signal === 'STRONG_BUY').sort((a,b) => (a.signalData.indicators.rsi?.value || 100) - (b.signalData.indicators.rsi?.value || 100));
-        const buys = valid.filter(d => d.signalData.signal === 'BUY').sort((a,b) => (a.signalData.indicators.rsi?.value || 100) - (b.signalData.indicators.rsi?.value || 100));
+        const strongBuys = valid.filter(d => d.signalData.signal === 'STRONG_BUY').sort((a,b) => b.signalData.score - a.signalData.score);
+        const buys = valid.filter(d => d.signalData.signal === 'BUY').sort((a,b) => b.signalData.score - a.signalData.score);
         
-        const strongSells = valid.filter(d => d.signalData.signal === 'STRONG_SELL').sort((a,b) => (b.signalData.indicators.rsi?.value || 0) - (a.signalData.indicators.rsi?.value || 0));
-        const sells = valid.filter(d => d.signalData.signal === 'SELL').sort((a,b) => (b.signalData.indicators.rsi?.value || 0) - (a.signalData.indicators.rsi?.value || 0));
+        const strongSells = valid.filter(d => d.signalData.signal === 'STRONG_SELL').sort((a,b) => a.signalData.score - b.signalData.score);
+        const sells = valid.filter(d => d.signalData.signal === 'SELL').sort((a,b) => a.signalData.score - b.signalData.score);
 
         // Render function
         function renderList(items, elId) {
@@ -184,7 +184,14 @@
             const safeName = shortName.replace(/'/g, "\\'");
             const rsi = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
             const macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
-            const macdBadge = macdCross === 'bullish' ? '<span style="color:#10b981;font-weight:bold;">Bullish Cross</span>' : (macdCross === 'bearish' ? '<span style="color:#e11d48;font-weight:bold;">Bearish Cross</span>' : 'Neutral');
+            const macdBadge = macdCross === 'bullish' ? '<span style="color:#10b981;font-weight:bold;">Bullish</span>' : (macdCross === 'bearish' ? '<span style="color:#e11d48;font-weight:bold;">Bearish</span>' : 'Neutral');
+
+            let smaBadge = 'Neutral';
+            if (d.signalData.indicators.movingAvg) {
+              const ma = d.signalData.indicators.movingAvg;
+              if (ma.aboveSma20 && ma.aboveSma50) smaBadge = '<span style="color:#10b981;font-weight:bold;">Bullish</span>';
+              else if (!ma.aboveSma20 && ma.aboveSma50 === false) smaBadge = '<span style="color:#e11d48;font-weight:bold;">Bearish</span>';
+            }
 
             const pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
             const s3 = pct >= 0 ? '+' : '';
@@ -199,7 +206,7 @@
                 <div>
                   <div class="sig-name">${shortName}</div>
                   <div class="sig-sym" style="margin-top:4px;">
-                    RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge}
+                    Score: <strong>${d.signalData.score.toFixed(1)}</strong> &nbsp;|&nbsp; RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
                   </div>
                 </div>
                 <div class="sig-price">₹${d.price.toLocaleString()}</div>
