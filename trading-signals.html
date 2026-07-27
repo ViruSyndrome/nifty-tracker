@@ -32,10 +32,12 @@
       cursor: pointer;
       border-radius: 8px;
       transition: background 0.2s;
+      flex-wrap: wrap;
+      gap: 12px;
     }
     .signal-item:last-child { border-bottom: none; }
     .signal-item:hover { background: rgba(255,255,255,0.05); }
-    .sig-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+    .sig-name { font-weight: 600; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
     .sig-sym { font-size: 0.8rem; color: var(--text-muted); }
     .sig-price { font-weight: 500; font-size: 0.95rem; color: var(--text); }
     .empty-signals { color: var(--text-muted); font-style: italic; font-size: 0.9rem; padding: 20px 0; }
@@ -215,8 +217,9 @@
                   onmouseleave="hideSparkTip()">
                 <div>
                   <div class="sig-name">${shortName}${sigBadge}</div>
-                  <div class="sig-sym" style="margin-top:4px;">
-                    Score: <strong>${d.signalData.score.toFixed(1)} / 5.5</strong> &nbsp;|&nbsp; RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
+                  <div class="sig-sym" style="margin-top:8px; line-height:1.5;">
+                    Score: <strong>${d.signalData.score.toFixed(1)} / 5.5</strong><br>
+                    RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
                   </div>
                 </div>
                 <div class="sig-price">₹${d.price.toLocaleString()}</div>
