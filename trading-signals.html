@@ -18,25 +18,27 @@
       .signals-dashboard { grid-template-columns: 1fr; }
     }
     .signal-box {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 24px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow);
     }
     .signal-box h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.2rem; }
     .signal-list { list-style: none; padding: 0; margin: 0; }
     .signal-item {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 12px 0; border-bottom: 1px solid #f1f5f9;
+      padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
       cursor: pointer;
+      border-radius: 8px;
+      transition: background 0.2s;
     }
     .signal-item:last-child { border-bottom: none; }
-    .signal-item:hover { background: #f8fafc; }
-    .sig-name { font-weight: 600; font-size: 0.95rem; color: #0f172a; }
-    .sig-sym { font-size: 0.8rem; color: #64748b; }
-    .sig-price { font-weight: 500; font-size: 0.95rem; }
-    .empty-signals { color: #64748b; font-style: italic; font-size: 0.9rem; padding: 20px 0; }
+    .signal-item:hover { background: rgba(255,255,255,0.05); }
+    .sig-name { font-weight: 600; font-size: 0.95rem; color: var(--text); }
+    .sig-sym { font-size: 0.8rem; color: var(--text-muted); }
+    .sig-price { font-weight: 500; font-size: 0.95rem; color: var(--text); }
+    .empty-signals { color: var(--text-muted); font-style: italic; font-size: 0.9rem; padding: 20px 0; }
   </style>
 </head>
 <body>
@@ -164,11 +166,11 @@
         const results = await Promise.all(NIFTY50_SYMBOLS.map(sym => fetchYahoo(sym)));
         const valid = results.filter(Boolean).filter(d => d.signalData);
 
-        const strongBuys = valid.filter(d => d.signalData.signal === 'STRONG_BUY').sort((a,b) => b.signalData.score - a.signalData.score);
-        const buys = valid.filter(d => d.signalData.signal === 'BUY').sort((a,b) => b.signalData.score - a.signalData.score);
+        const strongBuys = valid.filter(d => d.signalData.signal === 'STRONG_BUY').sort((a,b) => (a.signalData.indicators.rsi?.value || 100) - (b.signalData.indicators.rsi?.value || 100));
+        const buys = valid.filter(d => d.signalData.signal === 'BUY').sort((a,b) => (a.signalData.indicators.rsi?.value || 100) - (b.signalData.indicators.rsi?.value || 100));
         
-        const strongSells = valid.filter(d => d.signalData.signal === 'STRONG_SELL').sort((a,b) => a.signalData.score - b.signalData.score);
-        const sells = valid.filter(d => d.signalData.signal === 'SELL').sort((a,b) => a.signalData.score - b.signalData.score);
+        const strongSells = valid.filter(d => d.signalData.signal === 'STRONG_SELL').sort((a,b) => (b.signalData.indicators.rsi?.value || 0) - (a.signalData.indicators.rsi?.value || 0));
+        const sells = valid.filter(d => d.signalData.signal === 'SELL').sort((a,b) => (b.signalData.indicators.rsi?.value || 0) - (a.signalData.indicators.rsi?.value || 0));
 
         // Render function
         function renderList(items, elId) {
@@ -184,8 +186,16 @@
             const macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
             const macdBadge = macdCross === 'bullish' ? '<span style="color:#10b981;font-weight:bold;">Bullish Cross</span>' : (macdCross === 'bearish' ? '<span style="color:#e11d48;font-weight:bold;">Bearish Cross</span>' : 'Neutral');
 
+            const pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
+            const s3 = pct >= 0 ? '+' : '';
+            const c2 = pct >= 0 ? '#22c55e' : '#ef4444';
+            
+            const tipHtml = `<div class='stip-name'>${shortName}</div><div class='stip-price'>₹${d.price.toLocaleString()} <span style='color:${c2}'>${s3}${pct.toFixed(2)}%</span></div>`;
+            
             return `
-              <li class="signal-item" onclick="searchBySymbol('${d.symbol}', '${safeName}')">
+              <li class="signal-item" onclick="searchBySymbol('${d.symbol}', '${safeName}')"
+                  onmouseenter="showSparkTip(event, '${tipHtml}'); getSparkline('${d.symbol}', '1d', '5m').then(prices => { if(prices.length > 2) showSparkTip(event, '${tipHtml}' + drawSparklineSVG(prices, 150, 40)); })"
+                  onmouseleave="hideSparkTip()">
                 <div>
                   <div class="sig-name">${shortName}</div>
                   <div class="sig-sym" style="margin-top:4px;">
