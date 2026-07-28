@@ -251,52 +251,52 @@
         const sells = valid.filter(function(d) { return d.signalData.signal === 'SELL'; }).sort(function(a,b) { return a.signalData.score - b.signalData.score; });
 
         function renderList(items, elId) {
-          var el = document.getElementById(elId);
+          const el = document.getElementById(elId);
           if (!items.length) {
             el.innerHTML = '<div class="empty-signals">No setups found matching this criteria today.</div>';
             return;
           }
-          el.innerHTML = items.map(function(d) {
-            var shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
-            var safeName  = shortName.replace(/'/g, "\\'");
-            var rsi       = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
-            var macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
-            var macdBadge = macdCross === 'bullish'
+          el.innerHTML = items.map(d => {
+            const shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
+            const safeName  = shortName.replace(/'/g, "\\'");
+            const rsi       = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
+            const macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
+            const macdBadge = macdCross === 'bullish'
               ? '<span style="color:#10b981;font-weight:600;">Bullish ↑</span>'
               : (macdCross === 'bearish'
                 ? '<span style="color:#e11d48;font-weight:600;">Bearish ↓</span>'
                 : 'Neutral');
 
-            var smaBadge = 'Neutral';
+            let smaBadge = 'Neutral';
             if (d.signalData.indicators.movingAvg) {
-              var ma = d.signalData.indicators.movingAvg;
+              const ma = d.signalData.indicators.movingAvg;
               if (ma.aboveSma20 && ma.aboveSma50) smaBadge = '<span style="color:#10b981;font-weight:600;">Bullish ✅</span>';
               else if (!ma.aboveSma20 && ma.aboveSma50 === false) smaBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ❌</span>';
             }
 
-            var pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
-            var sign = pct >= 0 ? '+' : '';
-            var pctColor = pct >= 0 ? '#22c55e' : '#ef4444';
-            var tipHtml = '<div class="stip-name">' + shortName + '</div><div class="stip-price">₹' + d.price.toLocaleString('en-IN') + ' <span style="color:' + pctColor + '">' + sign + pct.toFixed(2) + '%</span></div>';
+            const pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
+            const sign = pct >= 0 ? '+' : '';
+            const pctColor = pct >= 0 ? '#22c55e' : '#ef4444';
+            const tipHtml = `<div class='stip-name'>${shortName}</div><div class='stip-price'>₹${d.price.toLocaleString('en-IN')} <span style='color:${pctColor}'>${sign}${pct.toFixed(2)}%</span></div>`;
 
-            var lvl = (typeof Signals !== 'undefined') ? Signals.level(d.signalData.signal) : { icon: '', short: d.signalData.signal, cls: '' };
-            var sigBadge = '<span class="signal-badge sm ' + lvl.cls + '" style="font-size:0.72rem; padding:2px 7px;">' + lvl.icon + ' ' + lvl.short + '</span>';
+            const lvl = (typeof Signals !== 'undefined') ? Signals.level(d.signalData.signal) : { icon: '', short: d.signalData.signal, cls: '' };
+            const sigBadge = `<span class="signal-badge sm ${lvl.cls}" style="font-size:0.72rem; padding:2px 7px;">${lvl.icon} ${lvl.short}</span>`;
 
-            return '<li class="signal-item"'
-              + ' onclick="searchBySymbol(\'' + d.symbol + '\', \'' + safeName + '\')"'
-              + ' onmouseenter="showSparkTip(event, \'' + tipHtml.replace(/'/g, "\\'") + '\'); getSparkline(\'' + d.symbol + '\', \'1d\', \'5m\').then(function(prices){ if(prices && prices.length > 2) showSparkTip(event, \'' + tipHtml.replace(/'/g, "\\'") + '\' + drawSparklineSVG(prices, 150, 40)); });"'
-              + ' onmouseleave="hideSparkTip()">'
-              + '<div class="sig-info">'
-              + '<div class="sig-name">' + shortName + sigBadge + '</div>'
-              + '<div class="sig-sym">'
-              + 'Score: <strong>' + d.signalData.score.toFixed(1) + ' / 5.5</strong><br>'
-              + 'RSI: <strong>' + rsi + '</strong>&nbsp;|&nbsp;'
-              + 'MACD: ' + macdBadge + '&nbsp;|&nbsp;'
-              + 'SMA: ' + smaBadge
-              + '</div>'
-              + '</div>'
-              + '<div class="sig-price">₹' + d.price.toLocaleString('en-IN') + '</div>'
-              + '</li>';
+            return `
+              <li class="signal-item"
+                  onclick="searchBySymbol('${d.symbol}', '${safeName}')"
+                  onmouseenter="showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}'); getSparkline('${d.symbol}', '1d', '5m').then(prices => { if(prices && prices.length > 2) showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}' + drawSparklineSVG(prices, 150, 40)); });"
+                  onmouseleave="hideSparkTip()">
+                <div class="sig-info">
+                  <div class="sig-name">${shortName}${sigBadge}</div>
+                  <div class="sig-sym">
+                    Score: <strong>${d.signalData.score.toFixed(1)} / 5.5</strong><br>
+                    RSI: <strong>${rsi}</strong>&nbsp;|&nbsp;MACD: ${macdBadge}&nbsp;|&nbsp;SMA: ${smaBadge}
+                  </div>
+                </div>
+                <div class="sig-price">₹${d.price.toLocaleString('en-IN')}</div>
+              </li>
+            `;
           }).join('');
         }
 
