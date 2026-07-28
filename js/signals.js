@@ -8,11 +8,11 @@
 const Signals = {
 
   LEVELS: {
-    STRONG_BUY:  { label: 'Strong Buy',  short: 'S.BUY',  cls: 'strong-buy',  icon: '🚀', minScore:  3.0 },
-    BUY:         { label: 'Buy',          short: 'BUY',    cls: 'buy',          icon: '📈', minScore:  1.0 },
-    NEUTRAL:     { label: 'Hold / Watch', short: 'HOLD',   cls: 'neutral',      icon: '⏸️',  minScore: -1.0 },
-    SELL:        { label: 'Sell',         short: 'SELL',   cls: 'sell',         icon: '📉', minScore: -3.0 },
-    STRONG_SELL: { label: 'Strong Sell', short: 'S.SELL', cls: 'strong-sell',  icon: '🔻', minScore: -Infinity },
+    STRONG_BUY:  { label: 'Strong Bullish',  short: 'S.BULL',  cls: 'strong-buy',  icon: '🚀', minScore:  3.0 },
+    BUY:         { label: 'Bullish',          short: 'BULL',    cls: 'buy',          icon: '🟢', minScore:  1.0 },
+    NEUTRAL:     { label: 'Neutral / Watch', short: 'NEUTRAL', cls: 'neutral',      icon: '⏸️',  minScore: -1.0 },
+    SELL:        { label: 'Bearish',         short: 'BEAR',   cls: 'sell',         icon: '🔴', minScore: -3.0 },
+    STRONG_SELL: { label: 'Strong Bearish', short: 'S.BEAR', cls: 'strong-sell',  icon: '🔻', minScore: -Infinity },
   },
 
   // ─── Main entry point ──────────────────────────────────────────────────────
