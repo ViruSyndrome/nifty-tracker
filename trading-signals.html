@@ -4,15 +4,31 @@
   <meta charset="UTF-8">
   <title>Live Trading Signals (Nifty 50) | GetNiftyReady</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-  <meta name="description" content="Live, algorithmic trading signals (Strong Buy/Strong Sell) for Indian Nifty 50 stocks based on RSI, MACD, and Moving Averages.">
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="style.css?v=5">
+  <meta name="description" content="Live, algorithmic momentum signals for Indian Nifty 50 stocks based on RSI, MACD, Bollinger Bands and Moving Averages. Descriptive technical analysis only — not financial advice.">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
+  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2959862133855422" crossorigin="anonymous"></script>
+
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-C4VVSD26G5"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-C4VVSD26G5');
+  </script>
+
   <style>
     .signals-dashboard {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 32px;
-      margin-top: 40px;
+      margin-top: 32px;
     }
     @media (max-width: 900px) {
       .signals-dashboard { grid-template-columns: 1fr; }
@@ -24,26 +40,51 @@
       padding: 24px;
       box-shadow: var(--shadow);
     }
-    .signal-box h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.2rem; }
+    .signal-box h3 { margin-top: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; }
     .signal-list { list-style: none; padding: 0; margin: 0; }
     .signal-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
       cursor: pointer;
       border-radius: 8px;
       transition: background 0.2s;
-      flex-wrap: wrap;
       gap: 12px;
     }
     .signal-item:last-child { border-bottom: none; }
     .signal-item:hover { background: rgba(255,255,255,0.05); }
-    .sig-name { font-weight: 600; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
-    .sig-sym { font-size: 0.8rem; color: var(--text-muted); }
-    .sig-price { font-weight: 500; font-size: 0.95rem; color: var(--text); }
+    .sig-info { flex: 1; min-width: 0; }
+    .sig-name { font-weight: 600; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+    .sig-sym { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; line-height: 1.6; }
+    .sig-price { font-weight: 600; font-size: 0.95rem; color: var(--text); white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
     .empty-signals { color: var(--text-muted); font-style: italic; font-size: 0.9rem; padding: 20px 0; }
+    .disclaimer-box {
+      background: rgba(251, 191, 36, 0.06);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .disclaimer-box strong { color: #f59e0b; }
+    .how-to-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
   </style>
 </head>
 <body>
+
   <!-- NAV -->
   <nav class="navbar">
     <div class="nav-inner">
@@ -64,56 +105,223 @@
       </div>
     </div>
     <div class="nav-sub">
-        <div class="nav-badge">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            Privacy-First · Real-Time · No-Signup
-        </div>
+      <div class="nav-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2-2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+        Privacy-First · Real-Time · No-Signup
+      </div>
     </div>
   </nav>
 
   <main class="main-content">
     <section class="hero" style="padding:40px 20px 20px;">
       <div class="hero-inner" style="max-width:900px;">
-        <span class="badge">Algorithmic Signals</span>
-        <h1 class="hero-title" style="font-size:2.5rem; margin-top:16px;">Nifty 50 Trading Signals</h1>
-        <p class="hero-subtitle">Our engine scans all 50 Nifty stocks using RSI, MACD, and Moving Averages to identify high-probability setups in real-time.</p>
+        <span class="badge">Algorithmic Analysis</span>
+        <h1 class="hero-title" style="font-size:2.5rem; margin-top:16px;">Nifty 50 Momentum Signals</h1>
+        <p class="hero-subtitle">Our engine scans all 50 Nifty stocks using RSI, MACD, Bollinger Bands, and Moving Averages to identify current momentum conditions in real-time.</p>
       </div>
     </section>
 
     <div class="container" style="max-width:1000px; margin: 0 auto; padding: 0 20px 60px;">
+
+      <!-- Live status bar -->
       <div class="live-bar" style="margin-bottom:24px; justify-content:center;">
-        <span class="live-dot" style="background:#22c55e; animation: pulse 2s infinite;"></span><span class="live-label" style="color:#22c55e;">LIVE SCANNER</span>
+        <span class="live-dot" style="background:#22c55e; animation: pulse 2s infinite;"></span>
+        <span class="live-label" style="color:#22c55e;">LIVE SCANNER</span>
         <span class="live-sep">·</span>
         <span id="lastUpdated" style="color:#64748b; font-size:0.9rem;">Initializing...</span>
       </div>
-                  <div class="sig-name">${shortName}${sigBadge}</div>
-                  <div class="sig-sym" style="margin-top:8px; line-height:1.5;">
-                    Score: <strong>${d.signalData.score.toFixed(1)} / 5.5</strong><br>
-                    RSI: <strong>${rsi}</strong> &nbsp;|&nbsp; MACD: ${macdBadge} &nbsp;|&nbsp; SMA: ${smaBadge}
-                  </div>
-                </div>
-                <div class="sig-price">₹${d.price.toLocaleString()}</div>
-              </li>
-            `;
+
+      <!-- Disclaimer (prominent, top of content) -->
+      <div class="disclaimer-box">
+        <strong>⚠️ Not Financial Advice.</strong> The signals below are mathematically generated from trailing price indicators (RSI, MACD, Bollinger Bands, SMA). They describe <strong>current technical momentum</strong> — not investment recommendations. Always do your own research and consult a SEBI-registered advisor before trading.
+      </div>
+
+      <!-- How to read -->
+      <div class="how-to-box">
+        <strong>How to read this:</strong> Our composite score runs from <strong>-5.5</strong> to <strong>+5.5</strong>.
+        A score above +1.0 is <strong>🟢 Bullish</strong>, above +3.0 is <strong>🚀 Strong Bullish</strong>.
+        Below -1.0 is <strong>🔴 Bearish</strong>, below -3.0 is <strong>🔻 Strong Bearish</strong>.
+        Stocks are sorted by momentum strength within each group. Click any stock for a full technical breakdown.
+      </div>
+
+      <!-- Loading spinner -->
+      <div id="loadingSignals" style="text-align:center; padding: 40px; color:#64748b;">
+        <svg width="40" height="40" viewBox="0 0 24 24" stroke="#10b981" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="animation: spin 1s linear infinite;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <p style="margin-top:16px;">Scanning Nifty 50 stocks... (fetching in batches, may take ~15 seconds)</p>
+      </div>
+
+      <!-- Signal dashboard (hidden until data loads) -->
+      <div class="signals-dashboard hidden" id="signalsDashboard">
+        <div class="signal-box">
+          <h3 style="color:#10b981;">📈 Bullish Setups</h3>
+          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Stocks showing upward momentum alignment across indicators.</p>
+          <ul class="signal-list" id="strongBuyList"></ul>
+        </div>
+        <div class="signal-box">
+          <h3 style="color:#e11d48;">📉 Bearish Setups</h3>
+          <p style="font-size:0.85rem; color:#64748b; margin-bottom:16px;">Stocks showing downward momentum alignment across indicators.</p>
+          <ul class="signal-list" id="strongSellList"></ul>
+        </div>
+      </div>
+
+      <!-- Result Section container (targeted by script.js modal logic) -->
+      <section class="result-section hidden" id="resultSection" style="margin-top:40px;">
+        <div class="result-card" id="resultCard"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Cross-Linking Footer Network -->
+  <div class="network-footer">
+    <p class="network-title">Explore Our Other Free Tools</p>
+    <div class="network-links">
+      <a href="https://www.getatsready.com/" title="Free ATS Resume Checker" class="network-link" data-id="ats">
+        <img src="https://www.getatsready.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">ATS Resume Checker</span>
+      </a>
+      <a href="https://www.pregnancyweektracker.com/" title="Pregnancy Week by Week Tracker" class="network-link" data-id="pwt">
+        <img src="https://www.pregnancyweektracker.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">Pregnancy Tracker</span>
+      </a>
+      <a href="https://www.globalvisamath.com/" title="Schengen Visa &amp; Immigration Calculators" class="network-link" data-id="gvm">
+        <img src="https://www.globalvisamath.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">Global Visa Math</span>
+      </a>
+      <a href="https://www.gpscamstamp.com/" title="Free GPS Photo Stamp Tool" class="network-link" data-id="gps">
+        <img src="https://www.gpscamstamp.com/assets/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">GPS Cam Stamp</span>
+      </a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg class="logo-svg" viewBox="0 0 44 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2,12 C8,0 14,0 22,12 C30,24 36,24 42,12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <span class="logo-text">GetNifty<span class="logo-accent">Ready</span></span>
+      </div>
+      <p class="footer-note">Data sourced from public market feeds and may be delayed 15 minutes. Not financial advice. For informational use only.</p>
+      <div class="footer-links">
+        <a href="12-week-moving-average.html">Trend Tracker</a>
+        <a href="trading-signals.html">Live Signals</a>
+        <a href="sip-calculator.html">SIP Calc</a>
+        <a href="swp-calculator.html">SWP Calc</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="terms.html">Terms of Service</a>
+      </div>
+      <p class="footer-copy">© 2026 GetNiftyReady. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <!-- Load JS -->
+  <script src="js/indicators.js" defer></script>
+  <script src="js/signals.js" defer></script>
+  <script src="script.js?v=13" defer></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      async function runScan() {
+        document.getElementById('lastUpdated').textContent = 'Fetching latest data...';
+
+        // Wait for deferred scripts to be ready
+        if (typeof fetchYahoo === 'undefined' || typeof NIFTY50_SYMBOLS === 'undefined') {
+          setTimeout(runScan, 500);
+          return;
+        }
+
+        // Fetch in staggered batches of 5 with 200ms delay to avoid proxy rate-limits
+        async function fetchInBatches(symbols, batchSize, delayMs) {
+          const results = [];
+          for (let i = 0; i < symbols.length; i += batchSize) {
+            const batch = symbols.slice(i, i + batchSize);
+            const batchResults = await Promise.all(batch.map(function(sym) { return fetchYahoo(sym); }));
+            results.push.apply(results, batchResults);
+            if (i + batchSize < symbols.length) {
+              await new Promise(function(r) { setTimeout(r, delayMs); });
+            }
+          }
+          return results;
+        }
+
+        const results = await fetchInBatches(NIFTY50_SYMBOLS, 5, 200);
+        const valid = results.filter(Boolean).filter(function(d) { return d.signalData; });
+
+        const strongBuys = valid.filter(function(d) { return d.signalData.signal === 'STRONG_BUY'; }).sort(function(a,b) { return b.signalData.score - a.signalData.score; });
+        const buys = valid.filter(function(d) { return d.signalData.signal === 'BUY'; }).sort(function(a,b) { return b.signalData.score - a.signalData.score; });
+        const strongSells = valid.filter(function(d) { return d.signalData.signal === 'STRONG_SELL'; }).sort(function(a,b) { return a.signalData.score - b.signalData.score; });
+        const sells = valid.filter(function(d) { return d.signalData.signal === 'SELL'; }).sort(function(a,b) { return a.signalData.score - b.signalData.score; });
+
+        function renderList(items, elId) {
+          var el = document.getElementById(elId);
+          if (!items.length) {
+            el.innerHTML = '<div class="empty-signals">No setups found matching this criteria today.</div>';
+            return;
+          }
+          el.innerHTML = items.map(function(d) {
+            var shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
+            var safeName  = shortName.replace(/'/g, "\\'");
+            var rsi       = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
+            var macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
+            var macdBadge = macdCross === 'bullish'
+              ? '<span style="color:#10b981;font-weight:600;">Bullish ↑</span>'
+              : (macdCross === 'bearish'
+                ? '<span style="color:#e11d48;font-weight:600;">Bearish ↓</span>'
+                : 'Neutral');
+
+            var smaBadge = 'Neutral';
+            if (d.signalData.indicators.movingAvg) {
+              var ma = d.signalData.indicators.movingAvg;
+              if (ma.aboveSma20 && ma.aboveSma50) smaBadge = '<span style="color:#10b981;font-weight:600;">Bullish ✅</span>';
+              else if (!ma.aboveSma20 && ma.aboveSma50 === false) smaBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ❌</span>';
+            }
+
+            var pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
+            var sign = pct >= 0 ? '+' : '';
+            var pctColor = pct >= 0 ? '#22c55e' : '#ef4444';
+            var tipHtml = '<div class="stip-name">' + shortName + '</div><div class="stip-price">₹' + d.price.toLocaleString('en-IN') + ' <span style="color:' + pctColor + '">' + sign + pct.toFixed(2) + '%</span></div>';
+
+            var lvl = (typeof Signals !== 'undefined') ? Signals.level(d.signalData.signal) : { icon: '', short: d.signalData.signal, cls: '' };
+            var sigBadge = '<span class="signal-badge sm ' + lvl.cls + '" style="font-size:0.72rem; padding:2px 7px;">' + lvl.icon + ' ' + lvl.short + '</span>';
+
+            return '<li class="signal-item"'
+              + ' onclick="searchBySymbol(\'' + d.symbol + '\', \'' + safeName + '\')"'
+              + ' onmouseenter="showSparkTip(event, \'' + tipHtml.replace(/'/g, "\\'") + '\'); getSparkline(\'' + d.symbol + '\', \'1d\', \'5m\').then(function(prices){ if(prices && prices.length > 2) showSparkTip(event, \'' + tipHtml.replace(/'/g, "\\'") + '\' + drawSparklineSVG(prices, 150, 40)); });"'
+              + ' onmouseleave="hideSparkTip()">'
+              + '<div class="sig-info">'
+              + '<div class="sig-name">' + shortName + sigBadge + '</div>'
+              + '<div class="sig-sym">'
+              + 'Score: <strong>' + d.signalData.score.toFixed(1) + ' / 5.5</strong><br>'
+              + 'RSI: <strong>' + rsi + '</strong>&nbsp;|&nbsp;'
+              + 'MACD: ' + macdBadge + '&nbsp;|&nbsp;'
+              + 'SMA: ' + smaBadge
+              + '</div>'
+              + '</div>'
+              + '<div class="sig-price">₹' + d.price.toLocaleString('en-IN') + '</div>'
+              + '</li>';
           }).join('');
         }
 
-        renderList([...strongBuys, ...buys], 'strongBuyList');
-        renderList([...strongSells, ...sells], 'strongSellList');
+        renderList([].concat(strongBuys, buys), 'strongBuyList');
+        renderList([].concat(strongSells, sells), 'strongSellList');
 
         document.getElementById('loadingSignals').style.display = 'none';
         document.getElementById('signalsDashboard').classList.remove('hidden');
-        
-        const now = new Date();
+
+        var now = new Date();
         document.getElementById('lastUpdated').textContent = 'Last updated at ' + now.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
       }
 
-      // Initial run
-      setTimeout(runScan, 1000);
-      
-      // Auto-refresh every 5 minutes (300000 ms)
+      // Initial run with short delay to let deferred scripts initialise
+      setTimeout(runScan, 1200);
+
+      // Auto-refresh every 5 minutes
       setInterval(runScan, 300000);
     });
   </script>
+
+  <button id="backToTopBtn" class="back-to-top hidden" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+  <div id="sparkTip" class="spark-tooltip hidden"></div>
+
 </body>
 </html>
