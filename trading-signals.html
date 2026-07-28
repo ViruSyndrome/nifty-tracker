@@ -260,19 +260,15 @@
             const shortName = d.name.replace(/ Limited| Ltd\.?/g, '');
             const safeName  = shortName.replace(/'/g, "\\'");
             const rsi       = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
-            const macdCross = d.signalData.indicators.macd ? d.signalData.indicators.macd.crossover : '';
-            const macdBadge = macdCross === 'bullish'
-              ? '<span style="color:#10b981;font-weight:600;">Bullish ↑</span>'
-              : (macdCross === 'bearish'
-                ? '<span style="color:#e11d48;font-weight:600;">Bearish ↓</span>'
-                : 'Neutral');
+            const macdSigVal = d.signalData.indicators.macd ? d.signalData.indicators.macd.signal : 'NEUTRAL';
+            let macdBadge = 'Neutral';
+            if (macdSigVal === 'STRONG_BUY' || macdSigVal === 'BUY') macdBadge = '<span style="color:#10b981;font-weight:600;">Bullish ↑</span>';
+            else if (macdSigVal === 'STRONG_SELL' || macdSigVal === 'SELL') macdBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ↓</span>';
 
+            const smaSigVal = d.signalData.indicators.movingAvg ? d.signalData.indicators.movingAvg.signal : 'NEUTRAL';
             let smaBadge = 'Neutral';
-            if (d.signalData.indicators.movingAvg) {
-              const ma = d.signalData.indicators.movingAvg;
-              if (ma.aboveSma20 && ma.aboveSma50) smaBadge = '<span style="color:#10b981;font-weight:600;">Bullish ✅</span>';
-              else if (!ma.aboveSma20 && ma.aboveSma50 === false) smaBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ❌</span>';
-            }
+            if (smaSigVal === 'STRONG_BUY' || smaSigVal === 'BUY') smaBadge = '<span style="color:#10b981;font-weight:600;">Bullish ✅</span>';
+            else if (smaSigVal === 'STRONG_SELL' || smaSigVal === 'SELL') smaBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ❌</span>';
 
             const pct = (d.price && d.prevClose) ? ((d.price - d.prevClose) / d.prevClose * 100) : 0;
             const sign = pct >= 0 ? '+' : '';

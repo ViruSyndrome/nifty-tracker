@@ -88,12 +88,23 @@ const Signals = {
       const a50 = curSma50 !== null ? price > curSma50 : null;
       const alignment = curSma50 !== null ? curSma20 > curSma50 : null;
 
-      if      (a20 && a50 === true  && alignment === true)  { s =  1.5; sig = 'BUY';         desc = 'Price > 20MA > 50MA — perfect bullish alignment ✅'; }
-      else if (a20 && a50 === false && alignment === false)  { s =  0.5; sig = 'NEUTRAL';     desc = 'Price above 20MA but 50MA still overhead resistance'; }
-      else if (a20 && a50 === null)                          { s =  0.5; sig = 'BUY';         desc = 'Price above 20-day moving average'; }
-      else if (!a20 && a50 === true)                         { s = -0.5; sig = 'NEUTRAL';     desc = 'Price dipped below 20MA — short-term weakness'; }
-      else if (!a20 && a50 === false && alignment === true)  { s = -0.5; sig = 'NEUTRAL';     desc = 'Below 20MA but 50MA still acting as support below'; }
-      else                                                   { s = -1.5; sig = 'SELL';        desc = 'Price < 20MA < 50MA — bearish alignment ❌'; }
+      if (a20) {
+        if (a50 === null) { s = 0.5; sig = 'BUY'; desc = 'Price above 20-day moving average'; }
+        else if (a50 === true) {
+          if (alignment === true) { s = 1.5; sig = 'BUY'; desc = 'Price > 20MA > 50MA — perfect bullish alignment ✅'; }
+          else { s = 1.0; sig = 'BUY'; desc = 'Price breaking above both 20MA and 50MA'; }
+        } else {
+          s = 0.5; sig = 'NEUTRAL'; desc = 'Price above 20MA but facing 50MA resistance';
+        }
+      } else {
+        if (a50 === null) { s = -0.5; sig = 'SELL'; desc = 'Price below 20-day moving average'; }
+        else if (a50 === false) {
+          if (alignment === false) { s = -1.5; sig = 'SELL'; desc = 'Price < 20MA < 50MA — bearish alignment ❌'; }
+          else { s = -1.0; sig = 'SELL'; desc = 'Price breaking below both 20MA and 50MA'; }
+        } else {
+          s = -0.5; sig = 'NEUTRAL'; desc = 'Price below 20MA but finding 50MA support';
+        }
+      }
 
       score += s;
       indDetails.movingAvg = {
