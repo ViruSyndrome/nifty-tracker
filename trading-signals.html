@@ -11,6 +11,50 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Nifty 50 Trading Signals",
+    "operatingSystem": "Web",
+    "applicationCategory": "FinanceApplication",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "description": "Live algorithmic trading signals and technical analysis (RSI, MACD, Bollinger Bands) for the Indian Nifty 50 stock market."
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [{
+      "@type": "Question",
+      "name": "How are the trading signals calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Our algorithm uses a composite scoring system combining Relative Strength Index (RSI), MACD crossovers, Moving Average (20-day and 50-day) alignments, and Bollinger Bands to determine the bullish or bearish momentum of a stock."
+      }
+    }, {
+      "@type": "Question",
+      "name": "What does a Strong Bullish signal mean?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A Strong Bullish signal requires at least 75% of our technical indicators to agree on upward momentum, and a composite score of 3.0 or higher. This indicates a high-probability technical setup."
+      }
+    }, {
+      "@type": "Question",
+      "name": "Are these trading signals financial advice?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. All signals and data provided are purely mathematical derivatives of trailing price indicators for informational purposes. They do not constitute financial advice. Always consult a SEBI-registered advisor before investing."
+      }
+    }]
+  }
+  </script>
+
   <!-- AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2959862133855422" crossorigin="anonymous"></script>
 
@@ -94,14 +138,14 @@
       </a>
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
-        <a href="index.html#fiidiiSection">FII/DII Data</a>
-        <a href="12-week-moving-average.html">Trend Tracker</a>
-        <a href="trading-signals.html" style="color: #10b981;">⚡ Live Signals</a>
-        <a href="sip-calculator.html">SIP Calc</a>
-        <a href="swp-calculator.html">SWP Calc</a>
-        <a href="market-insights.html">Insights</a>
-        <a href="about.html">About</a>
-        <a href="contact.html">Contact</a>
+        <a href="/" data-nav="Live Prices">Live Prices</a>
+        <a href="12-week-moving-average.html" data-nav="Trend Tracker">Trend Tracker</a>
+        <a href="trading-signals.html" class="active" data-nav="Live Signals" style="color: #10b981;">⚡ Live Signals</a>
+        <a href="sip-calculator.html" data-nav="SIP Calc">SIP Calc</a>
+        <a href="swp-calculator.html" data-nav="SWP Calc">SWP Calc</a>
+        <a href="market-insights.html" data-nav="Insights">Insights</a>
+        <a href="about.html" data-nav="About">About</a>
+        <a href="contact.html" data-nav="Contact">Contact</a>
       </div>
     </div>
     <div class="nav-sub">
@@ -169,6 +213,25 @@
         <div class="result-card" id="resultCard"></div>
       </section>
 
+      <div class="faq-section" style="margin-top: 60px; padding-top: 40px; border-top: 1px solid var(--border);">
+        <h2 style="font-size: 1.8rem; margin-bottom: 24px; color: var(--text);">Frequently Asked Questions</h2>
+        
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 8px;">How are the trading signals calculated?</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Our engine uses a multi-factor composite scoring system. It evaluates the <strong>Relative Strength Index (RSI)</strong> for overbought/oversold conditions, <strong>MACD</strong> for momentum crossovers, <strong>20-day and 50-day Simple Moving Averages (SMA)</strong> for trend alignment, and <strong>Bollinger Bands</strong> for volatility. Each indicator contributes to a total score between -5.5 and +5.5.</p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 8px;">What does a "Strong Bullish" or "Strong Bearish" setup mean?</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Unlike basic screeners that trigger on a single indicator, a <strong>Strong</strong> setup on GetNiftyReady requires at least <strong>75% consensus</strong> across all four technical indicators, alongside a high magnitude score. This filters out market noise and highlights high-probability technical setups.</p>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 8px;">Is this financial advice?</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">No. Our signals are mathematically generated based on trailing, historical price data. They are designed to assist day-traders and swing-traders in identifying technical momentum, but they do not account for fundamental news, earnings reports, or broader macroeconomic factors. Always consult a SEBI-registered advisor before executing trades.</p>
+        </div>
+      </div>
+
     </div>
   </main>
 
@@ -199,6 +262,7 @@
       </div>
       <p class="footer-note">Data sourced from public market feeds and may be delayed 15 minutes. Not financial advice. For informational use only.</p>
       <div class="footer-links">
+        <a href="/">Live Prices</a>
         <a href="12-week-moving-average.html">Trend Tracker</a>
         <a href="trading-signals.html">Live Signals</a>
         <a href="sip-calculator.html">SIP Calc</a>
