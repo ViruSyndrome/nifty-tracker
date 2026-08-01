@@ -7,8 +7,8 @@
   <script>
     Sentry.onLoad(function() {
       Sentry.init({
-        tracesSampleRate: 1.0,
-        replaysSessionSampleRate: 0.1,
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0.05,
         replaysOnErrorSampleRate: 1.0,
       });
     });
@@ -66,7 +66,7 @@
   </script>
 
   <link rel="icon" type="image/svg+xml" href="../favicon.svg?v=2" />
-  <link rel="stylesheet" href="../style.css?v=12" />
+  <link rel="stylesheet" href="../style.css?v=15" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -89,7 +89,7 @@
     }
     </script>
 
-  <!-- Network footer styles are in style.css -->
+  <!-- Network footer styles are in style.css?v=15 -->
 
 </head>
 <body>
@@ -103,12 +103,14 @@
       </a>
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
-        <a href="#fiidiiSection" onclick="document.getElementById('fiidiiSection').scrollIntoView({behavior:'smooth'}); return false;">FII/DII Data</a>
-        <a href="../sip-calculator.html">SIP Calc</a>
-        <a href="../swp-calculator.html">SWP Calc</a>
-        <a href="../market-insights.html">Insights</a>
-        <a href="../about.html">About</a>
-        <a href="../contact.html">Contact</a>
+        <a href="/" class="active" data-nav="Live Prices">Live Prices</a>
+        <a href="12-week-moving-average.html" data-nav="Trend Tracker">Trend Tracker</a>
+        <a href="trading-signals.html" data-nav="Live Signals" style="color: #10b981;">⚡ Live Signals</a>
+        <a href="../sip-calculator.html" data-nav="SIP Calc">SIP Calc</a>
+        <a href="../swp-calculator.html" data-nav="SWP Calc">SWP Calc</a>
+        <a href="../market-insights.html" data-nav="Insights">Insights</a>
+        <a href="../about.html" data-nav="About">About</a>
+        <a href="../contact.html" data-nav="Contact">Contact</a>
       </div>
     </div>
     <div class="nav-sub">
@@ -148,7 +150,7 @@
         <span id="marketCountdown" class="live-delay">NSE · 9:15 AM – 3:30 PM IST</span>
       </div>
 
-      <div class="indices-grid" id="indicesGrid">
+      <div class="indices-grid" id="indicesGrid" aria-live="polite">
         <div class="index-card skeleton" id="idx-nifty50" data-tooltip="Top 50 large-cap companies on NSE by market cap">
           <div class="idx-name">Nifty 50</div>
           <div class="idx-price">--</div>
@@ -182,18 +184,9 @@
       </div>
     </div>
   </section>
+  <p class="cues-cta container">Planning to invest? <a href="../sip-calculator.html">Calculate your SIP returns &rarr;</a></p>
 
-  <!-- AD SLOT: After indices bar (less disruptive position) -->
-  <div class="container" style="padding-top:0.5rem;padding-bottom:0.5rem;">
-    <div class="ad-slot">
-      <ins class="adsbygoogle"
-           data-ad-client="ca-pub-2959862133855422"
-           data-ad-slot="4580203982"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-  </div>
+
 
   <!-- MY WATCHLIST -->
   <section class="watchlist-section container hidden" id="watchlistSection">
@@ -202,7 +195,10 @@
         <h2 class="section-title">⭐ My Watchlist</h2>
         <p class="section-sub">Your pinned stocks — updates every 20s. Click any card for full details.</p>
       </div>
-      <button class="btn-clear-list" id="clearWatchlistBtn" onclick="clearWatchlist()">Clear all</button>
+      <div style="display: flex; gap: 0.8rem;">
+        <button class="btn-clear-list" style="background: var(--surface); color: var(--text-main); border: 1px solid var(--border);" onclick="shareWatchlist()">Share</button>
+        <button class="btn-clear-list" id="clearWatchlistBtn" onclick="clearWatchlist()">Clear all</button>
+      </div>
     </div>
     <div class="watchlist-grid" id="watchlistGrid"></div>
   </section>
@@ -697,6 +693,9 @@
       </div>
       <p class="footer-note">Data is sourced from public market feeds and may be delayed 15 minutes. Not financial advice. For informational use only.</p>
       <div class="footer-links">
+        <a href="/">Live Prices</a>
+        <a href="12-week-moving-average.html">Trend Tracker</a>
+        <a href="trading-signals.html">Live Signals</a>
         <a href="../sip-calculator.html">SIP Calc</a>
         <a href="../swp-calculator.html">SWP Calc</a>
         <a href="../about.html">About</a>
@@ -708,7 +707,14 @@
     </div>
   </footer>
 
-  <script src="../script.js?v=12"></script>
+  <script src="js/indicators.js" defer></script>
+  <script src="js/signals.js" defer></script>
+  <script src="../script.js?v=13" defer></script>
+  <button id="backToTopBtn" class="back-to-top hidden" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"/>
+    </svg>
+  </button>
   <div id="sparkTip" class="spark-tooltip hidden"></div>
 
 <script>
@@ -729,4 +735,7 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+
+
 

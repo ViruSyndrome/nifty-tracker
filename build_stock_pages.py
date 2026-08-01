@@ -90,6 +90,19 @@ def generate_stock_page(ticker, full_name, slug, short_name):
         f'<p class="hero-sub">Live real-time stock price and market data for {full_name} (NSE: {ticker.replace(".NS", "")}).</p>'
     )
     
+    # 4.5. Inject unique SEO paragraph to prevent duplicate content
+    seo_text = f"""
+    <div class="seo-stock-content" style="max-width: 800px; margin: 2rem auto; padding: 1.5rem; background: var(--bg-secondary); border-radius: 12px; border: 1px solid var(--border-color);">
+        <h2>About {full_name} ({ticker.replace(".NS", "")})</h2>
+        <p>This page provides real-time technical analysis, trading signals, and live market data for {full_name}. As one of the top companies listed on the National Stock Exchange of India (NSE), tracking {short_name}'s moving averages, RSI, and MACD is crucial for informed trading. Our automated scanner updates these metrics live during market hours to help you identify bullish or bearish momentum in {short_name} without the need for manual chart analysis.</p>
+    </div>
+    """
+    
+    # We will inject this right after the hero section.
+    # The hero section ends with </section>. We can find the main closing tag or the first section closing tag.
+    # A safe place to inject is before `<section class="search-section">`
+    content = content.replace('<section class="search-section">', seo_text + '\n    <section class="search-section">')
+
     # 5. Inject Auto-Search script at the end of body
     auto_search_script = f"""
 <script>
