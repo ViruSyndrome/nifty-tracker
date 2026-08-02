@@ -290,6 +290,27 @@ function hideSparkTip() {
 // =============================================
 // PROXY FETCH — tries multiple sources
 // =============================================
+let _proxyConsecutiveFailures = 0;
+const _PROXY_FAILURE_THRESHOLD = 3;
+
+function showProxyBanner() {
+  let el = document.getElementById('proxyStatusBanner');
+  if (el) return;
+  el = document.createElement('div');
+  el.id = 'proxyStatusBanner';
+  el.setAttribute('role', 'status');
+  el.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fef3c7;color:#78350f;padding:10px 40px 10px 16px;font-size:14px;text-align:center;z-index:9998;border-bottom:1px solid #fbbf24;box-shadow:0 2px 4px rgba(0,0,0,0.05);';
+  el.innerHTML = 'Live market data is temporarily unavailable. Some prices may show &ldquo;&mdash;&rdquo;. Please refresh in a few minutes.'
+    + '<button aria-label="Dismiss" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:#78350f;font-size:20px;cursor:pointer;line-height:1;padding:4px 8px;">&times;</button>';
+  el.querySelector('button').addEventListener('click', () => el.remove());
+  document.body.appendChild(el);
+}
+
+function hideProxyBanner() {
+  const el = document.getElementById('proxyStatusBanner');
+  if (el) el.remove();
+}
+
 async function proxyFetch(targetUrl, timeoutMs = 6000) {
   const proxies = [];
 
@@ -335,10 +356,18 @@ async function proxyFetch(targetUrl, timeoutMs = 6000) {
   for (const proxy of proxies) {
     try {
       const result = await proxy();
-      if (result) return result;
+      if (result) {
+        _proxyConsecutiveFailures = 0;
+        hideProxyBanner();
+        return result;
+      }
     } catch (e) { continue; }
   }
 
+  _proxyConsecutiveFailures++;
+  if (_proxyConsecutiveFailures >= _PROXY_FAILURE_THRESHOLD) {
+    showProxyBanner();
+  }
   return null;
 }
 
