@@ -35,14 +35,14 @@
       "name": "How are the trading signals calculated?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Our algorithm uses a composite scoring system combining Relative Strength Index (RSI), MACD crossovers, Moving Average (20-day and 50-day) alignments, and Bollinger Bands to determine the bullish or bearish momentum of a stock."
+        "text": "Our algorithm uses a composite scoring system combining Relative Strength Index (RSI), MACD momentum, EMA/SMA trend alignment, Bollinger Bands, and volume confirmation to determine bullish or bearish momentum."
       }
     }, {
       "@type": "Question",
       "name": "What does a Strong Bullish signal mean?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "A Strong Bullish signal requires at least 75% of our technical indicators to agree on upward momentum, and a composite score of 3.0 or higher. This indicates a high-probability technical setup."
+        "text": "A Strong Bullish signal requires a high composite score, confidence threshold, and confirmation from both trend alignment and momentum conditions. This reduces false positives from one-indicator spikes."
       }
     }, {
       "@type": "Question",
@@ -185,7 +185,7 @@
         <strong>How to read this:</strong> Our composite score runs from <strong>-6.5</strong> to <strong>+6.5</strong>.
         A score above +1.0 is <strong>🟢 Bullish</strong>, above +3.0 is <strong>🚀 Strong Bullish</strong>.
         Below -1.0 is <strong>🔴 Bearish</strong>, below -3.0 is <strong>🔻 Strong Bearish</strong>.
-        Stocks are sorted by momentum strength within each group. Click any stock for a full technical breakdown.
+        Strong setups also require confidence and trend-momentum confirmation. The list also shows setup quality and ATR-based risk context.
       </div>
 
       <!-- Loading spinner -->
@@ -218,12 +218,12 @@
         
         <div style="margin-bottom: 20px;">
           <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 8px;">How are the trading signals calculated?</h3>
-          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Our engine uses a multi-factor composite scoring system. It evaluates the <strong>Relative Strength Index (RSI)</strong> for overbought/oversold conditions, <strong>MACD</strong> for momentum crossovers, <strong>20-day and 50-day Simple Moving Averages (SMA)</strong> for trend alignment, and <strong>Bollinger Bands</strong> for volatility. Each indicator contributes to a total score between -6.5 and +6.5.</p>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Our engine uses a multi-factor composite scoring system. It evaluates <strong>RSI</strong>, <strong>MACD</strong>, <strong>EMA/SMA trend alignment</strong>, <strong>Bollinger Bands</strong>, and <strong>volume confirmation</strong>. It also calculates ATR-based risk context (volatility and illustrative stop zones). Each factor contributes to a total score between -6.5 and +6.5.</p>
         </div>
 
         <div style="margin-bottom: 20px;">
           <h3 style="color: var(--text); font-size: 1.1rem; margin-bottom: 8px;">What does a "Strong Bullish" or "Strong Bearish" setup mean?</h3>
-          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Unlike basic screeners that trigger on a single indicator, a <strong>Strong</strong> setup on GetNiftyReady requires at least <strong>75% consensus</strong> across all four technical indicators, alongside a high magnitude score. This filters out market noise and highlights high-probability technical setups.</p>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">Unlike basic screeners that trigger on a single indicator, a <strong>Strong</strong> setup on GetNiftyReady requires a high magnitude score plus confidence and trend/momentum confirmation. This filters out market noise and reduces one-indicator false signals.</p>
         </div>
 
         <div style="margin-bottom: 20px;">
@@ -309,10 +309,17 @@
         const results = await fetchInBatches(NIFTY50_SYMBOLS, 5, 200);
         const valid = results.filter(Boolean).filter(function(d) { return d.signalData; });
 
-        const strongBuys = valid.filter(function(d) { return d.signalData.signal === 'STRONG_BUY'; }).sort(function(a,b) { return b.signalData.score - a.signalData.score; });
-        const buys = valid.filter(function(d) { return d.signalData.signal === 'BUY'; }).sort(function(a,b) { return b.signalData.score - a.signalData.score; });
-        const strongSells = valid.filter(function(d) { return d.signalData.signal === 'STRONG_SELL'; }).sort(function(a,b) { return a.signalData.score - b.signalData.score; });
-        const sells = valid.filter(function(d) { return d.signalData.signal === 'SELL'; }).sort(function(a,b) { return a.signalData.score - b.signalData.score; });
+        function rankByConviction(d) {
+          const q = d.signalData && d.signalData.quality ? (d.signalData.quality.score || 0) : 0;
+          const mag = Math.abs((d.signalData && d.signalData.score) || 0);
+          const conf = d.signalData ? (d.signalData.confidence || 0) : 0;
+          return (q * 1000) + (mag * 100) + conf;
+        }
+
+        const strongBuys = valid.filter(function(d) { return d.signalData.signal === 'STRONG_BUY'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
+        const buys = valid.filter(function(d) { return d.signalData.signal === 'BUY'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
+        const strongSells = valid.filter(function(d) { return d.signalData.signal === 'STRONG_SELL'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
+        const sells = valid.filter(function(d) { return d.signalData.signal === 'SELL'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
 
         function renderList(items, elId) {
           const el = document.getElementById(elId);
@@ -325,6 +332,8 @@
             const safeName  = shortName.replace(/'/g, "\\'");
             const rsi       = d.signalData.indicators.rsi ? d.signalData.indicators.rsi.value : 'N/A';
             const macdSigVal = d.signalData.indicators.macd ? d.signalData.indicators.macd.signal : 'NEUTRAL';
+            const quality = d.signalData.quality || { score: 0, label: 'Weak Setup' };
+            const risk = d.signalData.risk || null;
             let macdBadge = 'Neutral';
             if (macdSigVal === 'STRONG_BUY' || macdSigVal === 'BUY') macdBadge = '<span style="color:#10b981;font-weight:600;">Bullish ↑</span>';
             else if (macdSigVal === 'STRONG_SELL' || macdSigVal === 'SELL') macdBadge = '<span style="color:#e11d48;font-weight:600;">Bearish ↓</span>';
@@ -341,6 +350,11 @@
 
             const lvl = (typeof Signals !== 'undefined') ? Signals.level(d.signalData.signal) : { icon: '', short: d.signalData.signal, cls: '' };
             const sigBadge = `<span class="signal-badge sm ${lvl.cls}" style="font-size:0.72rem; padding:2px 7px;">${lvl.icon} ${lvl.short}</span>`;
+            const qualityColor = quality.score >= 80 ? '#10b981' : quality.score >= 65 ? '#14b8a6' : quality.score >= 50 ? '#f59e0b' : '#94a3b8';
+            const qualityBadge = `<span style="display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:999px; font-size:0.66rem; font-weight:700; background:rgba(15,23,42,0.45); border:1px solid rgba(148,163,184,0.3); color:${qualityColor};">Q ${quality.score}</span>`;
+            const riskText = risk && risk.atrPercent != null
+              ? `Risk: <strong>${risk.level}</strong> (ATR ${risk.atrPercent}%)${risk.stopLoss != null ? ` · SL ₹${risk.stopLoss.toLocaleString('en-IN')}` : ''}`
+              : 'Risk: <strong>Unknown</strong>';
 
             return `
               <li class="signal-item"
@@ -348,10 +362,11 @@
                   onmouseenter="showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}'); getSparkline('${d.symbol}', '1d', '5m').then(prices => { if(prices && prices.length > 2) showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}' + drawSparklineSVG(prices, 150, 40)); });"
                   onmouseleave="hideSparkTip()">
                 <div class="sig-info">
-                  <div class="sig-name">${shortName}${sigBadge}</div>
+                  <div class="sig-name">${shortName}${sigBadge}${qualityBadge}</div>
                   <div class="sig-sym">
-                    Score: <strong>${d.signalData.score.toFixed(1)} / 6.5</strong><br>
-                    RSI: <strong>${rsi}</strong>&nbsp;|&nbsp;MACD: ${macdBadge}&nbsp;|&nbsp;SMA: ${smaBadge}
+                    Score: <strong>${d.signalData.score.toFixed(1)} / 6.5</strong>&nbsp;|&nbsp;Confidence: <strong>${d.signalData.confidence}%</strong>&nbsp;|&nbsp;Quality: <strong>${quality.label}</strong><br>
+                    RSI: <strong>${rsi}</strong>&nbsp;|&nbsp;MACD: ${macdBadge}&nbsp;|&nbsp;SMA: ${smaBadge}<br>
+                    ${riskText}
                   </div>
                 </div>
                 <div class="sig-price">₹${d.price.toLocaleString('en-IN')}</div>

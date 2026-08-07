@@ -20,7 +20,11 @@ const Signals = {
   generate(closes, opts = {}) {
     const EMPTY = (reason = 'Insufficient data') => ({
       signal: 'NEUTRAL', confidence: 0, score: 0, indicators: {},
-      recommendation: reason, arrays: {}, calculatedAt: new Date().toISOString(),
+      recommendation: reason,
+      risk: null,
+      quality: { score: 0, label: 'No Signal' },
+      arrays: {},
+      calculatedAt: new Date().toISOString(),
     });
 
     if (!closes || closes.length < 30) return EMPTY();
@@ -212,8 +216,54 @@ const Signals = {
       }
     }
 
+    // ── ATR-backed risk hints (market-agnostic) ─────────────────────────────
+    const atrValueRaw = atrArr ? Indicators.last(atrArr) : null;
+    const atrValue = atrValueRaw != null && !isNaN(atrValueRaw) ? +atrValueRaw.toFixed(4) : null;
+    const atrPct = atrValue != null && price ? +((atrValue / price) * 100).toFixed(2) : null;
+    const riskLevel = atrPct == null ? 'Unknown' : (atrPct <= 1.2 ? 'Low' : atrPct <= 2.8 ? 'Medium' : 'High');
+    const stopMult = signal === 'STRONG_BUY' || signal === 'STRONG_SELL' ? 1.8 : 1.5;
+    const tpMult = signal === 'STRONG_BUY' || signal === 'STRONG_SELL' ? 2.2 : 1.8;
+    let risk = null;
+    if (atrValue != null && price != null) {
+      const isLongBias = signal === 'BUY' || signal === 'STRONG_BUY';
+      const isShortBias = signal === 'SELL' || signal === 'STRONG_SELL';
+      const stopLoss = isLongBias
+        ? price - (atrValue * stopMult)
+        : isShortBias
+          ? price + (atrValue * stopMult)
+          : null;
+      const takeProfit = isLongBias
+        ? price + (atrValue * tpMult)
+        : isShortBias
+          ? price - (atrValue * tpMult)
+          : null;
+      risk = {
+        atr: atrValue,
+        atrPercent: atrPct,
+        level: riskLevel,
+        stopLoss: stopLoss != null ? +stopLoss.toFixed(2) : null,
+        takeProfit: takeProfit != null ? +takeProfit.toFixed(2) : null,
+        direction: isLongBias ? 'LONG' : isShortBias ? 'SHORT' : 'NEUTRAL',
+      };
+    }
+
+    // ── Quality score for ranking (0-100 conviction) ────────────────────────
+    const normScore = Math.min(Math.abs(score) / 6.5, 1); // 0-1
+    const trendBoost = bullishTrendAligned || bearishTrendAligned ? 10 : 0;
+    const momentumBoost = bullishMomentumConfirmed || bearishMomentumConfirmed ? 8 : 0;
+    const riskAdj = riskLevel === 'Low' ? 4 : riskLevel === 'High' ? -8 : riskLevel === 'Medium' ? -2 : 0;
+    let qualityScore = Math.round(normScore * 45 + confidence * 0.35 + trendBoost + momentumBoost + riskAdj);
+    qualityScore = Math.max(0, Math.min(100, qualityScore));
+    const qualityLabel = qualityScore >= 80
+      ? 'High Conviction'
+      : qualityScore >= 65
+        ? 'Good Setup'
+        : qualityScore >= 50
+          ? 'Watchlist'
+          : 'Weak Setup';
+
     // ── Plain-English recommendation ─────────────────────────────────────────
-    const recommendation = this._recommend(signal, score, indDetails);
+    const recommendation = this._recommend(signal, score, indDetails, risk);
 
     return {
       signal,
@@ -221,13 +271,18 @@ const Signals = {
       score: +score.toFixed(2),
       indicators: indDetails,
       recommendation,
+      risk,
+      quality: {
+        score: qualityScore,
+        label: qualityLabel,
+      },
       arrays: { rsi: rsiArr, macd: macdData, sma20, sma50, sma200, ema9, ema21, bb: bbData, atr: atrArr, closes },
       calculatedAt: new Date().toISOString(),
     };
   },
 
   // ─── Recommendation text ───────────────────────────────────────────────────
-  _recommend(signal, score, ind) {
+  _recommend(signal, score, ind, risk) {
     const rsi  = ind.rsi?.value;
     const cross = ind.macd?.crossover;
     const ma   = ind.movingAvg;
@@ -264,6 +319,11 @@ const Signals = {
         if (cross === 'bearish') text.push('A MACD bearish crossover confirms selling pressure.');
         text.push('⚠️ Do NOT average down against this signal. Protect your capital first.');
         break;
+    }
+    if (risk && risk.atrPercent != null) {
+      text.push(`Volatility: ATR is ${risk.atrPercent}% of price (${risk.level.toLowerCase()} risk regime).`);
+      if (risk.stopLoss != null) text.push(`Illustrative stop zone: ₹${risk.stopLoss.toFixed(2)}.`);
+      if (risk.takeProfit != null) text.push(`Illustrative first target: ₹${risk.takeProfit.toFixed(2)}.`);
     }
     return text.join(' ');
   },

@@ -772,6 +772,16 @@ async function searchBySymbol(symbol, name) {
     if (data.signalData && data.signalData.signal !== 'NEUTRAL' && typeof Signals !== 'undefined') {
       var sig = data.signalData;
       var lvl = Signals.level(sig.signal);
+      var quality = sig.quality || null;
+      var risk = sig.risk || null;
+      var qualityHtml = quality
+        ? '<div><strong>Setup Quality:</strong> ' + quality.score + '/100 (' + quality.label + ')</div>'
+        : '';
+      var riskHtml = risk && risk.atrPercent != null
+        ? '<div><strong>Risk Regime:</strong> ' + risk.level + ' (ATR ' + risk.atrPercent + '%)</div>'
+          + (risk.stopLoss != null ? '<div><strong>Illustrative Stop:</strong> ₹' + fmt(risk.stopLoss) + '</div>' : '')
+          + (risk.takeProfit != null ? '<div><strong>Illustrative Target:</strong> ₹' + fmt(risk.takeProfit) + '</div>' : '')
+        : '';
       techHtml = '<div class="result-tech" style="margin:20px 0; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px;">'
         + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
         + '<h3 style="margin:0; font-size:1rem; color:var(--text);">⚡ Technical Analysis Engine</h3>'
@@ -779,6 +789,8 @@ async function searchBySymbol(symbol, name) {
         + '</div>'
         + '<p style="margin:0 0 12px 0; font-size:0.9rem; color:var(--text-muted); line-height:1.4;">' + sig.recommendation + '</p>'
         + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem; color:var(--text-muted);">'
+        + qualityHtml
+        + riskHtml
         + (sig.indicators.rsi ? '<div><strong>RSI (14):</strong> ' + sig.indicators.rsi.value + '</div>' : '')
         + (sig.indicators.macd ? '<div><strong>MACD:</strong> ' + sig.indicators.macd.value + '</div>' : '')
         + (sig.indicators.movingAvg ? '<div><strong>vs 20-Day SMA:</strong> ' + (sig.indicators.movingAvg.aboveSma20 ? '<span style="color:#22c55e;">Above ✅</span>' : '<span style="color:#ef4444;">Below ❌</span>') + '</div>' : '')
