@@ -389,7 +389,10 @@ async function fetchYahoo(symbol) {
     if (typeof Signals !== 'undefined') {
       const quote = result.indicators && result.indicators.quote && result.indicators.quote[0];
       const closes = quote && quote.close ? quote.close : [];
-      signalData = Signals.generate(closes);
+      const highs = quote && quote.high ? quote.high : null;
+      const lows = quote && quote.low ? quote.low : null;
+      const volumes = quote && quote.volume ? quote.volume : null;
+      signalData = Signals.generate(closes, { highs, lows, volumes });
     }
 
     return {

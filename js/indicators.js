@@ -162,4 +162,44 @@ const Indicators = {
     const mean = valid.reduce((a, b) => a + b, 0) / valid.length;
     return Math.sqrt(valid.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / valid.length);
   },
+
+  /**
+   * Average True Range (Wilder). Returns full ATR series or null-filled if inputs mismatch.
+   * TR = max(high-low, |high-prevClose|, |low-prevClose|)
+   */
+  atr(highs, lows, closes, period = 14) {
+    const n = closes.length;
+    const out = new Array(n).fill(null);
+    if (!highs || !lows || highs.length !== n || lows.length !== n || n < period + 1) return out;
+
+    const tr = new Array(n).fill(null);
+    for (let i = 1; i < n; i++) {
+      const h = highs[i], l = lows[i], pc = closes[i - 1];
+      if (h == null || l == null || pc == null) continue;
+      tr[i] = Math.max(h - l, Math.abs(h - pc), Math.abs(l - pc));
+    }
+
+    let sum = 0, count = 0;
+    for (let i = 1; i <= period; i++) {
+      if (tr[i] != null) { sum += tr[i]; count++; }
+    }
+    if (count < period) return out;
+    out[period] = sum / period;
+
+    for (let i = period + 1; i < n; i++) {
+      if (tr[i] == null || out[i - 1] == null) { out[i] = out[i - 1]; continue; }
+      out[i] = (out[i - 1] * (period - 1) + tr[i]) / period;
+    }
+    return out;
+  },
+
+  /** Simple mean of last `period` non-null values */
+  avgLast(arr, period) {
+    let sum = 0, count = 0;
+    for (let i = arr.length - 1; i >= 0 && count < period; i--) {
+      const v = arr[i];
+      if (v != null && !isNaN(v)) { sum += v; count++; }
+    }
+    return count > 0 ? sum / count : null;
+  },
 };
