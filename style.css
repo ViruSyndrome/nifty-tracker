@@ -2045,3 +2045,70 @@ h1, h2, h3, .logo-text, .logo-accent, .ticker-val, .ticker-change, .nav-links a,
 .signal-sell { background: rgba(251, 113, 133, 0.1); color: #fb7185; border: 1px solid rgba(251, 113, 133, 0.2); }
 .signal-strong-sell { background: rgba(225, 29, 72, 0.15); color: #e11d48; border: 1px solid rgba(225, 29, 72, 0.3); }
 
+/* --- LIVE ANIMATIONS --- */
+/* Pulse dot */
+.live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  margin-right: 6px;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-green 2s infinite;
+}
+.live-dot.red {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 2s infinite;
+}
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+@keyframes pulse-red {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Terminal flash on update */
+@keyframes flash-up {
+  0% { background-color: rgba(16, 185, 129, 0.3); }
+  100% { background-color: transparent; }
+}
+@keyframes flash-down {
+  0% { background-color: rgba(239, 68, 68, 0.3); }
+  100% { background-color: transparent; }
+}
+.flash-up { animation: flash-up 1.5s ease-out; }
+.flash-down { animation: flash-down 1.5s ease-out; }
+
+/* Animated Sparkline */
+.sparkline-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: draw-spark 1.5s ease-out forwards;
+}
+@keyframes draw-spark {
+  to { stroke-dashoffset: 0; }
+}
+
+/* Animated badges */
+.signal-strong-buy {
+  background: linear-gradient(90deg, rgba(16,185,129,0.15) 0%, rgba(16,185,129,0.25) 50%, rgba(16,185,129,0.15) 100%);
+  background-size: 200% 100%;
+  animation: bg-shift 3s linear infinite;
+  box-shadow: 0 0 8px rgba(16,185,129,0.2);
+}
+.signal-strong-sell {
+  background: linear-gradient(90deg, rgba(225,29,72,0.15) 0%, rgba(225,29,72,0.25) 50%, rgba(225,29,72,0.15) 100%);
+  background-size: 200% 100%;
+  animation: bg-shift 3s linear infinite;
+  box-shadow: 0 0 8px rgba(225,29,72,0.2);
+}
+@keyframes bg-shift {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}

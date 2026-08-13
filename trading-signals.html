@@ -140,7 +140,7 @@
       <div class="nav-links">
         <a href="/" data-nav="Live Prices">Live Prices</a>
         <a href="12-week-moving-average.html" data-nav="Trend Tracker">Trend Tracker</a>
-        <a href="trading-signals.html" class="active" data-nav="Live Signals" style="color: #10b981;">⚡ Live Signals</a>
+        <a href="trading-signals.html" class="active" data-nav="Live Signals" style="color: #10b981;"><span class="live-dot"></span>Live Signals</a>
         <a href="sip-calculator.html" data-nav="SIP Calc">SIP Calc</a>
         <a href="swp-calculator.html" data-nav="SWP Calc">SWP Calc</a>
         <a href="market-insights.html" data-nav="Insights">Insights</a>
@@ -169,10 +169,9 @@
 
       <!-- Live status bar -->
       <div class="live-bar" style="margin-bottom:24px; justify-content:center;">
-        <span class="live-dot" style="background:#22c55e; animation: pulse 2s infinite;"></span>
         <span class="live-label" style="color:#22c55e;">LIVE SCANNER</span>
         <span class="live-sep">·</span>
-        <span id="lastUpdated" style="color:#64748b; font-size:0.9rem;">Initializing...</span>
+        <span id="lastUpdated" style="color:#64748b; font-size:0.9rem;"><span class="live-dot"></span>Initializing...</span>
       </div>
 
       <!-- Disclaimer (prominent, top of content) -->
@@ -321,6 +320,8 @@
         const strongSells = valid.filter(function(d) { return d.signalData.signal === 'STRONG_SELL'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
         const sells = valid.filter(function(d) { return d.signalData.signal === 'SELL'; }).sort(function(a,b) { return rankByConviction(b) - rankByConviction(a); });
 
+        window.prevPrices = window.prevPrices || {};
+
         function renderList(items, elId) {
           const el = document.getElementById(elId);
           if (!items.length) {
@@ -348,6 +349,11 @@
             const pctColor = pct >= 0 ? '#22c55e' : '#ef4444';
             const tipHtml = `<div class='stip-name'>${shortName}</div><div class='stip-price'>₹${d.price.toLocaleString('en-IN')} <span style='color:${pctColor}'>${sign}${pct.toFixed(2)}%</span></div>`;
 
+            let flashClass = '';
+            if (window.prevPrices[d.symbol] && d.price > window.prevPrices[d.symbol]) flashClass = 'flash-up';
+            else if (window.prevPrices[d.symbol] && d.price < window.prevPrices[d.symbol]) flashClass = 'flash-down';
+            window.prevPrices[d.symbol] = d.price;
+
             const lvl = (typeof Signals !== 'undefined') ? Signals.level(d.signalData.signal) : { icon: '', short: d.signalData.signal, cls: '' };
             const sigBadge = `<span class="signal-badge sm ${lvl.cls}" style="font-size:0.72rem; padding:2px 7px;">${lvl.icon} ${lvl.short}</span>`;
             const qualityColor = quality.score >= 80 ? '#10b981' : quality.score >= 65 ? '#14b8a6' : quality.score >= 50 ? '#f59e0b' : '#94a3b8';
@@ -356,16 +362,20 @@
               ? `Risk: <strong>${risk.level}</strong> (ATR ${risk.atrPercent}%)${risk.stopLoss != null ? ` · SL ₹${risk.stopLoss.toLocaleString('en-IN')}` : ''}`
               : 'Risk: <strong>Unknown</strong>';
 
+            const scoreDisplay = `<span class="animate-num" data-val="${d.signalData.score.toFixed(1)}">0.0</span>`;
+            const confDisplay = `<span class="animate-num" data-val="${d.signalData.confidence}">0</span>`;
+            const rsiDisplay = rsi !== 'N/A' ? `<span class="animate-num" data-val="${rsi}">0</span>` : rsi;
+
             return `
-              <li class="signal-item"
+              <li class="signal-item ${flashClass}"
                   onclick="searchBySymbol('${d.symbol}', '${safeName}')"
                   onmouseenter="showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}'); getSparkline('${d.symbol}', '1d', '5m').then(prices => { if(prices && prices.length > 2) showSparkTip(event, '${tipHtml.replace(/'/g, "\\'")}' + drawSparklineSVG(prices, 150, 40)); });"
                   onmouseleave="hideSparkTip()">
                 <div class="sig-info">
                   <div class="sig-name">${shortName}${sigBadge}${qualityBadge}</div>
                   <div class="sig-sym">
-                    Score: <strong>${d.signalData.score.toFixed(1)} / 6.5</strong>&nbsp;|&nbsp;Confidence: <strong>${d.signalData.confidence}%</strong>&nbsp;|&nbsp;Quality: <strong>${quality.label}</strong><br>
-                    RSI: <strong>${rsi}</strong>&nbsp;|&nbsp;MACD: ${macdBadge}&nbsp;|&nbsp;SMA: ${smaBadge}<br>
+                    Score: <strong>${scoreDisplay} / 6.5</strong>&nbsp;|&nbsp;Confidence: <strong>${confDisplay}%</strong>&nbsp;|&nbsp;Quality: <strong>${quality.label}</strong><br>
+                    RSI: <strong>${rsiDisplay}</strong>&nbsp;|&nbsp;MACD: ${macdBadge}&nbsp;|&nbsp;SMA: ${smaBadge}<br>
                     ${riskText}
                   </div>
                 </div>
@@ -382,7 +392,27 @@
         document.getElementById('signalsDashboard').classList.remove('hidden');
 
         var now = new Date();
-        document.getElementById('lastUpdated').textContent = 'Last updated at ' + now.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+        document.getElementById('lastUpdated').innerHTML = '<span class="live-dot"></span>Last updated at ' + now.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+
+        // Trigger number animations
+        document.querySelectorAll('.animate-num').forEach(el => {
+          if (el.dataset.animated) return;
+          el.dataset.animated = '1';
+          let endVal = parseFloat(el.dataset.val);
+          if (isNaN(endVal)) { el.textContent = el.dataset.val; return; }
+          let isFloat = el.dataset.val.includes('.');
+          let duration = 800;
+          let startTime = null;
+          function step(timestamp) {
+            if (!startTime) startTime = timestamp;
+            let progress = Math.min((timestamp - startTime) / duration, 1);
+            let curr = progress * endVal;
+            el.textContent = isFloat ? curr.toFixed(1) : Math.floor(curr);
+            if (progress < 1) window.requestAnimationFrame(step);
+            else el.textContent = el.dataset.val;
+          }
+          window.requestAnimationFrame(step);
+        });
       }
 
       // Initial run with short delay to let deferred scripts initialise
