@@ -214,7 +214,7 @@ function drawSparklineSVG(data, w, h, showTimeAxis) {
 
   var svg = '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">'
     + '<polygon points="' + fillPts + '" fill="' + fillColor + '"/>'
-    + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
+    + '<polyline class="spark-draw-line" pathLength="1" points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>';
 
   // Time axis labels (only when showTimeAxis = true and we have timestamps)
   if (showTimeAxis && timestamps[0]) {
@@ -452,6 +452,63 @@ function changePct(price, prev) {
 }
 
 // =============================================
+// LIVE DATA FRESHNESS STATUS (Connecting / Updating / Live · Ns / Stale)
+// =============================================
+var LiveStatus = {
+  phase: 'connecting',
+  nextDueAt: null,
+  begin: function() {
+    this.phase = 'updating';
+    this.paint();
+  },
+  success: function() {
+    this.phase = 'live';
+    this.nextDueAt = Date.now() + 20000;
+    this.paint();
+  },
+  fail: function() {
+    this.phase = 'stale';
+    this.paint();
+  },
+  paint: function() {
+    var textEl = document.getElementById('lastUpdated');
+    if (!textEl) return;
+    textEl.classList.remove('status-connecting', 'status-stale');
+    var status = getMarketStatus();
+    if (status.status === 'closed' && this.phase === 'live') {
+      textEl.textContent = 'Market Closed — Data from last session';
+      return;
+    }
+    if (this.phase === 'connecting') {
+      textEl.textContent = 'Connecting…';
+      textEl.classList.add('status-connecting');
+    } else if (this.phase === 'updating') {
+      textEl.textContent = 'Updating…';
+    } else if (this.phase === 'stale') {
+      textEl.textContent = 'Stale data';
+      textEl.classList.add('status-stale');
+    } else {
+      var secs = Math.max(0, Math.ceil((this.nextDueAt - Date.now()) / 1000));
+      textEl.textContent = 'Live · ' + secs + 's';
+    }
+  },
+};
+
+// Tracks last-seen prices so re-rendered cards only animate when the value actually changed.
+var _prevValues = {};
+function _flagIfChanged(key, newVal, els) {
+  var changed = _prevValues.hasOwnProperty(key) && _prevValues[key] !== newVal && newVal != null;
+  _prevValues[key] = newVal;
+  if (!changed) return;
+  els.forEach(function(el) {
+    if (!el) return;
+    el.classList.remove('value-updated');
+    void el.offsetWidth; // restart animation
+    el.classList.add('value-updated');
+  });
+}
+
+// =============================================
 // INDICES
 // =============================================
 async function loadIndices() {
@@ -472,6 +529,15 @@ async function loadIndices() {
     el.innerHTML = '<div class="idx-name">' + idx.name + '</div>'
       + '<div class="idx-price">' + fmt(data.price) + '</div>'
       + '<div class="idx-change">' + sign + fmt(diff) + ' (' + sign + (pct != null ? pct.toFixed(2) : '—') + '%)</div>';
+    var priceKey = 'idx_' + idx.id;
+    var hadPrev = _prevValues.hasOwnProperty(priceKey);
+    var oldPrice = _prevValues[priceKey];
+    _flagIfChanged(priceKey, data.price, [el.querySelector('.idx-price'), el.querySelector('.idx-change')]);
+    if (hadPrev && oldPrice !== data.price) {
+      el.classList.remove('data-updated');
+      void el.offsetWidth;
+      el.classList.add('data-updated');
+    }
   }));
 }
 
@@ -571,6 +637,7 @@ async function loadMovers() {
     renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
     renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
     updateMarketSummary(valid);
+    renderLiveTape(valid);
   } else {
     var msg = '<div class="mover-empty">Data unavailable</div>';
     if (gEl) gEl.innerHTML = msg;
@@ -594,6 +661,21 @@ async function loadMovers() {
   }
 }
 
+// Scrolling ticker fed only by real fetched Nifty 50 data — never fabricated.
+function renderLiveTape(items) {
+  var track = document.getElementById('liveTapeTrack');
+  if (!track || !items.length) return;
+  var top = items.slice().sort(function(a, b) { return Math.abs(b.pct) - Math.abs(a.pct); }).slice(0, 12);
+  var shortName = function(n) { return n.replace(/ Limited| Ltd\.?/g, ''); };
+  var html = top.map(function(d) {
+    var sign = d.pct >= 0 ? '+' : '';
+    return '<span class="tape-item"><strong>' + shortName(d.name) + '</strong><span>₹' + fmt(d.price) + '</span>'
+      + '<em class="' + (d.pct >= 0 ? 'pos' : 'neg') + '">' + sign + d.pct.toFixed(2) + '%</em></span>';
+  }).join('');
+  track.innerHTML = html + html; // duplicate for seamless scroll loop
+  track.classList.toggle('moving', top.length > 0);
+}
+
 function renderMovers(elId, items, cls) {
   var el = document.getElementById(elId);
   if (!el) return;
@@ -615,6 +697,18 @@ function renderMovers(elId, items, cls) {
       + '<div class="mover-pct ' + cls + '">' + sign + d.pct.toFixed(2) + '%</div>'
       + '</div>';
   }).join('');
+
+  // Flag rows whose price actually changed since the last render (per list + symbol).
+  el.querySelectorAll('.mover-row').forEach(function(row) {
+    var key = 'mover_' + elId + '_' + row.dataset.sym;
+    var newPrice = parseFloat(row.dataset.price);
+    var hadPrev = _prevValues.hasOwnProperty(key);
+    var oldPrice = _prevValues[key];
+    _flagIfChanged(key, newPrice, [row.querySelector('.mover-price'), row.querySelector('.mover-pct')]);
+    if (hadPrev && oldPrice !== newPrice) {
+      row.classList.add('data-updated');
+    }
+  });
 
   // Attach hover sparkline events
   el.querySelectorAll('.mover-row').forEach(function(row) {
@@ -992,49 +1086,43 @@ if (urlQ && searchInput) {
 // =============================================
 // AUTO REFRESH every 20s + live counter
 // =============================================
-var lastRefreshTime = Date.now();
-
 function updateLastUpdated() {
-  var el = document.getElementById('lastUpdated');
-  if (!el) return;
-  var status = getMarketStatus();
-  if (status.status === 'closed') {
-    el.textContent = 'Market Closed — Data from last session';
-    return;
-  }
-  var secs = Math.floor((Date.now() - lastRefreshTime) / 1000);
-  el.textContent = secs < 5 ? 'Updated just now' : 'Updated ' + secs + 's ago';
+  LiveStatus.paint();
 }
 
-var _dataPollingInterval = setInterval(function() {
-  lastRefreshTime = Date.now();
-  loadIndices();
-  loadCommodities();
-  loadWatchlist();
-}, 20000);
+async function _pollCycle() {
+  LiveStatus.begin();
+  try {
+    await Promise.all([loadIndices(), loadCommodities(), loadWatchlist()]);
+    var anyIndexOk = INDICES.some(function(idx) {
+      var el = document.getElementById(idx.id);
+      return el && el.querySelector('.idx-price') && el.querySelector('.idx-price').textContent !== '—';
+    });
+    if (anyIndexOk) LiveStatus.success();
+    else LiveStatus.fail();
+  } catch (e) {
+    LiveStatus.fail();
+  }
+}
 
+var _dataPollingInterval = setInterval(_pollCycle, 20000);
+var _moversPollingInterval = setInterval(loadMovers, 45000); // feeds the live market pulse tape
 var _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
 
 // ── Pause polling when tab is hidden (Page Visibility API) ──
 document.addEventListener('visibilitychange', function() {
   if (document.hidden) {
     clearInterval(_dataPollingInterval);
+    clearInterval(_moversPollingInterval);
     clearInterval(_uiTickInterval);
   } else {
     // Resume polling and trigger immediate refresh
-    _dataPollingInterval = setInterval(function() {
-      lastRefreshTime = Date.now();
-      loadIndices();
-      loadCommodities();
-      loadWatchlist();
-    }, 20000);
+    _dataPollingInterval = setInterval(_pollCycle, 20000);
+    _moversPollingInterval = setInterval(loadMovers, 45000);
     _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
     // Immediate refresh on tab return
-    lastRefreshTime = Date.now();
-    loadIndices();
-    loadCommodities();
-    loadWatchlist();
-    updateLastUpdated();
+    _pollCycle();
+    loadMovers();
     updateMarketStatus();
   }
 });
@@ -1678,13 +1766,18 @@ function shareWatchlist() {
   processUrlWatchlist();
   checkMarketStatus();
   setInterval(checkMarketStatus, 60000);
-  
+  LiveStatus.paint(); // shows "Connecting…" immediately
+
   document.addEventListener('scroll', hideSparkTip, true);
   renderCommodities();
   renderRecentlySearched();
   loadWatchlist();
   await loadIndices();
-  updateLastUpdated();
+  var anyIndexOkInit = INDICES.some(function(idx) {
+    var el = document.getElementById(idx.id);
+    return el && el.querySelector('.idx-price') && el.querySelector('.idx-price').textContent !== '—';
+  });
+  if (anyIndexOkInit) LiveStatus.success(); else LiveStatus.fail();
   loadPopular();
   loadMovers();
   loadCommodities();
