@@ -165,6 +165,25 @@
       </div>
     </section>
 
+    <!-- BREAKOUT SCANNER (MOONSHOTS) -->
+    <section class="container" style="max-width: 900px; margin: 20px auto 60px;">
+      <div style="background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h2 class="section-title" style="margin-bottom: 5px; font-size: 1.5rem;">🚀 Breakout Scanner <span class="badge" style="background:var(--success); color:white; border-color:var(--success); font-size:0.75rem; padding: 2px 8px; vertical-align: middle;">Beta</span></h2>
+            <p style="color:var(--text-muted); font-size:0.95rem; margin:0;" id="scannerStatus">Scans the top 80 Indian stocks for high-probability momentum breakouts.</p>
+          </div>
+          <button id="runScannerBtn" class="btn btn-primary" style="padding: 12px 24px; font-weight: bold; border: none; border-radius: 8px; background: var(--primary); color: white; cursor: pointer;">Run Full Scan</button>
+        </div>
+        <div style="width: 100%; height: 6px; background: var(--bg-alt); border-radius: 4px; overflow: hidden; margin-bottom: 24px;">
+          <div id="scannerProgress" style="width: 0%; height: 100%; background: var(--success); transition: width 0.3s ease;"></div>
+        </div>
+        <div id="breakoutGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+          <!-- Cards injected by JS -->
+        </div>
+      </div>
+    </section>
+
     <div class="container" style="max-width:1000px; margin: 0 auto; padding: 0 20px 60px;">
 
       <!-- Live status bar -->
@@ -278,6 +297,8 @@
   <!-- Load JS -->
   <script src="js/indicators.js" defer></script>
   <script src="js/signals.js" defer></script>
+  <script src="js/breakout-engine.js" defer></script>
+  <script src="js/scanner.js" defer></script>
   <script src="script.js?v=13" defer></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
