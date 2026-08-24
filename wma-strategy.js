@@ -184,6 +184,64 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentSignalEl.textContent = "Error loading data";
     historyBody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--danger);">Could not fetch live market data. Try again later.</td></tr>`;
   }
+
+  // ─── LIVE MARKET BREADTH SCANNER ───
+  async function calculateMarketBreadth() {
+    const statusText = document.getElementById('breadthStatusText');
+    const progressBar = document.getElementById('breadthProgressBar');
+    const metricResult = document.getElementById('breadthMetricResult');
+    const funnel = document.getElementById('actionFunnel');
+    if (!statusText || !progressBar) return;
+    
+    let bullCount = 0;
+    let completed = 0;
+    const symbols = NIFTY50_SYMBOLS;
+    const chunkSize = 5;
+    
+    for (let i = 0; i < symbols.length; i += chunkSize) {
+      const chunk = symbols.slice(i, i + chunkSize);
+      const promises = chunk.map(async sym => {
+        try {
+          const res = await proxyFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1wk&range=6mo`, 5000);
+          if (!res || !res.chart || !res.chart.result) return null;
+          const quote = res.chart.result[0].indicators.quote[0];
+          const closes = quote.close.filter(c => c !== null);
+          if (closes.length < 13) return null; // need 12 weeks
+          
+          const price = closes[closes.length - 1];
+          const wma = Indicators.last(Indicators.sma(closes, 12));
+          if (price > wma) bullCount++;
+        } catch(e) {}
+      });
+      
+      await Promise.all(promises);
+      completed += chunk.length;
+      statusText.textContent = `Scanning ${Math.min(completed, symbols.length)} / ${symbols.length} Nifty Stocks...`;
+      await new Promise(r => setTimeout(r, 400));
+    }
+    
+    const breadthPct = (bullCount / symbols.length) * 100;
+    progressBar.style.width = `${breadthPct}%`;
+    metricResult.textContent = `${bullCount} of ${symbols.length} stocks (${breadthPct.toFixed(0)}%)`;
+    
+    if (breadthPct >= 50) {
+      statusText.textContent = 'BULLISH BREADTH (Risk-On)';
+      statusText.style.color = 'var(--success)';
+      statusText.style.animation = 'none';
+      if (funnel) funnel.style.display = 'flex';
+    } else {
+      statusText.textContent = 'BEARISH BREADTH (Risk-Off)';
+      statusText.style.color = 'var(--danger)';
+      statusText.style.animation = 'none';
+      if (funnel) {
+        funnel.style.display = 'flex';
+        funnel.style.background = 'linear-gradient(135deg, var(--danger), #ef4444)';
+        funnel.querySelector('h3').innerHTML = 'Market is Weak ⚠️';
+        funnel.querySelector('p').innerHTML = 'Breakout setups are highly likely to fail right now.';
+      }
+    }
+  }
+
+  // Run breadth calculation in background
+  setTimeout(calculateMarketBreadth, 1000);
 });
-
-
