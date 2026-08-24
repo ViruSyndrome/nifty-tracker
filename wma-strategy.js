@@ -108,6 +108,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const labels = displayData.map(d => d.date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }));
     const niftyData = displayData.map(d => d.close);
     const wmaData = displayData.map(d => d.wma12);
+    
+    // Dynamic Colors based on Trend
+    const isBullish = latest.close >= latest.wma12;
+    const trendColor = isBullish ? 'rgba(34, 197, 94, 1)' : 'rgba(239, 68, 68, 1)'; // Success Green / Danger Red
+    const trendGradient = ctx.createLinearGradient(0, 0, 0, 400);
+    if (isBullish) {
+      trendGradient.addColorStop(0, 'rgba(34, 197, 94, 0.4)');
+      trendGradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+    } else {
+      trendGradient.addColorStop(0, 'rgba(239, 68, 68, 0.4)');
+      trendGradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+    }
 
     new Chart(ctx, {
       type: 'line',
@@ -117,27 +129,55 @@ document.addEventListener('DOMContentLoaded', async () => {
           {
             label: 'Nifty 50 Close',
             data: niftyData,
-            borderColor: '#f1f5f9',
-            borderWidth: 2,
+            borderColor: trendColor,
+            backgroundColor: trendGradient,
+            borderWidth: 3,
+            fill: true,
             pointRadius: 0,
-            pointHoverRadius: 5,
-            tension: 0.1
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: trendColor,
+            pointHoverBorderColor: '#fff',
+            pointHoverBorderWidth: 2,
+            tension: 0.4 // Smooth, curvy lines
           },
           {
             label: '12-Week MA',
             data: wmaData,
-            borderColor: '#14b8a6',
+            borderColor: 'rgba(20, 184, 166, 0.8)', // Teal
             borderWidth: 2,
             borderDash: [5, 5],
             pointRadius: 0,
-            pointHoverRadius: 5,
-            tension: 0.1
+            pointHoverRadius: 0,
+            tension: 0.4
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+          x: {
+            type: 'number',
+            easing: 'linear',
+            duration: 1000,
+            from: NaN, // the point is initially skipped
+            delay(ctx) {
+              if (ctx.type !== 'data' || ctx.xStarted) {
+                return 0;
+              }
+              ctx.xStarted = true;
+              return ctx.index * 10;
+            }
+          },
+          y: {
+            type: 'number',
+            easing: 'linear',
+            duration: 1000,
+            from: (ctx) => {
+              return ctx.index === 0 ? ctx.chart.scales.y.getPixelForValue(100) : ctx.chart.getDatasetMeta(ctx.datasetIndex).data[ctx.index - 1].getProps(['y'], true).y;
+            }
+          }
+        },
         interaction: {
           mode: 'index',
           intersect: false,
@@ -145,24 +185,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         plugins: {
           legend: {
             position: 'top',
+            labels: { font: { family: 'Inter', size: 13 } }
           },
           tooltip: {
             backgroundColor: 'rgba(15, 23, 42, 0.9)',
             titleFont: { size: 13, family: 'Inter' },
             bodyFont: { size: 13, family: 'Inter' },
-            padding: 10,
+            padding: 12,
             cornerRadius: 8,
             displayColors: true,
+            intersect: false,
             callbacks: {
               label: function(context) {
-                let label = context.dataset.label || '';
-                if (label) {
-                  label += ': ';
-                }
-                if (context.parsed.y !== null) {
-                  label += context.parsed.y.toFixed(2);
-                }
-                return label;
+                return context.dataset.label + ': ' + context.parsed.y.toFixed(2);
               }
             }
           }
@@ -170,10 +205,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { maxTicksLimit: 12 }
+            ticks: { maxTicksLimit: 12, font: { family: 'Inter' } }
           },
           y: {
-            grid: { color: '#e2e8f0' }
+            grid: { color: 'rgba(226, 232, 240, 0.5)' },
+            ticks: { font: { family: 'Inter' } }
           }
         }
       }
