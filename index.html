@@ -373,6 +373,23 @@
     </div>
   </section>
 
+  <!-- BREAKOUT SCANNER (MOONSHOTS) -->
+  <section class="movers-section container" style="margin-top: 40px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <div>
+        <h2 class="section-title" style="margin-bottom: 5px;">🚀 Breakout Scanner <span class="movers-badge" style="background:var(--success); color:white; border-color:var(--success);">Beta</span></h2>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin:0;" id="scannerStatus">Scans the top 80 Indian stocks for high-probability momentum breakouts.</p>
+      </div>
+      <button id="runScannerBtn" class="btn btn-primary" style="padding: 10px 20px; font-weight: bold; border: none; border-radius: 8px; background: var(--primary); color: white; cursor: pointer;">Run Full Scan</button>
+    </div>
+    <div style="width: 100%; height: 4px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 20px;">
+      <div id="scannerProgress" style="width: 0%; height: 100%; background: var(--success); transition: width 0.3s ease;"></div>
+    </div>
+    <div id="breakoutGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+      <!-- Cards injected by JS -->
+    </div>
+  </section>
+
   <!-- WHY GETNIFTYREADY -->
   <section class="content-section container">
     <div class="section-header">
@@ -759,6 +776,8 @@
 
   <script src="js/indicators.js" defer></script>
   <script src="js/signals.js" defer></script>
+  <script src="js/breakout-engine.js" defer></script>
+  <script src="js/scanner.js" defer></script>
   <script src="script.js?v=13" defer></script>
   <button id="backToTopBtn" class="back-to-top hidden" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
