@@ -36,7 +36,7 @@ const BreakoutEngine = {
     const bbwAvg20 = Indicators.avgLast(bbwArr, 20);
     const prevBbw = bbwArr.length >= 2 ? bbwArr[bbwArr.length - 2] : null;
     // We check if it was squeezing BEFORE the breakout blew the bands open
-    const isSqueezing = prevBbw !== null && bbwAvg20 !== null && prevBbw < bbwAvg20 * 0.8; 
+    const isSqueezing = prevBbw !== null && bbwAvg20 !== null && prevBbw < bbwAvg20 * 0.9; 
 
     // Volume Surge Detection
     let isVolumeSurge = false;
@@ -47,7 +47,7 @@ const BreakoutEngine = {
       if (avgVol && avgVol > 0) {
         const curRatio = currentVol / avgVol;
         volumeRatio = curRatio;
-        isVolumeSurge = volumeRatio >= 1.5; // 150% average volume
+        isVolumeSurge = volumeRatio >= 1.25; // 125% average volume
       }
     }
 
@@ -57,7 +57,7 @@ const BreakoutEngine = {
     // 1. Core Breakout logic (Price crossing above Upper Band)
     const breakoutBuffer = bbUpper ? (price > bbUpper ? (price - bbUpper) / bbUpper : 0) : 0;
     // We want the PREVIOUS close to be inside the bands, and the CURRENT close to break out above them.
-    const isBreakingOut = bbUpper && price > bbUpper && breakoutBuffer >= 0.005 && (
+    const isBreakingOut = bbUpper && price > bbUpper && breakoutBuffer >= 0.002 && (
       // Check current candle: prior close was inside bands
       (priorClose !== null && previousBbUpper !== null && priorClose <= previousBbUpper) ||
       // OR check 2nd-to-last candle (breakout happened 1 candle ago, still holding)
@@ -104,8 +104,8 @@ const BreakoutEngine = {
     }
 
     let signal = 'NEUTRAL';
-    if (score >= 5.0) signal = 'STRONG_BUY';
-    else if (score >= 3.0) signal = 'BUY';
+    if (score >= 4.0) signal = 'STRONG_BUY';
+    else if (score >= 2.5) signal = 'BUY';
     else if (score <= -2.0) signal = 'SELL';
 
     // Standard ATR-based Stop-Loss
