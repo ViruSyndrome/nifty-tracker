@@ -636,6 +636,20 @@ async function loadMovers() {
     valid.sort(function(a, b) { return b.pct - a.pct; });
     renderMovers('gainersList', valid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
     renderMovers('losersList',  valid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+    
+    var breakoutsEl = document.getElementById('breakoutsList');
+    if (breakoutsEl) {
+      var buySignals = valid.filter(function(d) { 
+        return d.signalData && (d.signalData.signal === 'STRONG_BUY' || d.signalData.signal === 'BUY'); 
+      });
+      buySignals.sort(function(a, b) { return b.signalData.score - a.signalData.score; });
+      if (buySignals.length) {
+        renderMovers('breakoutsList', buySignals.slice(0, 5), 'positive');
+      } else {
+        breakoutsEl.innerHTML = '<div class="mover-empty" style="color: #666;">No strong breakout signals found today.</div>';
+      }
+    }
+
     updateMarketSummary(valid);
     renderLiveTape(valid);
   } else {
@@ -897,8 +911,11 @@ async function searchBySymbol(symbol, name) {
       + '<div class="result-name-wrap">'
       + '<div class="result-name-row">'
       + '<h2 class="result-name">' + data.name + '</h2>'
+      + '<div style="display:flex; gap: 8px; align-items:center;">'
+      + '<a href="https://kite.zerodha.com/chart/web/tvc/NSE/' + symbol.replace(/\.(NS|BO)$/, '') + '" target="_blank" class="kite-btn" style="background:#0052cc; color:#fff; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; text-decoration:none;">📈 Trade</a>'
       + '<button class="' + wlStarCls + '" data-sym="' + symbol + '" onclick="toggleWatchlist(\'' + symbol + '\', \'' + safeName + '\')">'
       + wlStarLbl + '</button>'
+      + '</div>'
       + '</div>'
       + '<span class="result-symbol">' + symbol.replace(/\.(NS|BO)$/, '') + ' · ' + (data.exchange || 'NSE') + '</span>'
       + '</div>'

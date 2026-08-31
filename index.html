@@ -103,9 +103,8 @@
       </a>
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
-        <a href="/" class="active" data-nav="Live Prices">Live Prices</a>
-        <a href="12-week-moving-average.html" data-nav="Trend Tracker">Trend Tracker</a>
-        <a href="trading-signals.html" data-nav="Live Signals" style="color: #10b981;">⚡ Live Signals</a>
+        <a href="index.html" data-nav="Live Prices">Live Prices</a>
+        <a href="market-insights.html" data-nav="Trend Tracker">Trend Tracker</a>
         <a href="sip-calculator.html" data-nav="SIP Calc">SIP Calc</a>
         <a href="swp-calculator.html" data-nav="SWP Calc">SWP Calc</a>
         <a href="market-insights.html" data-nav="Insights">Insights</a>
@@ -353,11 +352,22 @@
   </section>
 
   <!-- POPULAR STOCKS -->
-  <section class="popular-section container">
-    <h2 class="section-title">Popular Stocks</h2>
-    <p class="section-sub">Most-traded Nifty 50 stocks · Hover a card for quick info · Click to see full details</p>
-    <div class="popular-grid" id="popularGrid"></div>
-  </section>
+    <section class="popular-section container">
+      <h2 class="section-title">Popular Stocks</h2>
+      <p class="section-sub">Most-traded Nifty 50 stocks • Hover a card for quick info • Click to see full details</p>
+      <div class="popular-grid" id="popularGrid"></div>
+    </section>
+  
+    <!-- BREAKOUT SIGNALS -->
+    <section class="movers-section container">
+      <div class="movers-grid" style="grid-template-columns: 1fr;">
+        <div class="movers-card" style="border: 1px solid #4c9aff; box-shadow: 0 0 15px rgba(76, 154, 255, 0.2);">
+          <h2 class="section-title" style="color: #4c9aff;">⚡ Top Breakout Signals <span class="movers-badge" style="background: #0052cc; color: white;">Algorithmic</span></h2>
+          <p style="font-size: 0.85rem; color: #888; margin: -10px 0 15px 12px;">Based on moving averages and volume breakouts over the last 90 days.</p>
+          <div id="breakoutsList" class="movers-list"><div class="mover-empty skeleton">Scanning market...</div></div>
+        </div>
+      </div>
+    </section>
 
   <!-- GAINERS / LOSERS -->
   <section class="movers-section container">
