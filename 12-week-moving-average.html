@@ -281,6 +281,31 @@
       </div>
     </a>
 
+    
+    <!-- BACKTEST RESULTS -->
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem 2rem; margin-bottom: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <h2 style="font-size: 1.2rem; margin-top: 0; margin-bottom: 1.5rem; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem;">5-Year Historical Backtest <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted); float: right; margin-top: 4px;">Live Data</span></h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+        <div style="padding: 1.25rem; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border);">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Buy & Hold Return</div>
+          <div id="btBhReturn" style="font-size: 1.5rem; font-weight: 700; color: var(--text);">--</div>
+        </div>
+        <div style="padding: 1.25rem; background: rgba(34, 197, 94, 0.05); border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">12-WMA Strategy</div>
+          <div id="btWmaReturn" style="font-size: 1.5rem; font-weight: 700; color: var(--success);">--</div>
+        </div>
+        <div style="padding: 1.25rem; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border);">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Outperformance</div>
+          <div id="btOutperformance" style="font-size: 1.5rem; font-weight: 700;">--</div>
+        </div>
+        <div style="padding: 1.25rem; background: rgba(0,0,0,0.02); border-radius: 12px; border: 1px solid var(--border);">
+          <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">Total Trades (5y)</div>
+          <div id="btTrades" style="font-size: 1.5rem; font-weight: 700; color: var(--text);">--</div>
+        </div>
+      </div>
+      <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: 1rem; margin-bottom: 0; text-align: center;">*Backtest assumes buying on the Monday open following a weekly close above/below the 12WMA. Taxes and slippage not included.</p>
+    </div>
+
     <div class="chart-container">
       <canvas id="wmaChart"></canvas>
     </div>

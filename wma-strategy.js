@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   // We need at least ~65 weeks to compute a robust 12WMA line and have ~1 year of plot data
   // Let's fetch 2 years of weekly data
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${SYMBOL}?interval=1wk&range=2y`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${SYMBOL}?interval=1wk&range=5y`;
 
   try {
     if (typeof proxyFetch === 'undefined') {
@@ -57,6 +57,64 @@ document.addEventListener('DOMContentLoaded', async () => {
         cleanData[i].wma12 = null;
       }
     }
+
+    
+    // --- BACKTEST LOGIC (5-Year) ---
+    try {
+      let initialCapital = 10000;
+      let cash = initialCapital;
+      let shares = 0;
+      let position = 'CASH';
+      
+      let bhShares = initialCapital / cleanData[wmaPeriod].close;
+      let trades = 0;
+      
+      for(let i = wmaPeriod + 1; i < cleanData.length; i++) {
+        const row = cleanData[i];
+        const prevRow = cleanData[i-1];
+        
+        // Signal logic based on previous week's close vs WMA
+        if (prevRow.close > prevRow.wma12 && position === 'CASH') {
+           // Buy at current week's close (approximation for next open)
+           shares = cash / row.close;
+           cash = 0;
+           position = 'LONG';
+           trades++;
+        } else if (prevRow.close < prevRow.wma12 && position === 'LONG') {
+           // Sell at current week's close
+           cash = shares * row.close;
+           shares = 0;
+           position = 'CASH';
+           trades++;
+        }
+      }
+      
+      const finalWmaValue = position === 'LONG' ? (shares * cleanData[cleanData.length-1].close) : cash;
+      const finalBhValue = bhShares * cleanData[cleanData.length-1].close;
+      
+      const wmaReturn = ((finalWmaValue - initialCapital) / initialCapital) * 100;
+      const bhReturn = ((finalBhValue - initialCapital) / initialCapital) * 100;
+      
+      const outperformance = wmaReturn - bhReturn;
+      
+      const btTradesEl = document.getElementById('btTrades');
+      const btWmaReturnEl = document.getElementById('btWmaReturn');
+      const btBhReturnEl = document.getElementById('btBhReturn');
+      const btDiffEl = document.getElementById('btOutperformance');
+      
+      if(btTradesEl) btTradesEl.textContent = trades;
+      if(btWmaReturnEl) btWmaReturnEl.textContent = wmaReturn.toFixed(1) + '%';
+      if(btBhReturnEl) btBhReturnEl.textContent = bhReturn.toFixed(1) + '%';
+      
+      if(btDiffEl) {
+        btDiffEl.textContent = (outperformance > 0 ? '+' : '') + outperformance.toFixed(1) + '%';
+        btDiffEl.style.color = outperformance > 0 ? 'var(--success)' : 'var(--danger)';
+      }
+    } catch(err) {
+      console.error("Backtest error:", err);
+    }
+    // --- END BACKTEST LOGIC ---
+
 
     // Prepare data for UI (use only the last 1 year / 52 weeks for the chart)
     const displayData = cleanData.slice(-52);
