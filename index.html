@@ -104,9 +104,10 @@
       <button class="hamburger" aria-label="Menu" onclick="this.classList.toggle('open');this.closest('.navbar').querySelector('.nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
       <div class="nav-links">
         <a href="index.html" data-nav="Live Prices">Live Prices</a>
-        <a href="market-insights.html" data-nav="Trend Tracker">Trend Tracker</a>
+        <a href="12-week-moving-average.html" data-nav="Trend Tracker">Trend Tracker</a>
         <a href="sip-calculator.html" data-nav="SIP Calc">SIP Calc</a>
         <a href="swp-calculator.html" data-nav="SWP Calc">SWP Calc</a>
+        <a href="trading-signals.html" data-nav="Live Signals">Live Signals</a>
         <a href="market-insights.html" data-nav="Insights">Insights</a>
         <a href="about.html" data-nav="About">About</a>
         <a href="contact.html" data-nav="Contact">Contact</a>
@@ -207,15 +208,14 @@
     <div class="watchlist-grid" id="watchlistGrid"></div>
   </section>
 
-  <!-- Affiliate CTA -->
   <section class="container" style="margin-top: 2rem; margin-bottom: 2rem;">
-    <div style="background: linear-gradient(to right, #0052cc, #4c9aff); border-radius: 12px; padding: 24px; color: white; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; box-shadow: 0 8px 16px rgba(0,82,204,0.15);">
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;">
       <div style="flex: 1; min-width: 300px;">
-        <h2 style="font-size: 1.5rem; margin-bottom: 8px; color: white;">Execute trades with Zero Brokerage 🚀</h2>
-        <p style="margin: 0; font-size: 1.05rem; opacity: 0.9;">Take action on your watchlist. Open a free Demat account with Zerodha today and start investing with the best tools in India.</p>
+        <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Plan an SIP before you invest</h2>
+        <p style="margin: 0; font-size: 1.05rem; color: var(--text-muted);">This site is not a broker and is not SEBI-registered. Use the SIP calculator to run the numbers yourself, then decide with a registered advisor if you need one.</p>
       </div>
       <div>
-        <a href="https://zerodha.com/open-account" target="_blank" rel="noopener noreferrer" style="background: white; color: #0052cc; padding: 14px 28px; border-radius: 8px; font-weight: bold; text-decoration: none; display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">Open Free Account &rarr;</a>
+        <a href="sip-calculator.html" style="background: var(--primary); color: #fff; padding: 14px 28px; border-radius: 8px; font-weight: bold; text-decoration: none; display: inline-block;">Open SIP Calculator</a>
       </div>
     </div>
   </section>
