@@ -10,16 +10,48 @@
  * Free tier: 100,000 requests/day — more than enough.
  */
 
+const ALLOWED_ORIGINS = new Set([
+  'https://www.getniftyready.com',
+  'https://getniftyready.com',
+  'http://localhost',
+  'http://localhost:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5500',
+]);
+
+function corsOrigin(request) {
+  const origin = request.headers.get('Origin') || '';
+  if (ALLOWED_ORIGINS.has(origin)) return origin;
+  // Allow any localhost port for local file/dev servers
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return origin;
+  return null;
+}
+
+function corsHeaders(request) {
+  const allowed = corsOrigin(request);
+  const headers = {
+    'Access-Control-Allow-Methods': 'GET',
+    'Access-Control-Max-Age': '86400',
+  };
+  if (allowed) {
+    headers['Access-Control-Allow-Origin'] = allowed;
+    headers['Vary'] = 'Origin';
+  }
+  return headers;
+}
+
 export default {
   async fetch(request) {
     if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET',
-          'Access-Control-Max-Age': '86400',
-        },
-      });
+      return new Response(null, { headers: corsHeaders(request) });
+    }
+
+    const originOk = corsOrigin(request);
+    // Same-origin / non-browser callers (no Origin) are allowed; browsers must match allowlist.
+    if (request.headers.has('Origin') && !originOk) {
+      return new Response('Forbidden origin', { status: 403 });
     }
 
     const url = new URL(request.url);
@@ -62,7 +94,7 @@ export default {
         status: response.status,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders(request),
           'Cache-Control': 'public, max-age=60',
         },
       });
@@ -71,7 +103,7 @@ export default {
         status: 504,
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
+          ...corsHeaders(request),
         },
       });
     }

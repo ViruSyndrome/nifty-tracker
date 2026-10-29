@@ -65,7 +65,7 @@ const Signals = {
     let score = 0;
     const indDetails = {};
 
-    // Trend regime: price vs long SMA decides whether oversold = dip-buy or falling knife.
+    // Trend regime: price vs long SMA — oversold in uptrend vs oversold in downtrend.
     const trendRef  = curSma200 !== null && curSma200 !== undefined ? curSma200 : curSma50;
     const inUptrend = trendRef !== null && trendRef !== undefined ? price > trendRef : true;
 
@@ -73,8 +73,8 @@ const Signals = {
     if (rsi !== null) {
       let s = 0, sig = 'NEUTRAL', desc = '';
       if (inUptrend) {
-        if      (rsi < 30)  { s =  1.5; sig = 'BUY';     desc = 'Oversold pullback within an uptrend — classic dip-buy zone'; }
-        else if (rsi < 40)  { s =  1.0; sig = 'BUY';     desc = 'Cooling dip in an uptrend — favorable entry'; }
+        if      (rsi < 30)  { s =  1.5; sig = 'BUY';     desc = 'RSI oversold while price remains above the long-term average'; }
+        else if (rsi < 40)  { s =  1.0; sig = 'BUY';     desc = 'RSI cooling while price remains above the long-term average'; }
         else if (rsi <= 65) { s =  0.0; sig = 'NEUTRAL'; desc = 'Neutral momentum within an uptrend'; }
         else if (rsi <= 80) { s = -0.5; sig = 'NEUTRAL'; desc = 'Hot but uptrends can stay overbought — caution'; }
         else                { s = -1.0; sig = 'SELL';    desc = 'Extremely overbought even for an uptrend — pullback likely'; }
@@ -216,33 +216,19 @@ const Signals = {
       }
     }
 
-    // ── ATR-backed risk hints (market-agnostic) ─────────────────────────────
+    // ── ATR-backed volatility regime (no numeric stop/target prices) ────────
     const atrValueRaw = atrArr ? Indicators.last(atrArr) : null;
     const atrValue = atrValueRaw != null && !isNaN(atrValueRaw) ? +atrValueRaw.toFixed(4) : null;
     const atrPct = atrValue != null && price ? +((atrValue / price) * 100).toFixed(2) : null;
     const riskLevel = atrPct == null ? 'Unknown' : (atrPct <= 1.2 ? 'Low' : atrPct <= 2.8 ? 'Medium' : 'High');
-    const stopMult = signal === 'STRONG_BUY' || signal === 'STRONG_SELL' ? 1.8 : 1.5;
-    const tpMult = signal === 'STRONG_BUY' || signal === 'STRONG_SELL' ? 2.2 : 1.8;
     let risk = null;
     if (atrValue != null && price != null) {
       const isLongBias = signal === 'BUY' || signal === 'STRONG_BUY';
       const isShortBias = signal === 'SELL' || signal === 'STRONG_SELL';
-      const stopLoss = isLongBias
-        ? price - (atrValue * stopMult)
-        : isShortBias
-          ? price + (atrValue * stopMult)
-          : null;
-      const takeProfit = isLongBias
-        ? price + (atrValue * tpMult)
-        : isShortBias
-          ? price - (atrValue * tpMult)
-          : null;
       risk = {
         atr: atrValue,
         atrPercent: atrPct,
         level: riskLevel,
-        stopLoss: stopLoss != null ? +stopLoss.toFixed(2) : null,
-        takeProfit: takeProfit != null ? +takeProfit.toFixed(2) : null,
         direction: isLongBias ? 'LONG' : isShortBias ? 'SHORT' : 'NEUTRAL',
       };
     }
@@ -291,39 +277,33 @@ const Signals = {
     let text = [];
     switch (signal) {
       case 'STRONG_BUY':
-        text.push('🚀 Strong buying conditions detected.');
-        if (rsi && rsi < 35) text.push(`RSI at ${rsi} signals deeply oversold levels.`);
-        if (cross === 'bullish') text.push('A MACD bullish crossover just fired — a classic entry trigger.');
-        if (ma?.aboveSma20 && ma?.aboveSma50) text.push('Price is in bullish MA alignment above both 20 & 50 SMA.');
-        text.push('Consider entering with a defined stop-loss below nearest support. Risk only 1–2% of capital.');
+        text.push('Multiple indicators align on the bullish side of their ranges.');
+        if (rsi && rsi < 35) text.push(`RSI at ${rsi} is in oversold territory.`);
+        if (cross === 'bullish') text.push('MACD line has crossed above its signal line.');
+        if (ma?.aboveSma20 && ma?.aboveSma50) text.push('Price is above both the 20-DMA and 50-DMA.');
         break;
       case 'BUY':
-        text.push('📈 Lean bullish — conditions favor buyers, but confirmation is advised.');
-        if (rsi && rsi < 50) text.push(`RSI at ${rsi} shows the asset is not overbought — room to run.`);
-        text.push('Wait for a green candle confirmation before entering. Always set a stop-loss.');
+        text.push('Indicator readings lean bullish relative to recent averages.');
+        if (rsi && rsi < 50) text.push(`RSI at ${rsi} is below the midpoint.`);
+        if (ma?.aboveSma20) text.push('Price is above the 20-DMA.');
         break;
       case 'NEUTRAL':
-        text.push('⏸️ Mixed signals — no clear directional edge.');
-        text.push('Sit on the sidelines or hold existing positions. Avoid new entries until a clearer setup forms.');
-        text.push('Watch for a breakout above resistance or a breakdown below support.');
+        text.push('Mixed indicator readings — no clear directional alignment.');
+        if (ma) text.push(ma.aboveSma20 ? 'Price is above the 20-DMA.' : 'Price is below the 20-DMA.');
         break;
       case 'SELL':
-        text.push('📉 Conditions lean bearish — consider reducing exposure.');
-        if (rsi && rsi > 60) text.push(`RSI at ${rsi} suggests the asset may be running out of steam.`);
-        if (ma && !ma.aboveSma20) text.push('Price has broken below the 20-day moving average — a warning sign.');
-        text.push('If holding a long position, consider tightening your stop-loss.');
+        text.push('Indicator readings lean bearish relative to recent averages.');
+        if (rsi && rsi > 60) text.push(`RSI at ${rsi} is elevated.`);
+        if (ma && !ma.aboveSma20) text.push('Price is below the 20-DMA.');
         break;
       case 'STRONG_SELL':
-        text.push('🔻 Strong selling conditions. High risk for longs.');
-        if (rsi && rsi > 70) text.push(`RSI at ${rsi} is in extreme overbought territory.`);
-        if (cross === 'bearish') text.push('A MACD bearish crossover confirms selling pressure.');
-        text.push('⚠️ Do NOT average down against this signal. Protect your capital first.');
+        text.push('Multiple indicators align on the bearish side of their ranges.');
+        if (rsi && rsi > 70) text.push(`RSI at ${rsi} is in overbought territory.`);
+        if (cross === 'bearish') text.push('MACD line has crossed below its signal line.');
         break;
     }
     if (risk && risk.atrPercent != null) {
-      text.push(`Volatility: ATR is ${risk.atrPercent}% of price (${risk.level.toLowerCase()} risk regime).`);
-      if (risk.stopLoss != null) text.push(`Illustrative stop zone: ₹${risk.stopLoss.toFixed(2)}.`);
-      if (risk.takeProfit != null) text.push(`Illustrative first target: ₹${risk.takeProfit.toFixed(2)}.`);
+      text.push(`Volatility: ATR is ${risk.atrPercent}% of price (${risk.level.toLowerCase()} regime).`);
     }
     return text.join(' ');
   },

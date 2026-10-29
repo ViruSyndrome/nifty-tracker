@@ -74,6 +74,23 @@ function trackEvent(eventName, params = {}) {
 const YF_BASE   = 'https://query1.finance.yahoo.com/v8/finance/chart/';
 const YF_SEARCH = 'https://query1.finance.yahoo.com/v1/finance/search?q=';
 
+/** Escape untrusted strings before inserting into HTML. */
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Escape for single-quoted JS string literals in inline handlers. */
+function escJs(s) {
+  if (s == null) return '';
+  return String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+}
+
 // -- Index symbols --
 const INDICES = [
   { id: 'idx-nifty50',   symbol: '^NSEI',       name: 'Nifty 50' },
@@ -854,12 +871,12 @@ async function searchBySymbol(symbol, name) {
   var section = document.getElementById('resultSection');
   var card    = document.getElementById('resultCard');
   section.classList.remove('hidden');
-  card.innerHTML = '<div class="result-loading">Fetching ' + name + '…</div>';
+  card.innerHTML = '<div class="result-loading">Fetching ' + escHtml(name) + '…</div>';
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   var data = await fetchYahoo(symbol);
   if (!data) {
-    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + name + '</strong>. The ticker may be incorrect, or the market may be closed. Try searching by company name instead.</div>';
+    card.innerHTML = '<div class="result-error">Could not fetch data for <strong>' + escHtml(name) + '</strong>. The ticker may be incorrect, or the market may be closed. Try searching by company name instead.</div>';
     return;
   }
 
@@ -872,7 +889,9 @@ async function searchBySymbol(symbol, name) {
   // Save to recently searched
   addRecent(symbol, data.name || name);
 
-  var safeName = (data.name || name).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  var displayName = data.name || name;
+  var safeName = escJs(displayName);
+  var safeSym = escJs(symbol);
   var wlStarCls = isWatchlisted(symbol) ? 'star-btn starred result-star' : 'star-btn result-star';
   var wlStarLbl = isWatchlisted(symbol) ? '★ Watchlisted' : '☆ Watchlist';
 
@@ -883,19 +902,17 @@ async function searchBySymbol(symbol, name) {
       var quality = sig.quality || null;
       var risk = sig.risk || null;
       var qualityHtml = quality
-        ? '<div><strong>Setup Quality:</strong> ' + quality.score + '/100 (' + quality.label + ')</div>'
+        ? '<div><strong>Setup Quality:</strong> ' + quality.score + '/100 (' + escHtml(quality.label) + ')</div>'
         : '';
       var riskHtml = risk && risk.atrPercent != null
-        ? '<div><strong>Risk Regime:</strong> ' + risk.level + ' (ATR ' + risk.atrPercent + '%)</div>'
-          + (risk.stopLoss != null ? '<div><strong>Illustrative Stop:</strong> ₹' + fmt(risk.stopLoss) + '</div>' : '')
-          + (risk.takeProfit != null ? '<div><strong>Illustrative Target:</strong> ₹' + fmt(risk.takeProfit) + '</div>' : '')
+        ? '<div><strong>Volatility Regime:</strong> ' + escHtml(risk.level) + ' (ATR ' + risk.atrPercent + '%)</div>'
         : '';
       techHtml = '<div class="result-tech" style="margin:20px 0; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px;">'
         + '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">'
         + '<h3 style="margin:0; font-size:1rem; color:var(--text);">⚡ Technical Analysis Engine</h3>'
-        + '<span class="signal-badge ' + lvl.cls + '" style="font-size:0.8rem; padding:4px 8px;">' + lvl.icon + ' ' + lvl.short + '</span>'
+        + '<span class="signal-badge ' + escHtml(lvl.cls) + '" style="font-size:0.8rem; padding:4px 8px;">' + escHtml(lvl.icon) + ' ' + escHtml(lvl.short) + '</span>'
         + '</div>'
-        + '<p style="margin:0 0 12px 0; font-size:0.9rem; color:var(--text-muted); line-height:1.4;">' + sig.recommendation + '</p>'
+        + '<p style="margin:0 0 12px 0; font-size:0.9rem; color:var(--text-muted); line-height:1.4;">' + escHtml(sig.recommendation) + '</p>'
         + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem; color:var(--text-muted);">'
         + qualityHtml
         + riskHtml
@@ -910,14 +927,13 @@ async function searchBySymbol(symbol, name) {
     card.innerHTML = '<div class="result-header">'
       + '<div class="result-name-wrap">'
       + '<div class="result-name-row">'
-      + '<h2 class="result-name">' + data.name + '</h2>'
+      + '<h2 class="result-name">' + escHtml(displayName) + '</h2>'
       + '<div style="display:flex; gap: 8px; align-items:center;">'
-      + '<a href="https://kite.zerodha.com/chart/web/tvc/NSE/' + symbol.replace(/\.(NS|BO)$/, '') + '" target="_blank" class="kite-btn" style="background:#0052cc; color:#fff; padding:4px 8px; border-radius:4px; font-size:0.75rem; font-weight:bold; text-decoration:none;">📈 Trade</a>'
-      + '<button class="' + wlStarCls + '" data-sym="' + symbol + '" onclick="toggleWatchlist(\'' + symbol + '\', \'' + safeName + '\')">'
+      + '<button class="' + wlStarCls + '" data-sym="' + escHtml(symbol) + '" onclick="toggleWatchlist(\'' + safeSym + '\', \'' + safeName + '\')">'
       + wlStarLbl + '</button>'
       + '</div>'
       + '</div>'
-      + '<span class="result-symbol">' + symbol.replace(/\.(NS|BO)$/, '') + ' · ' + (data.exchange || 'NSE') + '</span>'
+      + '<span class="result-symbol">' + escHtml(symbol.replace(/\.(NS|BO)$/, '')) + ' · ' + escHtml(data.exchange || 'NSE') + '</span>'
       + '</div>'
       + '<div class="result-price-wrap">'
       + '<div class="result-price">' + cur + fmt(data.price) + '</div>'
@@ -973,7 +989,7 @@ async function searchAndShow(q) {
   var section = document.getElementById('resultSection');
   var card    = document.getElementById('resultCard');
   section.classList.remove('hidden');
-  card.innerHTML = '<div class="result-loading">Searching for "' + q + '"…</div>';
+  card.innerHTML = '<div class="result-loading">Searching for "' + escHtml(q) + '"…</div>';
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
@@ -1013,21 +1029,22 @@ async function searchAndShow(q) {
 
     if (allQuotes.length) {
       // Show suggestions the user can click
-      var sugHtml = '<div class="result-error" style="margin-bottom:12px;">No exact match for "<strong>' + q + '</strong>". Did you mean:</div>';
+      var sugHtml = '<div class="result-error" style="margin-bottom:12px;">No exact match for "<strong>' + escHtml(q) + '</strong>". Did you mean:</div>';
       sugHtml += '<div class="search-suggestions">';
       allQuotes.slice(0, 5).forEach(function(item) {
+        var itemName = item.longname || item.shortname || item.symbol;
         var displayExch = (item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO'))
           ? item.symbol.replace(/\.(NS|BO)$/, '') + ' · NSE'
           : item.symbol + ' · ' + (item.exchDisp || item.exchange || 'US');
-        sugHtml += '<div class="suggestion-card" onclick="searchBySymbol(\'' + item.symbol + '\', \'' + (item.longname || item.shortname || item.symbol).replace(/'/g, "\\'").replace(/"/g, '&quot;') + '\')">'
-          + '<span class="sug-card-name">' + (item.longname || item.shortname || item.symbol) + '</span>'
-          + '<span class="sug-card-ticker">' + displayExch + '</span>'
+        sugHtml += '<div class="suggestion-card" onclick="searchBySymbol(\'' + escJs(item.symbol) + '\', \'' + escJs(itemName) + '\')">'
+          + '<span class="sug-card-name">' + escHtml(itemName) + '</span>'
+          + '<span class="sug-card-ticker">' + escHtml(displayExch) + '</span>'
           + '</div>';
       });
       sugHtml += '</div>';
       card.innerHTML = sugHtml;
     } else {
-      card.innerHTML = '<div class="result-error">No results found for "<strong>' + q + '</strong>". Try a different spelling or browse the suggestions as you type.</div>';
+      card.innerHTML = '<div class="result-error">No results found for "<strong>' + escHtml(q) + '</strong>". Try a different spelling or browse the suggestions as you type.</div>';
     }
   } catch (e) {
     card.innerHTML = '<div class="result-error">Search failed. Please try again, or type a ticker symbol directly (e.g. RELIANCE, TCS, SPCX).</div>';
@@ -1061,9 +1078,10 @@ async function fetchSuggestions(q) {
     sugEl.innerHTML = allQuotes.map(function(item) {
       var isIndian = item.symbol.endsWith('.NS') || item.symbol.endsWith('.BO');
       var exchange = isIndian ? item.symbol.replace(/\.(NS|BO)$/, '') : item.symbol + ' · US';
-      return '<div class="suggestion-item" data-symbol="' + item.symbol + '" data-name="' + (item.longname || item.shortname || item.symbol).replace(/"/g, '&quot;') + '">'
-        + '<span class="sug-name">' + (item.longname || item.shortname || item.symbol) + '</span>'
-        + '<span class="sug-ticker">' + exchange + '</span>'
+      var itemName = item.longname || item.shortname || item.symbol;
+      return '<div class="suggestion-item" data-symbol="' + escHtml(item.symbol) + '" data-name="' + escHtml(itemName) + '">'
+        + '<span class="sug-name">' + escHtml(itemName) + '</span>'
+        + '<span class="sug-ticker">' + escHtml(exchange) + '</span>'
         + '</div>';
     }).join('');
     sugEl.querySelectorAll('.suggestion-item').forEach(function(item) {
@@ -1604,11 +1622,11 @@ function renderRecentlySearched() {
   if (!list.length) { sec.classList.add('hidden'); return; }
   sec.classList.remove('hidden');
   grid.innerHTML = list.map(function(s) {
-    var safeSymArg = s.symbol.replace(/'/g, "\\'");
-    var safeNmArg  = s.name.replace(/'/g, "\\'");
+    var safeSymArg = escJs(s.symbol);
+    var safeNmArg  = escJs(s.name);
     return '<div class="recent-chip" onclick="searchBySymbol(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" role="button" tabindex="0">'
-      + '<span class="recent-chip-name">' + s.name + '</span>'
-      + '<span class="recent-chip-sym">' + s.symbol.replace(/\.(NS|BO)$/, '') + '</span>'
+      + '<span class="recent-chip-name">' + escHtml(s.name) + '</span>'
+      + '<span class="recent-chip-sym">' + escHtml(s.symbol.replace(/\.(NS|BO)$/, '')) + '</span>'
       + '</div>';
   }).join('');
 }
@@ -1660,12 +1678,12 @@ async function loadWatchlist() {
   // Skeleton placeholders
   grid.innerHTML = list.map(function(s) {
     var safeId = 'wl-' + s.symbol.replace(/[^a-z0-9]/gi, '_');
-    var safeSymArg = s.symbol.replace(/'/g, "\\'");
-    var safeNmArg  = s.name.replace(/'/g, "\\'");
-    return '<div class="watchlist-card skeleton" id="' + safeId + '" onclick="searchBySymbol(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" role="button" tabindex="0">'
+    var safeSymArg = escJs(s.symbol);
+    var safeNmArg  = escJs(s.name);
+    return '<div class="watchlist-card skeleton" id="' + escHtml(safeId) + '" onclick="searchBySymbol(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" role="button" tabindex="0">'
       + '<div class="wl-header">'
-      + '<span class="wl-name">' + s.name + '</span>'
-      + '<button class="star-btn starred" data-sym="' + s.symbol + '" onclick="event.stopPropagation();toggleWatchlist(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" title="Remove from watchlist" aria-label="Remove from watchlist">★</button>'
+      + '<span class="wl-name">' + escHtml(s.name) + '</span>'
+      + '<button class="star-btn starred" data-sym="' + escHtml(s.symbol) + '" onclick="event.stopPropagation();toggleWatchlist(\'' + safeSymArg + '\', \'' + safeNmArg + '\')" title="Remove from watchlist" aria-label="Remove from watchlist">★</button>'
       + '</div>'
       + '<div class="wl-price">—</div>'
       + '<div class="wl-change">Loading…</div>'
@@ -1741,13 +1759,16 @@ function processUrlWatchlist() {
   var params = new URLSearchParams(window.location.search);
   var wlParam = params.get('watchlist');
   if (wlParam) {
-    var symbols = wlParam.split(',').map(function(s) { return s.trim().toUpperCase(); }).filter(Boolean);
+    // Only allow ticker-like tokens — blocks HTML/script injection via ?watchlist=
+    var symbols = wlParam.split(',').map(function(s) { return s.trim().toUpperCase(); })
+      .filter(function(s) { return /^[A-Z0-9.^]{1,32}$/.test(s); });
     var current = getWatchlist();
     var changed = false;
     
     symbols.forEach(function(sym) {
       if (!isWatchlisted(sym) && current.length < MAX_WATCHLIST) {
-        current.push({ symbol: sym, name: sym.replace('.NS', '').replace('.BO', '') });
+        var safeLabel = sym.replace(/\.NS$/, '').replace(/\.BO$/, '');
+        current.push({ symbol: sym, name: safeLabel });
         changed = true;
       }
     });

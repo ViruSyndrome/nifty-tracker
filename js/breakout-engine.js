@@ -108,32 +108,11 @@ const BreakoutEngine = {
     else if (score >= 2.5) signal = 'BUY';
     else if (score <= -2.0) signal = 'SELL';
 
-    // Standard ATR-based Stop-Loss
+    // ATR / chandelier for indicator context only — no numeric stop/target prices.
     let stopSuggest = null;
     let chandExit = null;
     if (highs && lows) {
       chandExit = Indicators.chandelierExit(highs, lows, closes, 22, 3);
-      const atrArr = Indicators.atr(highs, lows, closes, 14);
-      const curAtr = Indicators.last(atrArr);
-      
-      if (curAtr && (signal.includes('BUY') || signal.includes('SELL'))) {
-        const isLong = signal.includes('BUY');
-        const mult = 2.5; // Slightly wider stop for breakouts
-        const risk = curAtr * mult;
-        const stopPrice = isLong ? price - risk : price + risk;
-        const takeProfitPrice = isLong ? price + risk * 2 : price - risk * 2;
-        const distPct = ((risk / price) * 100).toFixed(2);
-        
-        stopSuggest = {
-          stopPrice: +stopPrice.toFixed(2),
-          takeProfitPrice: +takeProfitPrice.toFixed(2),
-          distancePct: +distPct,
-          takeProfitPct: +(((risk * 2) / price) * 100).toFixed(2),
-          riskMultiple: 2,
-          side: isLong ? 'long' : 'short'
-        };
-        desc.push(`Suggested Stop: ₹${stopPrice.toFixed(2)} (${distPct}% away) with a 2R partial-profit target.`);
-      }
     }
 
     // DEBUG LOG FOR VERIFICATION
