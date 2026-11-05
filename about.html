@@ -8,6 +8,17 @@
   <script>
     Sentry.onLoad(function() {
       Sentry.init({
+        ignoreErrors: [/TagError/i, /No slot size/i, /adsbygoogle/i, /pageContext/i, /@context/i, /runtime\.sendMessage/i, /Tab not found/i, /Extension context invalidated/i, /int64/i, /rum_fy2021/i, "Script error."],
+        denyUrls: [/pagead2\.googlesyndication\.com/i, /googlesyndication\.com/i, /googleadservices\.com/i, /ep1\.adtrafficquality\.google/i],
+        beforeSend: function(event) {
+          try {
+            var msg = (event && event.message) || (event && event.exception && event.exception.values && event.exception.values[0] && event.exception.values[0].value) || '';
+            if (/TagError|adsbygoogle|availableWidth/i.test(msg)) {
+              return null;
+            }
+          } catch (e) {}
+          return event;
+        },
         tracesSampleRate: 1.0,
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,

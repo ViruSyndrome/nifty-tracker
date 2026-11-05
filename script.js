@@ -780,8 +780,6 @@ function hideEmptyAdSlots() {
       return;
     }
 
-    slot.classList.add('hidden');
-
     var hasVisibleAd = function() {
       var iframe = ins.querySelector('iframe');
       if (!iframe) return false;
