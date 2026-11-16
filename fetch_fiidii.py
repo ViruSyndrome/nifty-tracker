@@ -1,6 +1,7 @@
 import requests
 import json
 import os
+import sys
 from datetime import datetime
 
 url = 'https://www.nseindia.com/api/fiidiiTradeReact'
@@ -40,12 +41,21 @@ def fetch_data():
             except:
                 history = []
         
+        # Ensure response is a list before indexing
+        if not isinstance(new_data, list):
+            print(f"Unexpected NSE API response type: {type(new_data).__name__}")
+            return False
+
         # Avoid duplicates (check if the latest date already exists)
-        if new_data and len(new_data) > 0:
-            latest_date = new_data[0].get('date')
-            
+        if len(new_data) > 0:
+            first_entry = new_data[0]
+            latest_date = first_entry.get('date') if isinstance(first_entry, dict) else None
+            if not latest_date:
+                print("Unexpected entry format in NSE API response.")
+                return False
+
             # Filter out entries from the same date to avoid duplicates
-            history = [h for h in history if h.get('date') != latest_date]
+            history = [h for h in history if isinstance(h, dict) and h.get('date') != latest_date]
             
             # Append new data to the FRONT (newest first)
             history = new_data + history
@@ -68,4 +78,5 @@ def fetch_data():
         return False
 
 if __name__ == '__main__':
-    fetch_data()
+    if not fetch_data():
+        sys.exit(1)

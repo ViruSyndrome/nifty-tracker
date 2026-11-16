@@ -37,4 +37,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add data/fiidii.json
           # Only commit if there are changes
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update FII/DII data for $(date +'%Y-%m-%d') [skip ci]" && git push origin main)
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update FII/DII data for $(date +'%Y-%m-%d')" && git push origin main)

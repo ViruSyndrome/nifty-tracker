@@ -118,7 +118,7 @@ const BreakoutEngine = {
     // DEBUG LOG FOR VERIFICATION
     if (signal === 'BUY' || signal === 'STRONG_BUY') {
       console.log(`[Breakout Engine] ${opts.symbol} Score: ${score.toFixed(2)}`);
-      console.log(`  - Price: ${price.toFixed(2)}, Upper BB: ${bbUpper.toFixed(2)}`);
+      console.log(`  - Price: ${price?.toFixed(2)}, Upper BB: ${bbUpper?.toFixed(2)}`);
       console.log(`  - Squeezing: ${isSqueezing} (Prev BBW: ${prevBbw?.toFixed(3)}, Avg20: ${bbwAvg20?.toFixed(3)})`);
       console.log(`  - Vol Surge: ${isVolumeSurge} (Ratio: ${volumeRatio.toFixed(2)}x)`);
       console.log(`  - Trend OK: ${healthyBreakoutCandle && price > ema9}`);

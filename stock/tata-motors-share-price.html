@@ -141,8 +141,8 @@
 
   <!-- COMPANY OVERVIEW -->
   <section class="company-overview container" style="margin-top: 2rem; margin-bottom: 2rem;">
-    <div class="content-card" style="padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 12px;">
-      <h2 style="font-size: 1.5rem; color: var(--text-main); margin-bottom: 1rem;">About Tata Motors (TATAMOTORS)</h2>
+    <div class="content-card" style="padding: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;">
+      <h2 style="font-size: 1.5rem; color: var(--text); margin-bottom: 1rem;">About Tata Motors (TATAMOTORS)</h2>
       <p style="color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">Tata Motors, part of the prestigious Tata Group, is a leading global automobile manufacturer with a portfolio that covers a wide range of cars, SUVs, buses, trucks, and defense vehicles.</p>
       
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
@@ -161,7 +161,7 @@
       </div>
       
       <div style="margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
-        <h3 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.5rem;">Turnaround Story</h3>
+        <h3 style="font-size: 1.1rem; color: var(--text); margin-bottom: 0.5rem;">Turnaround Story</h3>
         <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5;">Tata Motors is widely regarded as one of the most successful turnaround stories in recent Indian corporate history, moving from massive pandemic-era debt to a zero net automotive debt target. Tracking its momentum is key to understanding the broader auto sector rotation in the <a href="../12-week-moving-average.html" style="color: var(--primary); text-decoration: underline;">trend tracker</a>.</p>
       </div>
     </div>
@@ -224,7 +224,7 @@
         <p class="section-sub">Your pinned stocks — updates every 20s. Click any card for full details.</p>
       </div>
       <div style="display: flex; gap: 0.8rem;">
-        <button class="btn-clear-list" style="background: var(--surface); color: var(--text-main); border: 1px solid var(--border);" onclick="shareWatchlist()">Share</button>
+        <button class="btn-clear-list" style="background: var(--bg-card); color: var(--text); border: 1px solid var(--border);" onclick="shareWatchlist()">Share</button>
         <button class="btn-clear-list" id="clearWatchlistBtn" onclick="clearWatchlist()">Clear all</button>
       </div>
     </div>
@@ -252,7 +252,7 @@
     </div>
     <div class="mini-tools-grid">
       <!-- SIP -->
-      <div class="mini-tool-card" onclick="window.location.href='sip-calculator.html'">
+      <div class="mini-tool-card" onclick="window.location.href='../sip-calculator.html'">
         <h3>💰 Quick SIP Calculator</h3>
         <p>Estimate your wealth creation over time.</p>
         <div class="mini-calc-form" onclick="event.stopPropagation()">
@@ -268,7 +268,7 @@
         </div>
       </div>
       <!-- SWP -->
-      <div class="mini-tool-card" onclick="window.location.href='swp-calculator.html'">
+      <div class="mini-tool-card" onclick="window.location.href='../swp-calculator.html'">
         <h3>🏦 Retirement SWP</h3>
         <p>Plan your monthly pension withdrawals.</p>
         <div class="mini-calc-form" onclick="event.stopPropagation()">
@@ -693,25 +693,6 @@
       </div>
     </div>
   </section><!-- FOOTER -->
-  
-      <!-- Cross-Linking Footer Network -->
-  <div class="network-footer">
-    <p class="network-title">Explore Our Other Free Tools</p>
-    <div class="network-links">
-      <a href="https://www.getatsready.com/" title="Free ATS Resume Checker" class="network-link" data-id="ats">
-        <img src="https://www.getatsready.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">ATS Resume Checker</span>
-      </a>
-      <a href="https://www.pregnancyweektracker.com/" title="Pregnancy Week by Week Tracker" class="network-link" data-id="pwt">
-        <img src="https://www.pregnancyweektracker.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">Pregnancy Tracker</span>
-      </a>
-      <a href="https://www.globalvisamath.com/" title="Schengen Visa & Immigration Calculators" class="network-link" data-id="gvm">
-        <img src="https://www.globalvisamath.com/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">Global Visa Math</span>
-      </a>
-      <a href="https://www.gpscamstamp.com/" title="Free GPS Photo Stamp Tool" class="network-link" data-id="gps">
-        <img src="https://www.gpscamstamp.com/assets/favicon.svg" alt="" class="network-icon-img" width="18" height="18"> <span class="network-text">GPS Cam Stamp</span>
-      </a>
-    </div>
-  </div>
 
 <footer class="footer">
     <div class="footer-inner">
@@ -735,8 +716,8 @@
     </div>
   </footer>
 
-  <script src="js/indicators.js" defer></script>
-  <script src="js/signals.js" defer></script>
+  <script src="../js/indicators.js" defer></script>
+  <script src="../js/signals.js" defer></script>
   <script src="../script.js?v=13" defer></script>
   <button id="backToTopBtn" class="back-to-top hidden" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

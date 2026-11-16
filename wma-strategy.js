@@ -26,7 +26,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!result) throw new Error("Invalid data format from Yahoo Finance.");
 
     const timestamps = result.timestamp || [];
-    const closes = result.indicators?.quote?.[0]?.close || [];
+    const quote = result.indicators?.quote?.[0] || {};
+    const opens = quote.open || [];
+    const closes = quote.close || [];
     
     // Filter out null closes
     const cleanData = [];
@@ -34,12 +36,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (closes[i] !== null && closes[i] !== undefined) {
         cleanData.push({
           date: new Date(timestamps[i] * 1000),
+          open: opens[i] ?? null,
           close: closes[i]
         });
       }
     }
 
-    if (cleanData.length < 12) {
+    if (cleanData.length < 13) {
       throw new Error("Not enough data to calculate 12-week moving average.");
     }
 
@@ -65,24 +68,24 @@ document.addEventListener('DOMContentLoaded', async () => {
       let cash = initialCapital;
       let shares = 0;
       let position = 'CASH';
-      
-      let bhShares = initialCapital / cleanData[wmaPeriod].close;
+
+      const getExecPrice = (bar) => (bar.open != null && bar.open > 0) ? bar.open : bar.close;
+      let bhShares = initialCapital / getExecPrice(cleanData[wmaPeriod]);
       let trades = 0;
       
-      for(let i = wmaPeriod + 1; i < cleanData.length; i++) {
+      for(let i = wmaPeriod; i < cleanData.length; i++) {
         const row = cleanData[i];
         const prevRow = cleanData[i-1];
+        const execPrice = getExecPrice(row);
         
-        // Signal logic based on previous week's close vs WMA
+        // Signal logic based on previous week's close vs WMA; execute at next week's open
         if (prevRow.close > prevRow.wma12 && position === 'CASH') {
-           // Buy at current week's close (approximation for next open)
-           shares = cash / row.close;
+           shares = cash / execPrice;
            cash = 0;
            position = 'LONG';
            trades++;
         } else if (prevRow.close < prevRow.wma12 && position === 'LONG') {
-           // Sell at current week's close
-           cash = shares * row.close;
+           cash = shares * execPrice;
            shares = 0;
            position = 'CASH';
            trades++;

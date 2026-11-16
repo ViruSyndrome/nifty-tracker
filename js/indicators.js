@@ -103,10 +103,11 @@ const Indicators = {
 
   // ─── Bollinger Bands ────────────────────────────────────────────────────────
   bollingerBands(closes, period = 20, mult = 2) {
-    const middle   = this.sma(closes, period);
-    const upper    = new Array(closes.length).fill(null);
-    const lower    = new Array(closes.length).fill(null);
-    const percentB = new Array(closes.length).fill(null);
+    const middle    = this.sma(closes, period);
+    const upper     = new Array(closes.length).fill(null);
+    const lower     = new Array(closes.length).fill(null);
+    const percentB  = new Array(closes.length).fill(null);
+    const bandWidth = new Array(closes.length).fill(null);
 
     for (let i = period - 1; i < closes.length; i++) {
       if (middle[i] === null) continue;
@@ -114,12 +115,13 @@ const Indicators = {
       if (slice.length < period) continue;
       const variance = slice.reduce((s, v) => s + Math.pow(v - middle[i], 2), 0) / period;
       const sd = Math.sqrt(variance);
-      upper[i]    = middle[i] + mult * sd;
-      lower[i]    = middle[i] - mult * sd;
-      const bandWidth = upper[i] - lower[i];
-      percentB[i] = bandWidth > 0 ? (closes[i] - lower[i]) / bandWidth : 0.5;
+      upper[i]     = middle[i] + mult * sd;
+      lower[i]     = middle[i] - mult * sd;
+      const bw     = upper[i] - lower[i];
+      bandWidth[i] = middle[i] !== 0 ? bw / middle[i] : 0;
+      percentB[i]  = bw > 0 ? (closes[i] - lower[i]) / bw : 0.5;
     }
-    return { upper, middle, lower, percentB };
+    return { upper, middle, lower, percentB, bandWidth };
   },
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -201,5 +203,37 @@ const Indicators = {
       if (v != null && !isNaN(v)) { sum += v; count++; }
     }
     return count > 0 ? sum / count : null;
+  },
+
+  /**
+   * Chandelier Exit trailing stop series (Long & Short) using Highest High / Lowest Low and ATR.
+   */
+  chandelierExit(highs, lows, closes, period = 22, mult = 3) {
+    const n = closes ? closes.length : 0;
+    const longExit = new Array(n).fill(null);
+    const shortExit = new Array(n).fill(null);
+    if (!highs || !lows || !closes || highs.length !== n || lows.length !== n || n < period + 1) {
+      return { long: longExit, short: shortExit };
+    }
+    const atrArr = this.atr(highs, lows, closes, period);
+    for (let i = period; i < n; i++) {
+      if (atrArr[i] == null) continue;
+      let hh = -Infinity;
+      let ll = Infinity;
+      let valid = true;
+      for (let j = i - period + 1; j <= i; j++) {
+        const h = highs[j], l = lows[j];
+        if (h == null || isNaN(h) || l == null || isNaN(l)) {
+          valid = false;
+          break;
+        }
+        if (h > hh) hh = h;
+        if (l < ll) ll = l;
+      }
+      if (!valid) continue;
+      longExit[i] = hh - mult * atrArr[i];
+      shortExit[i] = ll + mult * atrArr[i];
+    }
+    return { long: longExit, short: shortExit };
   },
 };

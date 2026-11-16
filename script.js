@@ -136,12 +136,12 @@ const NIFTY50_SYMBOLS = [
 
 // -- Broad Market (Mid-cap High Volatility) --
 const BROAD_MARKET_SYMBOLS = [
-  'ZOMATO.NS', 'PAYTM.NS', 'NYKAA.NS', 'IDEA.NS', 'SUZLON.NS',
+  'ETERNAL.NS', 'PAYTM.NS', 'NYKAA.NS', 'IDEA.NS', 'SUZLON.NS',
   'IRFC.NS', 'RVNL.NS', 'MAZDOCK.NS', 'POLYCAB.NS', 'TRENT.NS',
   'HAL.NS', 'BEL.NS', 'MCX.NS', 'IREDA.NS', 'JIOFIN.NS',
   'BHEL.NS', 'NHPC.NS', 'YESBANK.NS', 'PFC.NS', 'RECLTD.NS',
-  'GMRINFRA.NS', 'KALYANKJIL.NS', 'HDFCAMC.NS', 'CDSL.NS', 'MAPMYINDIA.NS',
-  'AUsmall.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS',
+  'GMRAIRPORT.NS', 'KALYANKJIL.NS', 'HDFCAMC.NS', 'CDSL.NS', 'MAPMYINDIA.NS',
+  'AUBANK.NS', 'AARTIIND.NS', 'ABCAPITAL.NS', 'ABFRL.NS', 'ASHOKLEY.NS',
   'FEDERALBNK.NS', 'FORTIS.NS', 'IDFCFIRSTB.NS', 'JUBLFOOD.NS', 'LUPIN.NS',
   'CENTRALBK.NS', 'IOB.NS', 'PNB.NS', 'HUDCO.NS', 'IRCTC.NS',
   'SAIL.NS', 'NBCC.NS', 'NMDC.NS', 'MANAPPURAM.NS', 'MUTHOOTFIN.NS',
@@ -150,12 +150,12 @@ const BROAD_MARKET_SYMBOLS = [
 
 // -- Commodities --
 // Spot metals: GC=F / SI=F (USD/troy oz) × USDINR=X ÷ 31.1035 g/oz × India duties = INR
-// India duties: import duty 15% + GST 3% = × 1.1845
-const INDIA_METAL_DUTY = 1.15 * 1.03; // 15% import duty + 3% GST
+// India duties: import duty 6% + GST 3% = × 1.0918
+const INDIA_METAL_DUTY = 1.06 * 1.03; // 6% import duty + 3% GST
 const COMMODITIES = [
-  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 24K per 10g in INR — international gold price × USD/INR, adjusted for India import duty (15%) and GST (3%). May differ slightly from local jeweller rates.' },
-  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true,  purity: 22/24,  gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 22K per 10g in INR — 91.67% of 24K price with India import duty (15%) + GST (3%). Standard jewellery karat in India.' },
-  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Silver per 10g in INR — international silver price × USD/INR, adjusted for India import duty (15%) and GST (3%).' },
+  { id: 'gold-24k', symbol: 'GC=F',     label: 'Gold 24K (10g)', isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 24K per 10g in INR — international gold price × USD/INR, adjusted for India import duty (6%) and GST (3%). May differ slightly from local jeweller rates.' },
+  { id: 'gold-22k', symbol: 'GC=F',     label: 'Gold 22K (10g)', isSpot: true,  purity: 22/24,  gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Gold 22K per 10g in INR — 91.67% of 24K price with India import duty (6%) + GST (3%). Standard jewellery karat in India.' },
+  { id: 'silver',   symbol: 'SI=F',     label: 'Silver (10g)',   isSpot: true,  purity: 1,      gramsPerUnit: 31.1035, displayGrams: 10,  tooltip: 'Silver per 10g in INR — international silver price × USD/INR, adjusted for India import duty (6%) and GST (3%).' },
   { id: 'crude',    symbol: 'CL=F',     label: 'Crude Oil (bbl)', isFX: true,    tooltip: 'WTI Crude Oil futures (1 barrel) converted to INR at live USD/INR rate' },
   { id: 'natgas',   symbol: 'NG=F',     label: 'Natural Gas',     isFX: true,    tooltip: 'Henry Hub Natural Gas futures (per MMBtu) converted to INR at live USD/INR rate' },
   { id: 'copper',   symbol: 'HG=F',     label: 'Copper (1kg)',    isFX: true,    kgPerUnit: 1/2.20462, tooltip: 'COMEX Copper futures (per lb) × 2.20462 → per kg, converted to INR at live USD/INR rate' },
@@ -533,8 +533,9 @@ async function loadIndices() {
     var el = document.getElementById(idx.id);
     if (!el) return;
     var data = await fetchYahoo(idx.symbol);
-    el.classList.remove('skeleton');
+    el.classList.remove('skeleton', 'positive', 'negative', 'neutral');
     if (!data) {
+      el.classList.add('neutral');
       el.innerHTML = '<div class="idx-name">' + idx.name + '</div><div class="idx-price">—</div><div class="idx-change neutral">Unavailable</div>';
       return;
     }
@@ -637,14 +638,29 @@ async function loadPopular() {
 // =============================================
 // GAINERS / LOSERS
 // =============================================
+async function fetchYahooBatched(symbols, batchSize, delayMs) {
+  batchSize = batchSize || 10;
+  delayMs = delayMs || 150;
+  var results = [];
+  for (var i = 0; i < symbols.length; i += batchSize) {
+    var batch = symbols.slice(i, i + batchSize);
+    var batchRes = await Promise.all(batch.map(function(sym) { return fetchYahoo(sym); }));
+    results.push.apply(results, batchRes);
+    if (i + batchSize < symbols.length && delayMs > 0) {
+      await new Promise(function(resolve) { setTimeout(resolve, delayMs); });
+    }
+  }
+  return results;
+}
+
 async function loadMovers() {
   var gEl = document.getElementById('gainersList');
   var lEl = document.getElementById('losersList');
   var bgEl = document.getElementById('broadGainersList');
   var blEl = document.getElementById('broadLosersList');
 
-  // 1. Fetch Nifty 50
-  var results = await Promise.all(NIFTY50_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
+  // 1. Fetch Nifty 50 in batches to avoid proxy/upstream bursts
+  var results = await fetchYahooBatched(NIFTY50_SYMBOLS, 10, 150);
   var valid = results.filter(Boolean).map(function(d) {
     return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
   }).filter(function(d) { return d.pct != null; });
@@ -675,20 +691,20 @@ async function loadMovers() {
     if (lEl) lEl.innerHTML = msg;
   }
 
-  // 2. Fetch Broad Market (Curated volatile set)
-  var bResults = await Promise.all(BROAD_MARKET_SYMBOLS.map(function(sym) { return fetchYahoo(sym); }));
+  // 2. Fetch Broad Market (Curated volatile set) in batches
+  var bResults = await fetchYahooBatched(BROAD_MARKET_SYMBOLS, 10, 150);
   var bValid = bResults.filter(Boolean).map(function(d) {
     return Object.assign({}, d, { pct: changePct(d.price, d.prevClose) });
   }).filter(function(d) { return d.pct != null; });
 
-  if (bValid.length && bgEl) {
+  if (bValid.length && (bgEl || blEl)) {
     bValid.sort(function(a, b) { return b.pct - a.pct; });
-    renderMovers('broadGainersList', bValid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
-    renderMovers('broadLosersList',  bValid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
-  } else if (bgEl) {
+    if (bgEl) renderMovers('broadGainersList', bValid.filter(function(d) { return d.pct > 0; }).slice(0, 5), 'positive');
+    if (blEl) renderMovers('broadLosersList',  bValid.filter(function(d) { return d.pct < 0; }).reverse().slice(0, 5), 'negative');
+  } else if (bgEl || blEl) {
     var bMsg = '<div class="mover-empty">Data unavailable</div>';
-    bgEl.innerHTML = bMsg;
-    blEl.innerHTML = bMsg;
+    if (bgEl) bgEl.innerHTML = bMsg;
+    if (blEl) blEl.innerHTML = bMsg;
   }
 }
 
@@ -1110,20 +1126,33 @@ if (searchInput) searchInput.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doSearch();
 });
 
-var urlQ = new URLSearchParams(window.location.search).get('q');
+var urlParams = new URLSearchParams(window.location.search);
+var urlQ = urlParams.get('q');
+var urlStock = urlParams.get('stock');
 if (urlQ && searchInput) {
   searchInput.value = urlQ;
   searchAndShow(urlQ);
+} else if (urlStock && searchInput) {
+  searchInput.value = urlStock;
+  if (/^[A-Z0-9.^_-]+\.(NS|BO)$/i.test(urlStock)) {
+    searchBySymbol(urlStock, urlStock.replace(/\.(NS|BO)$/i, ''));
+  } else {
+    searchAndShow(urlStock);
+  }
 }
 
 // =============================================
 // AUTO REFRESH every 20s + live counter
 // =============================================
+var _hasDashboard = !!document.getElementById('idx-nifty50');
+
 function updateLastUpdated() {
+  if (!_hasDashboard) return;
   LiveStatus.paint();
 }
 
 async function _pollCycle() {
+  if (!_hasDashboard) return;
   LiveStatus.begin();
   try {
     await Promise.all([loadIndices(), loadCommodities(), loadWatchlist()]);
@@ -1138,36 +1167,46 @@ async function _pollCycle() {
   }
 }
 
-var _dataPollingInterval = setInterval(_pollCycle, 20000);
-var _moversPollingInterval = setInterval(loadMovers, 45000); // feeds the live market pulse tape
-var _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+var _dataPollingInterval = null;
+var _moversPollingInterval = null;
+var _uiTickInterval = null;
 
-// ── Pause polling when tab is hidden (Page Visibility API) ──
-document.addEventListener('visibilitychange', function() {
-  if (document.hidden) {
-    clearInterval(_dataPollingInterval);
-    clearInterval(_moversPollingInterval);
-    clearInterval(_uiTickInterval);
-  } else {
-    // Resume polling and trigger immediate refresh
-    _dataPollingInterval = setInterval(_pollCycle, 20000);
-    _moversPollingInterval = setInterval(loadMovers, 45000);
-    _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
-    // Immediate refresh on tab return
-    _pollCycle();
-    loadMovers();
-    updateMarketStatus();
-  }
-});
+function _startDashboardPolling() {
+  if (!_hasDashboard) return;
+  if (!_dataPollingInterval) _dataPollingInterval = setInterval(_pollCycle, 20000);
+  if (!_moversPollingInterval) _moversPollingInterval = setInterval(loadMovers, 45000); // feeds the live market pulse tape
+  if (!_uiTickInterval) _uiTickInterval = setInterval(function() { updateLastUpdated(); updateMarketStatus(); }, 1000);
+}
+
+function _stopDashboardPolling() {
+  clearInterval(_dataPollingInterval);
+  clearInterval(_moversPollingInterval);
+  clearInterval(_uiTickInterval);
+  _dataPollingInterval = null;
+  _moversPollingInterval = null;
+  _uiTickInterval = null;
+}
+
+if (_hasDashboard) {
+  _startDashboardPolling();
+
+  // ── Pause polling when tab is hidden (Page Visibility API) ──
+  document.addEventListener('visibilitychange', function() {
+    if (document.hidden) {
+      _stopDashboardPolling();
+    } else {
+      // Resume polling and trigger immediate refresh
+      _startDashboardPolling();
+      _pollCycle();
+      loadMovers();
+      updateMarketStatus();
+    }
+  });
+}
 
 // =============================================
 // MARKET STATUS & GLOBAL CUES
 // =============================================
-function getISTDate() {
-  var now = new Date();
-  var utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
-  return new Date(utcMs + (330 * 60000)); // UTC+5:30
-}
 
 function getMarketStatus() {
   var now = new Date();
@@ -1327,22 +1366,34 @@ async function loadCommodities() {
     var rawPrev   = data.prevClose || rawPrice;
     var displayPrice;
 
-    if (c.isSpot && usdInr) {
+    if (c.isSpot) {
+      if (!usdInr) {
+        el.querySelector('.idx-price').textContent  = '—';
+        el.querySelector('.idx-change').textContent = 'FX unavailable';
+        el.classList.remove('positive', 'negative', 'neutral');
+        el.classList.add('neutral');
+        return;
+      }
       // International USD/troy-oz → INR per displayGrams, with India import duty + GST
       displayPrice     = (rawPrice  * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
       var prevDisplay  = (rawPrev   * usdInr / c.gramsPerUnit) * c.displayGrams * (c.purity || 1) * INDIA_METAL_DUTY;
       pctVal           = changePct(displayPrice, prevDisplay);
       priceStr         = '₹' + fmt(Math.round(displayPrice));
-    } else if (c.isFX && usdInr) {
-      // USD-denominated futures → INR, with optional per-kg conversion for copper
-      var mult         = c.kgPerUnit ? (1 / c.kgPerUnit) : 1; // HG=F: per lb → per kg
-      displayPrice     = rawPrice * usdInr * (c.kgPerUnit ? (1 / c.kgPerUnit) : 1);
-      // copper: HG=F is USD/lb, kgPerUnit = 1/2.20462 → multiply by 2.20462 for per-kg price
-      if (c.kgPerUnit) displayPrice = rawPrice * usdInr / c.kgPerUnit;
-      var prevFX       = rawPrev * usdInr * (c.kgPerUnit ? 1 / c.kgPerUnit : 1);
-      if (c.kgPerUnit) prevFX = rawPrev * usdInr / c.kgPerUnit;
-      pctVal           = changePct(displayPrice, prevFX);
-      priceStr         = '₹' + fmt(displayPrice, c.symbol === 'NG=F' ? 2 : 0);
+    } else if (c.isFX) {
+      var unitMult = c.kgPerUnit ? (1 / c.kgPerUnit) : 1; // HG=F: per lb → per kg
+      if (!usdInr) {
+        // Fallback to USD quote if USDINR=X failed — never label USD as INR
+        displayPrice     = rawPrice * unitMult;
+        var prevUsd      = rawPrev * unitMult;
+        pctVal           = changePct(displayPrice, prevUsd);
+        priceStr         = '$' + displayPrice.toFixed(2);
+      } else {
+        // USD-denominated futures → INR
+        displayPrice     = rawPrice * usdInr * unitMult;
+        var prevFX       = rawPrev * usdInr * unitMult;
+        pctVal           = changePct(displayPrice, prevFX);
+        priceStr         = '₹' + fmt(displayPrice, c.symbol === 'NG=F' ? 2 : 0);
+      }
     } else {
       // Plain FX pairs (USD/INR, GBP/INR, EUR/INR) — price already in INR
       displayPrice     = rawPrice;
@@ -1470,7 +1521,7 @@ async function loadFIIDII() {
   let localData = [];
   try {
     // Fetch without cache-buster - GitHub Pages caches files by default
-    const localRes = await fetch('data/fiidii.json');
+    const localRes = await fetch('/data/fiidii.json');
     if (localRes.ok) {
       const parsed = await localRes.json();
       if (Array.isArray(parsed) && parsed.length) {
@@ -1530,7 +1581,7 @@ function goSip() {
     return;
   }
   trackEvent('calculate_sip');
-  window.location.href = `sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
+  window.location.href = `/sip-calculator.html?amt=${amt}&rate=${rate}&time=${time}`;
 }
 
 function goSwp() {
@@ -1539,7 +1590,7 @@ function goSwp() {
   const time = document.getElementById('miniSwpYrs') ? document.getElementById('miniSwpYrs').value : 10;
   const rate = document.getElementById('miniSwpRate') ? document.getElementById('miniSwpRate').value : 8;
   trackEvent('calculate_swp');
-  window.location.href = `swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
+  window.location.href = `/swp-calculator.html?amt=${amt}&rate=${rate}&time=${time}&wd=${wd}`;
 }
 
 async function loadSectors() {
@@ -1711,47 +1762,6 @@ async function loadWatchlist() {
   }));
 }
 
-// --- MARKET STATUS BANNER ---
-function checkMarketStatus() {
-  var now = new Date();
-  var utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-  var istTime = new Date(utc + (3600000 * 5.5));
-  
-  var day = istTime.getDay();
-  var hours = istTime.getHours();
-  var mins = istTime.getMinutes();
-  
-  var dot = document.getElementById('marketDot');
-  var label = document.getElementById('marketLabel');
-  
-  if (!dot || !label) return;
-  
-  if (day === 0 || day === 6) {
-    setMarketClosed(dot, label);
-    return;
-  }
-  
-  var totalMins = (hours * 60) + mins;
-  var openMins = (9 * 60) + 15;
-  var closeMins = (15 * 60) + 30;
-  
-  if (totalMins >= openMins && totalMins <= closeMins) {
-    dot.style.backgroundColor = '#22c55e';
-    dot.style.animation = 'pulse 2s infinite';
-    label.innerText = 'LIVE';
-    label.style.color = '#22c55e';
-  } else {
-    setMarketClosed(dot, label);
-  }
-}
-
-function setMarketClosed(dot, label) {
-  dot.style.backgroundColor = '#64748b';
-  dot.style.animation = 'none';
-  label.innerText = 'CLOSED';
-  label.style.color = '#64748b';
-}
-
 // --- SHAREABLE WATCHLIST ---
 function processUrlWatchlist() {
   var params = new URLSearchParams(window.location.search);
@@ -1799,12 +1809,17 @@ function shareWatchlist() {
 }
 
 (async function init() {
+  document.addEventListener('scroll', hideSparkTip, true);
+  hideEmptyAdSlots();
+  window.addEventListener('load', hideEmptyAdSlots);
+  setTimeout(hideEmptyAdSlots, 9000);
+
+  if (!_hasDashboard) return;
+
   processUrlWatchlist();
-  checkMarketStatus();
-  setInterval(checkMarketStatus, 60000);
+  updateMarketStatus();
   LiveStatus.paint(); // shows "Connecting…" immediately
 
-  document.addEventListener('scroll', hideSparkTip, true);
   renderCommodities();
   renderRecentlySearched();
   loadWatchlist();
@@ -1819,9 +1834,6 @@ function shareWatchlist() {
   loadCommodities();
   loadFIIDII();
   loadSectors();
-  hideEmptyAdSlots();
-  window.addEventListener('load', hideEmptyAdSlots);
-  setTimeout(hideEmptyAdSlots, 9000);
   setInterval(loadFIIDII, 10 * 60 * 1000); // refresh FII/DII every 10 minutes
 })();
 
